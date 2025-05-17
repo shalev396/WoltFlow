@@ -1,0 +1,4 @@
+.serverless
+*.pyc
+*.pyo
+db.json
