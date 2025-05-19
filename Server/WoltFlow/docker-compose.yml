@@ -1,0 +1,50 @@
+services:
+  woltflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Add build args to prevent cache issues
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: woltflow
+    volumes:
+      # Volume for screenshots to persist across container restarts
+      - ./screenshots:/app/screenshots
+      # Volume for db.json to use credentials from host system
+      - ./db.json:/app/db.json
+      # Volume for chrome_profiles to persist browser sessions
+      - ./chrome_profiles:/app/chrome_profiles
+    ports:
+      # Expose Chrome debugging port
+      - "9222:9222"
+    environment:
+      # Log verbosity
+      - PYTHONUNBUFFERED=1
+      # Set to make debugging easier
+      - DEBUG_CHROME=1
+      # Database configuration - uncomment and configure for PostgreSQL
+      # - DATABASE_URL=postgresql://user:password@host/woltflow
+    # Command to run the new batch processor
+    command: "/app/run_with_xvfb.sh index.py"
+    # Run the container with extra privileges required for Chrome
+    cap_add:
+      - SYS_ADMIN
+    # Make sure we have enough shared memory for Chrome
+    shm_size: 2gb
+
+  # Uncomment this service to run with a local PostgreSQL database
+  # postgres:
+  #   image: postgres:15
+  #   container_name: woltflow-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=woltflow
+  #     - POSTGRES_PASSWORD=woltflow
+  #     - POSTGRES_DB=woltflow
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+# Uncomment this if using the PostgreSQL service
+# volumes:
+#   postgres-data:

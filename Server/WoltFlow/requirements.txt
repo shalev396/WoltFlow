@@ -2,4 +2,12 @@ selenium>=4.15.0
 undetected-chromedriver>=3.5.0
 selenium-stealth>=1.0.6
 pyotp>=2.9.0
-psutil>=5.9.0 
+psutil>=5.9.0
+# PostgreSQL and SQLAlchemy dependencies
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+# .env file support
+python-dotenv>=1.0.0
+# AWS dependencies for serverless deployment
+boto3>=1.34.0
+botocore>=1.34.0 

@@ -1,10 +1,10 @@
 # WoltFlow
 
-An automated solution for Wolt.com login automation using Selenium and Chrome remote debugging.
+An automated solution for Wolt.com login automation using Selenium, Chrome, and PostgreSQL.
 
 ## Overview
 
-WoltFlow automates the process of logging into Wolt.com using Google authentication with two-factor authentication (2FA) support. The script uses Chrome's remote debugging protocol to launch a browser that Selenium can control, providing a more reliable experience than traditional WebDriver approaches.
+WoltFlow automates the process of logging into Wolt.com using Google authentication with two-factor authentication (2FA) support. The script uses Chrome's remote debugging protocol to launch a browser that Selenium can control, providing a reliable experience than traditional WebDriver approaches. User credentials are stored in a PostgreSQL database for multi-user support.
 
 ## Features
 
@@ -13,18 +13,17 @@ WoltFlow automates the process of logging into Wolt.com using Google authenticat
 - Supports two-factor authentication (TOTP)
 - Human-like interaction (random delays, natural typing)
 - Multi-language support (handles both English and Hebrew UI elements)
-- Saves cookies and localStorage after successful login
-- Works around anti-automation measures
+- PostgreSQL database integration for user credential storage
+- AWS Lambda deployment with Serverless Framework
+- Docker containerization for consistent execution environment
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.9+
 - Google Chrome browser installed
-- Python packages (see requirements.txt):
-  - selenium
-  - undetected-chromedriver
-  - selenium-stealth
-  - pyotp
+- PostgreSQL database
+- AWS account (for Lambda deployment)
+- Python packages (see requirements.txt)
 
 ## Setup
 
@@ -41,76 +40,83 @@ WoltFlow automates the process of logging into Wolt.com using Google authenticat
    pip install -r Server/WoltFlow/requirements.txt
    ```
 
-3. Configure credentials using one of these methods:
+3. Set up the PostgreSQL database:
 
-   **Option A: Use a `secret.json` file in the `Server/WoltFlow` directory:**
-
-   ```json
-   {
-     "totp": "YOUR_TOTP_SECRET_KEY",
-     "email": "YOUR_GOOGLE_EMAIL",
-     "password": "YOUR_GOOGLE_PASSWORD"
-   }
+   ```
+   cd Server/WoltFlow
+   python test_local.py
    ```
 
-   **Option B: Set environment variables (more secure):**
+   This will:
 
-   ```bash
-   # For Linux/macOS
-   export GOOGLE_EMAIL="your.email@gmail.com"
-   export GOOGLE_PASSWORD="your_password"
+   - Create a `.env` file (edit this with your actual configuration)
+   - Test your database connection
+   - Verify the required schema exists
 
-   # For Windows PowerShell
-   $env:GOOGLE_EMAIL="your.email@gmail.com"
-   $env:GOOGLE_PASSWORD="your_password"
+4. Test the Wolt login process:
+
+   ```
+   # The test_local.py script will prompt to test Wolt login if the database test succeeds
+   python test_local.py
    ```
 
-   > **Note:** The TOTP secret key should be obtained from your Google Authenticator or other 2FA app.
+## Deployment to AWS
 
-## Usage
+### Docker-based AWS Lambda Deployment (Recommended)
 
-Run the login script:
+The recommended approach for deploying to AWS Lambda uses Docker to package Chrome and all dependencies:
+
+```bash
+# Windows PowerShell
+cd Server/WoltFlow
+./deploy.ps1
+
+# Linux/macOS
+cd Server/WoltFlow
+chmod +x deploy.sh
+./deploy.sh
+```
+
+This deployment creates two Lambda functions:
+
+1. `initializeAutomation`: Scheduled to run daily at 13:00 Israel time
+2. `processUser`: Processes a specific user from the database
+
+See the [Deployment Documentation](Server/WoltFlow/docs/deployment.md) for detailed instructions.
+
+### Manual Deployment
+
+Alternatively, you can use the Serverless Framework directly:
 
 ```bash
 cd Server/WoltFlow
-python wolt_login.py
+serverless deploy
 ```
 
-The script will:
+## Database Schema
 
-1. Launch a new Chrome browser with a fresh profile
-2. Navigate to Wolt.com
-3. Click the login button
-4. Select Google login
-5. Enter your credentials
-6. Handle 2FA verification
-7. Save cookies and localStorage after successful login
+The PostgreSQL database stores user credentials with the following fields:
 
-## How It Works
-
-1. **Chrome Launch**: The script launches Chrome with remote debugging enabled and a temporary profile.
-2. **Selenium Connection**: It connects to Chrome using the remote debugging protocol.
-3. **Login Process**:
-   - Navigates to Wolt
-   - Finds and clicks login buttons
-   - Enters Google credentials
-   - Handles the "another way" verification flow
-   - Generates and enters TOTP code
-   - Verifies successful login
-4. **Cookie Saving**: After successful login, it saves cookies and localStorage for future use.
-
-## Troubleshooting
-
-- **Screenshot Diagnostics**: The script saves screenshots at each step in the `Server/WoltFlow/screenshots` directory to help with debugging.
-- **Chrome Not Found**: If Chrome isn't detected automatically, edit the `get_chrome_path()` function to include your Chrome installation path.
-- **Login Failures**: Check the screenshot files to see where the process failed.
+- `id` - Primary key
+- `gmail_email` - Google account email
+- `gmail_password` - Google account password
+- `totp_secret` - TOTP secret key for two-factor authentication
+- `last_login` - Timestamp of last login attempt
+- `login_status` - Status of last login attempt
+- `cibus_email` - Cibus account email
+- `cibus_password` - Cibus account password
+- `cibus_company` - Cibus company name
+- `gift_amount` - Gift amount value
+- `email` - General purpose email
+- `password` - General purpose password
 
 ## Security Considerations
 
-- Store credentials securely; consider using environment variables over the secret.json file
-- The temporary profile is created in the script directory and should be cleaned up when no longer needed
-- Be careful not to expose your 2FA secret key
-- Never commit your secret.json file to version control (add it to .gitignore)
+- Store credentials securely in a properly configured PostgreSQL database
+- Ensure your DATABASE_URL uses SSL/TLS for secure connections
+- Configure proper AWS security groups to limit database access
+- Use AWS IAM roles to control access to the Lambda functions
+- Never commit your `.env` file to version control (add it to .gitignore)
 
 ## License
 

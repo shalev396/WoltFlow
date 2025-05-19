@@ -35,6 +35,8 @@ Server/WoltFlow/cookies/
 *.png
 Server/WoltFlow/temp_profile_*/
 Server/WoltFlow/chrome_profile/
+Server/WoltFlow/chrome/*/master_preferences
+Server/WoltFlow/chrome_profiles/*/master_preferences
 
 # IDE
 .idea/
@@ -50,3 +52,16 @@ logs/
 # OS specific
 .DS_Store
 Thumbs.db 
+
+.serverless
+*.pyc
+*.pyo
+db.json
+__pycache__/
+temp_profile_*/
+screenshots/
+chrome_profiles/
+chrome/*/master_preferences
+chrome_profiles/*/master_preferences
+*chrome
+*node_modules

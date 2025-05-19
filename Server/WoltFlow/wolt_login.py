@@ -8,20 +8,64 @@ import pyotp
 import subprocess
 import signal
 import psutil
+import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+# Configure logging first to avoid 'logger not defined' error
+logger = logging.getLogger("WoltLogin")
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    logger.addHandler(logging.StreamHandler())
 
 # Setup directories
-current_dir = os.path.dirname(os.path.abspath(__file__))
-screenshots_dir = os.path.join(current_dir, 'screenshots')
+screenshots_dir = os.environ.get("SCREENSHOTS_DIR")
+if not screenshots_dir:
+    # For non-Lambda environments
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    if os.path.exists("/var/task"):
+        # In Lambda, use /tmp for writable storage
+        screenshots_dir = "/tmp/screenshots"
+    else:
+        screenshots_dir = os.path.join(current_dir, 'screenshots')
 
 # Create screenshots directory if it doesn't exist
 if not os.path.exists(screenshots_dir):
     os.makedirs(screenshots_dir)
+    
+logger.info(f"Using screenshots directory: {screenshots_dir}")
+
+# SQLAlchemy Base
+Base = declarative_base()
+
+# Define User model
+class User(Base):
+    """User model for SQLAlchemy"""
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    gmail_email = Column(String, nullable=False)
+    gmail_password = Column(String, nullable=False)
+    totp_secret = Column(String, nullable=True)
+    last_login = Column(String, nullable=True)
+    login_status = Column(String, nullable=True)
+    # New fields
+    cibus_email = Column(String, nullable=True)
+    cibus_password = Column(String, nullable=True)
+    cibus_company = Column(String, nullable=True)
+    gift_amount = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    password = Column(String, nullable=True)
+    
+    def __repr__(self):
+        return f"<User(id={self.id}, email={self.gmail_email})>"
 
 # Track temporary profiles for cleanup
 temp_profiles = []
@@ -39,24 +83,88 @@ def human_type(element, text):
 
 def get_chrome_path():
     """Find the Chrome executable path"""
+    # First check if Chrome path is set in environment variable (for Lambda)
+    chrome_path_env = os.environ.get("CHROME_PATH")
+    if chrome_path_env and os.path.exists(chrome_path_env):
+        logger.info(f"Using Chrome from environment variable: {chrome_path_env}")
+        return chrome_path_env
+    
+    # Get the absolute path to the current directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Check Lambda specific location
+    lambda_chrome_path = "/opt/chrome/chrome"
+    if os.path.exists(lambda_chrome_path):
+        logger.info(f"Using Chrome from Lambda path: {lambda_chrome_path}")
+        return lambda_chrome_path
+    
+    # First check standard Linux Chrome locations (higher priority in Docker)
+    linux_chrome_paths = [
+        "/usr/bin/google-chrome",  # Standard Debian/Ubuntu location
+        "/usr/bin/google-chrome-stable",  # Alternative Linux location
+        "/opt/google/chrome/chrome"  # Another possible location
+    ]
+    
+    for path in linux_chrome_paths:
+        if os.path.exists(path):
+            logger.info(f"Using Chrome from Linux path: {path}")
+            return path
+    
+    # Try several possible paths for the local Chrome installation
+    local_chrome_paths = [
+        os.path.join(current_dir, "chrome", "chrome.exe"),  # Direct in chrome folder - prioritize this
+    ]
+    
+    # Look for chrome.exe in the 136.0.7103.114 folder - there might not be one there
+    version_dir = os.path.join(current_dir, "chrome", "136.0.7103.114")
+    if os.path.exists(version_dir):
+        local_chrome_paths.append(os.path.join(version_dir, "chrome.exe"))
+    
+    for path in local_chrome_paths:
+        if os.path.exists(path):
+            logger.info(f"Using Chrome from local path: {path}")
+            return path
+    
+    # Fallback paths if local Chrome is not found
     chrome_paths = [
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",  # Windows
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",  # Windows 32-bit on 64-bit
         "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",  # macOS
-        "/usr/bin/google-chrome",  # Linux
-        "/usr/bin/google-chrome-stable"  # Linux
     ]
     
     for path in chrome_paths:
         if os.path.exists(path):
+            logger.info(f"Using Chrome from system path: {path}")
             return path
     
+    # If nothing is found, log the error
+    logger.error("No Chrome installation found. Please ensure Chrome is installed.")
     return None
 
 def create_temp_profile():
     """Create a temporary Chrome profile directory"""
-    # Create a unique temp directory name
-    temp_dir = os.path.join(current_dir, f"temp_profile_{uuid.uuid4().hex[:8]}")
+    # Check if CHROME_PROFILE_DIR environment variable is set (for Lambda)
+    chrome_profile_dir_env = os.environ.get("CHROME_PROFILE_DIR")
+    if chrome_profile_dir_env:
+        profiles_dir = chrome_profile_dir_env
+    else:
+        # Create a unique temp directory name
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Check if we're in Lambda - use /tmp for ephemeral storage
+        if os.path.exists("/var/task"):
+            profiles_dir = "/tmp/chrome_profiles"
+        else:
+            # Create a dedicated chrome_profiles directory to keep things organized
+            profiles_dir = os.path.join(current_dir, "chrome_profiles")
+    
+    # Make sure the directory exists
+    if not os.path.exists(profiles_dir):
+        os.makedirs(profiles_dir)
+    
+    # Create the specific profile directory with a unique ID
+    profile_id = uuid.uuid4().hex[:8]
+    temp_dir = os.path.join(profiles_dir, f"profile_{profile_id}")
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
     
@@ -64,6 +172,7 @@ def create_temp_profile():
     global temp_profiles
     temp_profiles.append(temp_dir)
     
+    print(f"Created temporary profile at: {temp_dir}")
     return temp_dir
 
 def kill_chrome_process(pid=None):
@@ -71,46 +180,82 @@ def kill_chrome_process(pid=None):
     global chrome_processes
     
     if pid:
+        # Skip invalid PIDs (like 0)
+        if pid <= 0:
+            print(f"Skipping invalid PID: {pid}")
+            return
+            
         try:
-            process = psutil.Process(pid)
-            if "chrome" in process.name().lower():
-                print(f"Terminating Chrome process with PID {pid}")
-                process.terminate()
-                process.wait(timeout=3)  # Wait for process to terminate
+            # Check if process exists before trying to terminate it
+            if psutil.pid_exists(pid):
+                process = psutil.Process(pid)
+                if "chrome" in process.name().lower():
+                    print(f"Terminating Chrome process with PID {pid}")
+                    process.terminate()
+                    process.wait(timeout=3)  # Wait for process to terminate
+                else:
+                    print(f"Process {pid} is not a Chrome process, skipping")
+            else:
+                print(f"Process with PID {pid} no longer exists")
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired) as e:
             print(f"Error terminating Chrome process {pid}: {e}")
             try:
                 if os.name == 'nt':
-                    subprocess.run(f"taskkill /F /PID {pid}", shell=True)
+                    # Only attempt if PID is valid
+                    if pid > 0:
+                        subprocess.run(f"taskkill /F /PID {pid}", shell=True, stderr=subprocess.PIPE)
                 else:
                     os.kill(pid, signal.SIGKILL)
             except Exception as e:
                 print(f"Failed to force kill process {pid}: {e}")
     else:
         # Kill all tracked Chrome processes
+        valid_processes = []
         for chrome_pid in chrome_processes:
+            # Skip invalid PIDs
+            if chrome_pid <= 0:
+                print(f"Skipping invalid PID: {chrome_pid}")
+                continue
+                
             try:
-                print(f"Terminating Chrome process with PID {chrome_pid}")
+                print(f"Checking Chrome process with PID {chrome_pid}")
                 if psutil.pid_exists(chrome_pid):
                     process = psutil.Process(chrome_pid)
+                    print(f"Terminating Chrome process with PID {chrome_pid}")
                     process.terminate()
-                    process.wait(timeout=3)
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired) as e:
-                print(f"Error terminating Chrome process {chrome_pid}: {e}")
+                    valid_processes.append(chrome_pid)
+                    try:
+                        process.wait(timeout=3)
+                    except psutil.TimeoutExpired:
+                        print(f"Process {chrome_pid} didn't terminate in time")
+                else:
+                    print(f"Process with PID {chrome_pid} no longer exists")
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                print(f"Error checking Chrome process {chrome_pid}: {e}")
                 try:
                     if os.name == 'nt':
-                        subprocess.run(f"taskkill /F /PID {chrome_pid}", shell=True)
+                        # Only attempt if PID is valid
+                        if chrome_pid > 0:
+                            subprocess.run(f"taskkill /F /PID {chrome_pid}", shell=True, stderr=subprocess.PIPE)
                     else:
                         os.kill(chrome_pid, signal.SIGKILL)
                 except Exception as e:
                     print(f"Failed to force kill process {chrome_pid}: {e}")
-                    
+                
         # Additional check for Chrome processes using debugging port
         if os.name == 'nt':
             try:
-                subprocess.run("taskkill /F /IM chrome.exe", shell=True)
+                # Use findstr to check first if there are chrome processes before killing
+                result = subprocess.run("tasklist | findstr chrome.exe", shell=True, 
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                if "chrome.exe" in result.stdout:
+                    print("Found Chrome processes still running, attempting to terminate")
+                    subprocess.run("taskkill /F /IM chrome.exe", shell=True, 
+                                  stderr=subprocess.PIPE)
+                else:
+                    print("No remaining Chrome processes found")
             except Exception as e:
-                print(f"Failed to kill Chrome processes: {e}")
+                print(f"Failed to check/kill Chrome processes: {e}")
                 
         # Reset the list
         chrome_processes = []
@@ -120,42 +265,205 @@ def cleanup_temp_profiles():
     global temp_profiles
     
     # First ensure all Chrome processes are terminated
+    print("Terminating Chrome processes before cleanup...")
     kill_chrome_process()
     
     # Wait a moment to ensure files are released
     time.sleep(2)
+    
+    # Track which profiles were successfully cleaned up
+    cleaned_profiles = []
+    failed_profiles = []
     
     # Now try to remove the profile directories
     for profile_dir in temp_profiles:
         try:
             if os.path.exists(profile_dir):
                 print(f"Cleaning up temporary profile: {profile_dir}")
-                shutil.rmtree(profile_dir, ignore_errors=True)
+                # Try to ensure all handles to files in this directory are closed
+                if os.name == 'nt':
+                    try:
+                        # On Windows, we can use handle.exe from SysInternals (if available)
+                        # This is optional and will be skipped if not available
+                        handle_path = os.path.join(current_dir, "tools", "handle.exe")
+                        if os.path.exists(handle_path):
+                            print(f"Using handle.exe to check for open handles to {profile_dir}")
+                            subprocess.run([handle_path, profile_dir], 
+                                          shell=True, 
+                                          stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE)
+                    except Exception as handle_err:
+                        print(f"Warning: Failed to check handles: {handle_err}")
+                
+                # Use different deletion strategies based on errors
+                try:
+                    # First try a normal delete
+                    shutil.rmtree(profile_dir, ignore_errors=False)
+                    cleaned_profiles.append(profile_dir)
+                except PermissionError:
+                    print(f"Permission error when deleting {profile_dir}, trying with ignore_errors=True")
+                    # If we get a permission error, try with ignore_errors=True
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+                    # Verify if it was actually removed
+                    if not os.path.exists(profile_dir):
+                        cleaned_profiles.append(profile_dir)
+                    else:
+                        failed_profiles.append(profile_dir)
+                except Exception as e:
+                    print(f"First attempt to delete {profile_dir} failed: {e}")
+                    failed_profiles.append(profile_dir)
+            else:
+                print(f"Profile directory already gone: {profile_dir}")
+                cleaned_profiles.append(profile_dir)
         except Exception as e:
             print(f"Error cleaning up profile {profile_dir}: {e}")
-            # Try again with a delay
-            try:
-                time.sleep(1)
-                if os.path.exists(profile_dir):
-                    shutil.rmtree(profile_dir, ignore_errors=True)
-            except Exception as e2:
-                print(f"Second attempt failed: {e2}")
+            failed_profiles.append(profile_dir)
     
-    # Reset the list
-    temp_profiles = []
+    # Try one more time for failed profiles after a longer delay
+    if failed_profiles:
+        print(f"{len(failed_profiles)} profile(s) could not be deleted, will retry after delay")
+        time.sleep(5)  # Longer delay
+        
+        retry_failed = []
+        for profile_dir in failed_profiles:
+            try:
+                if os.path.exists(profile_dir):
+                    print(f"Retrying cleanup of profile: {profile_dir}")
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+                    if not os.path.exists(profile_dir):
+                        print(f"Successfully cleaned up on retry: {profile_dir}")
+                    else:
+                        print(f"Still could not clean up: {profile_dir}")
+                        retry_failed.append(profile_dir)
+                else:
+                    print(f"Profile already removed during delay: {profile_dir}")
+            except Exception as e2:
+                print(f"Error during retry for {profile_dir}: {e2}")
+                retry_failed.append(profile_dir)
+        
+        if retry_failed:
+            print(f"WARNING: {len(retry_failed)} profile(s) could not be cleaned up")
+            for failed in retry_failed:
+                print(f"  - {failed}")
+            print("These directories may need to be manually deleted later")
+    
+    # Reset the list to only include profiles we couldn't clean up
+    temp_profiles = failed_profiles if failed_profiles else []
+    
+    # Check if chrome_profiles directory is empty, if so delete it
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    profiles_dir = os.path.join(current_dir, "chrome_profiles")
+    
+    if os.path.exists(profiles_dir):
+        try:
+            # Check if directory is empty
+            contents = os.listdir(profiles_dir)
+            if not contents:
+                print(f"Removing empty chrome_profiles directory")
+                os.rmdir(profiles_dir)
+            else:
+                print(f"chrome_profiles directory not empty, contains {len(contents)} items")
+                # List the first few items for debugging
+                for item in contents[:3]:
+                    print(f"  - {item}")
+                if len(contents) > 3:
+                    print(f"  - ... and {len(contents) - 3} more")
+        except Exception as e:
+            print(f"Error removing chrome_profiles directory: {e}")
 
 def kill_existing_chrome_debugging_sessions(port):
     """Kill any existing Chrome processes using the specified debugging port"""
     try:
+        print(f"Checking for Chrome processes on port {port}...")
+        found_processes = False
+        
         # Windows
         if os.name == 'nt':
-            os.system(f'for /f "tokens=5" %a in (\'netstat -aon ^| findstr :{port}\') do taskkill /F /PID %a')
+            # First check if any process is using the port
+            netstat_result = subprocess.run(
+                f'netstat -aon | findstr ":{port}"', 
+                shell=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                text=True
+            )
+            
+            if netstat_result.stdout.strip():
+                print(f"Found processes using port {port}")
+                found_processes = True
+                
+                # Extract PIDs from netstat result
+                pids = []
+                for line in netstat_result.stdout.strip().split('\n'):
+                    parts = line.strip().split()
+                    if len(parts) >= 5:
+                        try:
+                            pid = int(parts[4])
+                            if pid > 0:
+                                pids.append(pid)
+                        except ValueError:
+                            pass
+                
+                # Kill each process individually
+                for pid in pids:
+                    try:
+                        if psutil.pid_exists(pid):
+                            process = psutil.Process(pid)
+                            process_name = process.name().lower()
+                            if "chrome" in process_name:
+                                print(f"Terminating Chrome process with PID {pid}")
+                                process.terminate()
+                                try:
+                                    process.wait(timeout=3)
+                                except psutil.TimeoutExpired:
+                                    print(f"Process {pid} didn't terminate in time, force killing")
+                                    if os.name == 'nt':
+                                        subprocess.run(f"taskkill /F /PID {pid}", shell=True, stderr=subprocess.PIPE)
+                            else:
+                                print(f"Process {pid} using port {port} is not Chrome ({process_name}), skipping")
+                    except Exception as e:
+                        print(f"Error terminating process {pid}: {e}")
+            else:
+                print(f"No processes found using port {port}")
+        
         # Linux/Mac
         else:
-            os.system(f"lsof -ti tcp:{port} | xargs kill -9")
-        print(f"Killed any existing Chrome processes on port {port}")
-    except:
-        pass  # Ignore errors
+            lsof_result = subprocess.run(
+                f"lsof -ti tcp:{port}", 
+                shell=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                text=True
+            )
+            
+            if lsof_result.stdout.strip():
+                found_processes = True
+                pids = lsof_result.stdout.strip().split('\n')
+                
+                for pid_str in pids:
+                    try:
+                        pid = int(pid_str.strip())
+                        if pid > 0 and psutil.pid_exists(pid):
+                            process = psutil.Process(pid)
+                            if "chrome" in process.name().lower():
+                                print(f"Terminating Chrome process with PID {pid}")
+                                process.terminate()
+                                try:
+                                    process.wait(timeout=3)
+                                except psutil.TimeoutExpired:
+                                    print(f"Process {pid} didn't terminate in time, force killing")
+                                    os.kill(pid, signal.SIGKILL)
+                    except Exception as e:
+                        print(f"Error terminating process {pid}: {e}")
+        
+        if found_processes:
+            print(f"Killed existing Chrome processes on port {port}")
+        else:
+            print(f"No Chrome processes found on port {port}")
+            
+    except Exception as e:
+        print(f"Error while checking for Chrome processes on port {port}: {e}")
+        # Continue execution despite errors
 
 def launch_fresh_chrome(debugging_port=9222):
     """Launch a fresh Chrome instance with remote debugging enabled"""
@@ -164,12 +472,11 @@ def launch_fresh_chrome(debugging_port=9222):
     
     # Create a new temporary profile directory
     temp_profile_dir = create_temp_profile()
-    print(f"Created temporary profile at: {temp_profile_dir}")
     
     # Find Chrome executable
     chrome_path = get_chrome_path()
     if not chrome_path:
-        raise Exception("Chrome executable not found. Please specify the path manually.")
+        raise Exception("Chrome executable not found. Please ensure Chrome is installed.")
     
     # Build the command
     command = [
@@ -181,7 +488,10 @@ def launch_fresh_chrome(debugging_port=9222):
         "--start-maximized",
         "--incognito",  # Use incognito mode for a clean session
         "--no-first-run",
-        "--no-default-browser-check"
+        "--no-default-browser-check",
+        # Add additional options to make it more reliable
+        "--no-sandbox",
+        "--disable-dev-shm-usage"
     ]
     
     # Launch Chrome
@@ -577,6 +887,7 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None):
         
         # Check if login was successful
         driver.save_screenshot(os.path.join(screenshots_dir, 'login_verification.png'))
+        login_successful = False
         try:
             for xpath in logged_in_indicators:
                 elements = driver.find_elements(By.XPATH, xpath)
@@ -585,13 +896,67 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None):
                         try:
                             if elem.is_displayed():
                                 print(f"Login successful! Found indicator: {xpath}")
-                                return True
+                                login_successful = True
+                                break
                         except:
                             continue
+                if login_successful:
+                    break
             
-            # If we get here, no login indicators were found
-            print("Login verification failed: No login indicators found")
-            return False
+            # If we get here and login_successful is still False, no login indicators were found
+            if not login_successful:
+                print("Login verification failed: No login indicators found")
+                return False
+                
+            # Continue with gift card selection flow after successful login
+            print("Starting gift card selection process...")
+            
+            try:
+                # 1. Navigate to the gift cards page
+                print("Navigating to Wolt Gift Cards page...")
+                gift_card_url = "https://wolt.com/he/isr/%D7%AA%D7%B4%D7%90,%20%D7%94%D7%A8%D7%A6%D7%9C%D7%99%D7%94%20%D7%95%D7%94%D7%A1%D7%91%D7%99%D7%91%D7%94/venue/woltilgiftcards"
+                driver.get(gift_card_url)
+                print("Waiting for gift card page to load...")
+                random_sleep(5, 8)  # Give more time for page to load
+                
+                # 2. Click on the 35.00₪ gift card option
+                print("Looking for 35.00₪ gift card option...")
+                gift_card_xpath = "(//span[contains(normalize-space(.), '35.00')])[1]"
+                
+                # Wait for the element to be clickable
+                try:
+                    gift_card_element = WebDriverWait(driver, 15).until(
+                        EC.element_to_be_clickable((By.XPATH, gift_card_xpath))
+                    )
+                    print("Found 35.00₪ gift card element, clicking...")
+                    safe_click(driver, gift_card_element)
+                    print("Gift card selected successfully!")
+                    
+                    # Wait for any animations or page changes
+                    random_sleep(3, 5)
+                    
+                    # Take final screenshot of the gift card selection
+                    print("Taking final screenshot of gift card selection...")
+                    final_screenshot_path = os.path.join(screenshots_dir, 'gift_card_selected.png')
+                    driver.save_screenshot(final_screenshot_path)
+                    print(f"Final screenshot saved to: {final_screenshot_path}")
+                    
+                    # Clean up old screenshots that are not errors or the final screenshot
+                    cleanup_screenshots(screenshots_dir, ['error', 'failed', 'gift_card_selected.png'])
+                    
+                    return True
+                except Exception as card_err:
+                    print(f"Error selecting gift card: {card_err}")
+                    driver.save_screenshot(os.path.join(screenshots_dir, 'gift_card_error.png'))
+                    # Even though gift card selection failed, login was successful
+                    return True
+            
+            except Exception as gift_err:
+                print(f"Error in gift card process: {gift_err}")
+                driver.save_screenshot(os.path.join(screenshots_dir, 'gift_card_process_error.png'))
+                # Even though gift card process failed, login was successful
+                return True
+                
         except Exception as e:
             print(f"Error verifying login status: {e}")
             driver.save_screenshot(os.path.join(screenshots_dir, 'verification_error.png'))
@@ -602,6 +967,41 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None):
         driver.save_screenshot(os.path.join(screenshots_dir, 'error_screenshot.png'))
         return False
 
+def cleanup_screenshots(directory, keep_patterns):
+    """Clean up screenshots except those matching the keep patterns"""
+    try:
+        print(f"Cleaning up screenshots in {directory}...")
+        
+        # List all png files in the directory
+        files = [f for f in os.listdir(directory) if f.endswith('.png')]
+        print(f"Found {len(files)} screenshots")
+        
+        # Keep track of how many files were removed
+        removed_count = 0
+        
+        # Check each file
+        for file in files:
+            # Skip files that match any of the keep patterns
+            should_keep = False
+            for pattern in keep_patterns:
+                if pattern in file:
+                    should_keep = True
+                    break
+            
+            # Remove files that don't match any keep pattern
+            if not should_keep:
+                try:
+                    file_path = os.path.join(directory, file)
+                    os.remove(file_path)
+                    removed_count += 1
+                    print(f"Removed screenshot: {file}")
+                except Exception as e:
+                    print(f"Error removing file {file}: {e}")
+        
+        print(f"Screenshot cleanup complete. Removed {removed_count} files.")
+    except Exception as e:
+        print(f"Error during screenshot cleanup: {e}")
+
 def main():
     """Main function for standalone execution"""
     chrome_process = None
@@ -609,94 +1009,103 @@ def main():
     debugging_port = 9222
     
     try:
-        print("Starting WoltFlow login automation...")
+        logger.info("Starting WoltFlow login automation...")
         
         # Launch a fresh Chrome instance
         chrome_process, temp_profile_dir = launch_fresh_chrome(debugging_port)
         if not chrome_process:
-            print("Failed to launch Chrome")
+            logger.error("Failed to launch Chrome")
             return
             
         # Connect to the Chrome instance we just launched
         time.sleep(3)  # Give Chrome time to initialize
         driver = connect_to_chrome(debugging_port)
         if not driver:
-            print("Failed to connect to Chrome")
+            logger.error("Failed to connect to Chrome")
             return
             
-        print("Chrome driver initialized successfully")
+        logger.info("Chrome driver initialized successfully")
         
-        # Try to load credentials from db.json using UserModel if available
+        # Connect to database to get user credentials - ONLY use database, no fallbacks
         try:
-            from models import UserModel
-            user_model = UserModel()
-            user = user_model.get_user_by_id(1)  # Get user with ID 1
-            
-            if user:
-                print("Using credentials from db.json")
-                gmail_email = user.get('gmail_email')
-                gmail_password = user.get('gmail_password')
-                totp_secret = user.get('totp_secret')
-            else:
-                # Fall back to environment variables
-                print("User not found in db.json, trying environment variables")
-                gmail_email = os.environ.get("GOOGLE_EMAIL")
-                gmail_password = os.environ.get("GOOGLE_PASSWORD")
-                # No TOTP in environment variables, need to check secret.json
-        except ImportError:
-            print("UserModel not available, trying environment variables")
-            gmail_email = os.environ.get("GOOGLE_EMAIL")
-            gmail_password = os.environ.get("GOOGLE_PASSWORD")
-            totp_secret = None
-        
-        # If still no credentials, try to load from secret.json as fallback
-        if not gmail_email or not gmail_password or not totp_secret:
-            try:
-                with open(os.path.join(current_dir, 'secret.json'), 'r') as f:
-                    secrets = json.load(f)
+            # Get user from PostgreSQL database
+            db_url = os.getenv('DATABASE_URL')
+            if not db_url:
+                logger.error("DATABASE_URL environment variable is not set")
+                return False
                 
-                print("Using credentials from secret.json")
-                if not gmail_email:
-                    gmail_email = secrets.get("email")
-                if not gmail_password:
-                    gmail_password = secrets.get("password")
-                if not totp_secret:
-                    totp_secret = secrets.get("totp")
-            except FileNotFoundError:
-                print("No secret.json file found")
-        
-        if not gmail_email or not gmail_password:
-            print("Error: No credentials found in any source")
+            logger.info(f"Connecting to database: {db_url}")
+            
+            engine = create_engine(db_url)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            
+            # Get user with ID 1 (for standalone testing)
+            user = session.query(User).filter(User.id == 1).first()
+            
+            if not user:
+                logger.error("No user found in database")
+                return False
+                
+            logger.info(f"Using credentials for user ID: {user.id}")
+            gmail_email = user.gmail_email
+            gmail_password = user.gmail_password
+            totp_secret = user.totp_secret
+        except Exception as db_err:
+            logger.error(f"Database error: {db_err}")
             return False
         
         # Start the login process
         success = login_to_wolt(driver, gmail_email, gmail_password, totp_secret)
-        print(f"Login process completed. Success: {success}")
+        logger.info(f"Login process completed. Success: {success}")
         
-        # Keep the browser open for the user to continue using it
-        print("Chrome will remain open for your use.")
-        print("Press Ctrl+C to exit the script (Chrome will be closed).")
-        while True:
-            time.sleep(10)
+        # Return the result
+        if success:
+            logger.info("Login successful. Script will now exit.")
+            # Take a screenshot of the successful login state
+            driver.save_screenshot(os.path.join(screenshots_dir, 'successful_login.png'))
+            return success
+        else:
+            logger.error("Login failed. Script will now exit.")
+            return False
             
     except KeyboardInterrupt:
-        print("\nScript interrupted by user")
+        logger.info("\nScript interrupted by user")
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
     finally:
-        print("Shutting down Chrome...")
+        logger.info("Shutting down Chrome...")
+        if driver:
+            try:
+                driver.quit()
+                logger.info("Selenium driver closed")
+            except Exception as driver_err:
+                logger.error(f"Error closing Selenium driver: {driver_err}")
+                
         if chrome_process:
             try:
-                chrome_process.terminate()
-                chrome_process.wait(timeout=5)
-            except:
-                pass
+                # Check if process is still running before trying to terminate
+                if psutil.pid_exists(chrome_process.pid):
+                    logger.info(f"Terminating Chrome process with PID {chrome_process.pid}")
+                    chrome_process.terminate()
+                    try:
+                        chrome_process.wait(timeout=5)
+                        logger.info("Chrome process terminated cleanly")
+                    except subprocess.TimeoutExpired:
+                        logger.warning("Chrome did not terminate in time, forcing...")
+                        chrome_process.kill()
+                else:
+                    logger.info(f"Chrome process (PID {chrome_process.pid}) already terminated")
+            except Exception as proc_err:
+                logger.error(f"Error terminating Chrome process: {proc_err}")
                 
-        kill_chrome_process()  # Make sure all Chrome processes are terminated
+        # Make sure all Chrome processes related to our script are terminated
+        logger.info("Making sure all Chrome processes are terminated...")
+        kill_chrome_process()  
         
-        print("Cleaning up temporary files...")
+        logger.info("Cleaning up temporary files...")
         cleanup_temp_profiles()
-        print("Script finished.")
+        logger.info("Script finished.")
 
 if __name__ == "__main__":
     main() 

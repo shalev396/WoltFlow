@@ -1,0 +1,53 @@
+# Git files
+.git/
+.gitignore
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Directories created at runtime
+chrome_profiles/
+screenshots/
+
+# Windows Chrome files (since we're using Linux Chrome)
+# But keep them visible to the script for detection
+# chrome/
+
+# Docker files themselves
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Virtual environment
+.venv/
+venv/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini 
