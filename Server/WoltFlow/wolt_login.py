@@ -540,14 +540,17 @@ def safe_click(driver, element):
         print(f"Click failed: {e}")
         return False
 
-def login_to_wolt(driver, email=None, password=None, totp_secret=None):
+def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_username=None, cibus_password=None, cibus_company=None):
     """Navigate to Wolt and log in with Google
     
     Args:
         driver: Selenium WebDriver instance
-        email: Google email address
+        email: Google account email address
         password: Google password
         totp_secret: TOTP secret for 2FA (can include spaces)
+        cibus_username: Cibus username for payment
+        cibus_password: Cibus password for payment
+        cibus_company: Cibus company name for payment
         
     Returns:
         bool: True if login was successful, False otherwise
@@ -914,29 +917,322 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None):
             try:
                 # 1. Navigate to the gift cards page
                 print("Navigating to Wolt Gift Cards page...")
-                gift_card_url = "https://wolt.com/he/isr/%D7%AA%D7%B4%D7%90,%20%D7%94%D7%A8%D7%A6%D7%9C%D7%99%D7%94%20%D7%95%D7%94%D7%A1%D7%91%D7%99%D7%91%D7%94/venue/woltilgiftcards"
+                gift_card_url = "https://wolt.com/he/isr/%D7%AA%D7%B4%D7%90,%20%D7%94%D7%A8%D7%A6%D7%9C%D7%99%D7%94%20%D7%95%D7%94%D7%A1%D7%91%D7%99%D7%91%D7%94/venue/woltilgiftcards/itemid-5e2ea8c56e2b3eeaebb62d78"
+                # gift_card_url = "https://wolt.com/he/isr/%D7%AA%D7%B4%D7%90,%20%D7%94%D7%A8%D7%A6%D7%9C%D7%99%D7%94%20%D7%95%D7%94%D7%A1%D7%91%D7%99%D7%91%D7%94/venue/woltilgiftcards"
                 driver.get(gift_card_url)
                 print("Waiting for gift card page to load...")
                 random_sleep(5, 8)  # Give more time for page to load
                 
                 # 2. Click on the 35.00₪ gift card option
                 print("Looking for 35.00₪ gift card option...")
-                gift_card_xpath = "(//span[contains(normalize-space(.), '35.00')])[1]"
+                gift_card_xpath = "/html/body/div[2]/div[2]/div[1]/div[1]/main/div[3]/div/div/div[2]/div/div/div[3]/div[4]"
                 
                 # Wait for the element to be clickable
                 try:
-                    gift_card_element = WebDriverWait(driver, 15).until(
-                        EC.element_to_be_clickable((By.XPATH, gift_card_xpath))
-                    )
-                    print("Found 35.00₪ gift card element, clicking...")
-                    safe_click(driver, gift_card_element)
-                    print("Gift card selected successfully!")
+
+                    # Step 1: Wait for "Add to Order" button to appear and click it
+                    print("Waiting for 'Add to Order' button (להוסיף להזמנה)...")
+                    add_order_xpath = "//span[normalize-space(text())='להוסיף להזמנה']"
+                    try:
+                        add_order_button = WebDriverWait(driver, 15).until(
+                            EC.element_to_be_clickable((By.XPATH, add_order_xpath))
+                        )
+                        print("Found 'Add to Order' button, clicking...")
+                        safe_click(driver, add_order_button)
+                        print("'Add to Order' button clicked successfully")
+                        random_sleep(3, 5)
+                    except Exception as add_err:
+                        print(f"Error clicking 'Add to Order' button: {add_err}")
+                        driver.save_screenshot(os.path.join(screenshots_dir, 'add_order_error.png'))
                     
-                    # Wait for any animations or page changes
-                    random_sleep(3, 5)
+                    # Step 2: Navigate to checkout page
+                    print("Navigating to checkout page...")
+                    checkout_url = "https://wolt.com/he/isr/%D7%AA%D7%B4%D7%90,%20%D7%94%D7%A8%D7%A6%D7%9C%D7%99%D7%94%20%D7%95%D7%94%D7%A1%D7%91%D7%99%D7%91%D7%94/venue/woltilgiftcards/checkout"
+                    driver.get(checkout_url)
+                    print("Waiting for checkout page to load...")
+                    random_sleep(5, 8)
                     
-                    # Take final screenshot of the gift card selection
-                    print("Taking final screenshot of gift card selection...")
+                    # Step 3: Click the specified element on checkout page
+                    print("Attempting to click element on checkout page...")
+                    checkout_element_xpath = "/html/body/div[2]/div[2]/main/div[4]/div[2]/div[1]/ul/li/a"
+                    try:
+                        checkout_element = WebDriverWait(driver, 15).until(
+                            EC.element_to_be_clickable((By.XPATH, checkout_element_xpath))
+                        )
+                        print("Found checkout element, clicking...")
+                        safe_click(driver, checkout_element)
+                        print("Checkout element clicked successfully")
+                        random_sleep(3, 5)
+                    except Exception as checkout_err:
+                        print(f"Error clicking checkout element: {checkout_err}")
+                        driver.save_screenshot(os.path.join(screenshots_dir, 'checkout_element_error.png'))
+                    
+                    # Step 4: Click on Cibus payment option
+                    print("Looking for Cibus payment option...")
+                    cibus_xpath = "//span[normalize-space(text())='Cibus']"
+                    try:
+                        cibus_element = WebDriverWait(driver, 15).until(
+                            EC.element_to_be_clickable((By.XPATH, cibus_xpath))
+                        )
+                        print("Found Cibus payment option, clicking...")
+                        safe_click(driver, cibus_element)
+                        print("Cibus payment option clicked successfully")
+                        random_sleep(3, 5)
+                        
+                        # Step 5: Handle potential modal/popup if shown
+                        print("Checking for modal popup...")
+                        modal_button_xpath = "/html/body/div[4]/div[8]/div/div[2]/div/aside/div[1]/button"
+                        try:
+                            # Use a shorter timeout for the modal since it may not appear
+                            modal_button = WebDriverWait(driver, 5).until(
+                                EC.element_to_be_clickable((By.XPATH, modal_button_xpath))
+                            )
+                            print("Modal popup found, closing it...")
+                            safe_click(driver, modal_button)
+                            print("Modal closed successfully")
+                            random_sleep(2, 3)
+                        except Exception as modal_err:
+                            print(f"Modal either not present or not clickable: {modal_err}")
+                            print("Continuing with the flow...")
+                        
+                        # Step 6: Click on "Click to order" button
+                        print("Looking for 'Click to order' button (לחצו להזמנה)...")
+                        order_button_xpath = "//span[normalize-space(text())='לחצו להזמנה']"
+                        try:
+                            order_button = WebDriverWait(driver, 15).until(
+                                EC.element_to_be_clickable((By.XPATH, order_button_xpath))
+                            )
+                            print("Found 'Click to order' button, clicking...")
+                            safe_click(driver, order_button)
+                            print("'Click to order' button clicked successfully")
+                            random_sleep(3, 5)
+                            
+                            # Step 7: Handle Cibus iframe form
+                            print("Waiting for Cibus iframe to load...")
+                            iframe_xpath = "//iframe[@title='cibus-challenge']"
+                            try:
+                                # Wait for iframe to be available
+                                iframe = WebDriverWait(driver, 20).until(
+                                    EC.presence_of_element_located((By.XPATH, iframe_xpath))
+                                )
+                                print("Cibus iframe found, switching to iframe...")
+                                
+                                # Switch to the iframe
+                                driver.switch_to.frame(iframe)
+                                print("Successfully switched to Cibus iframe")
+                                random_sleep(2, 3)
+                                
+                                # Check if we have Cibus credentials
+                                if cibus_username and cibus_password and cibus_company:
+                                    print("Cibus credentials found, filling form...")
+                                    
+                                    # Fill in username
+                                    print("Entering Cibus username...")
+                                    username_input = WebDriverWait(driver, 10).until(
+                                        EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='שם משתמש']"))
+                                    )
+                                    username_input.clear()
+                                    human_type(username_input, cibus_username)
+                                    random_sleep(1, 2)
+                                    
+                                    # Fill in password
+                                    print("Entering Cibus password...")
+                                    password_input = WebDriverWait(driver, 10).until(
+                                        EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='סיסמה']"))
+                                    )
+                                    password_input.clear()
+                                    human_type(password_input, cibus_password)
+                                    random_sleep(1, 2)
+                                    
+                                    # Fill in company
+                                    print("Entering Cibus company...")
+                                    company_input = WebDriverWait(driver, 10).until(
+                                        EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='חברה']"))
+                                    )
+                                    company_input.clear()
+                                    human_type(company_input, cibus_company)
+                                    random_sleep(1, 2)
+                                    
+                                    # Click login button
+                                    print("Clicking Cibus login button...")
+                                    try:
+                                        # Try multiple selectors with ID and class
+                                        login_button = None
+                                        
+                                        # First try by ID
+                                        try:
+                                            login_button = WebDriverWait(driver, 10).until(
+                                                EC.element_to_be_clickable((By.ID, "btnSubmit"))
+                                            )
+                                            print("Found login button by ID")
+                                        except:
+                                            print("Could not find login button by ID, trying other selectors")
+                                        
+                                        # If not found by ID, try by class
+                                        if not login_button:
+                                            try:
+                                                login_button = WebDriverWait(driver, 10).until(
+                                                    EC.element_to_be_clickable((By.CLASS_NAME, "sbmt"))
+                                                )
+                                                print("Found login button by class")
+                                            except:
+                                                print("Could not find login button by class, trying XPath")
+                                        
+                                        # If still not found, try by XPath with exact attributes
+                                        if not login_button:
+                                            try:
+                                                login_button = WebDriverWait(driver, 10).until(
+                                                    EC.element_to_be_clickable((By.XPATH, "//input[@id='btnSubmit' and @class='sbmt']"))
+                                                )
+                                                print("Found login button by XPath with attributes")
+                                            except:
+                                                # Last resort: try any input with submit type
+                                                login_button = WebDriverWait(driver, 10).until(
+                                                    EC.element_to_be_clickable((By.XPATH, "//input[@type='submit']"))
+                                                )
+                                                print("Found login button by type=submit")
+                                        
+                                        # Try multiple click methods
+                                        try:
+                                            print("Trying standard click method...")
+                                            safe_click(driver, login_button)
+                                        except Exception as click_err:
+                                            print(f"Standard click failed: {click_err}")
+                                            try:
+                                                print("Trying JavaScript click...")
+                                                driver.execute_script("arguments[0].click();", login_button)
+                                            except Exception as js_err:
+                                                print(f"JavaScript click failed: {js_err}")
+                                                try:
+                                                    print("Trying submit form...")
+                                                    # Try to find the parent form and submit it
+                                                    form = driver.find_element(By.XPATH, "//form[.//input[@type='submit']]")
+                                                    form.submit()
+                                                except Exception as form_err:
+                                                    print(f"Form submit failed: {form_err}")
+                                                    # Last resort - try to submit via JavaScript onclick function
+                                                    try:
+                                                        print("Trying to call onclick function directly...")
+                                                        driver.execute_script("return hit('login');")
+                                                    except Exception as onclick_err:
+                                                        print(f"JavaScript onclick execution failed: {onclick_err}")
+                                                        raise Exception("All click methods failed")
+                                        
+                                        print("Cibus login button clicked")
+                                        random_sleep(5, 8)  # Give time for login to process
+                                        
+                                        # Step 8: Click the "Confirm payment with Cibus" button
+                                        print("Looking for 'Confirm payment with Cibus' button...")
+                                        try:
+                                            # Try multiple selectors for the payment confirmation button
+                                            payment_button = None
+                                            
+                                            # First try by ID
+                                            try:
+                                                payment_button = WebDriverWait(driver, 15).until(
+                                                    EC.element_to_be_clickable((By.ID, "btnPay"))
+                                                )
+                                                print("Found payment confirmation button by ID")
+                                            except:
+                                                print("Could not find payment button by ID, trying other selectors")
+                                            
+                                            # If not found by ID, try by value attribute
+                                            if not payment_button:
+                                                try:
+                                                    payment_button = WebDriverWait(driver, 15).until(
+                                                        EC.element_to_be_clickable((By.XPATH, "//input[@value='אישור התשלום באמצעות סיבוס']"))
+                                                    )
+                                                    print("Found payment button by value text")
+                                                except:
+                                                    print("Could not find payment button by value, trying by class")
+                                            
+                                            # If still not found, try by class combination
+                                            if not payment_button:
+                                                try:
+                                                    payment_button = WebDriverWait(driver, 15).until(
+                                                        EC.element_to_be_clickable((By.XPATH, "//input[@class='sbmt colourful']"))
+                                                    )
+                                                    print("Found payment button by class")
+                                                except:
+                                                    # Last resort: try any submit input
+                                                    payment_button = WebDriverWait(driver, 15).until(
+                                                        EC.element_to_be_clickable((By.XPATH, "//input[@type='submit' and @name='btnPay']"))
+                                                    )
+                                                    print("Found payment button by type and name")
+                                            
+                                            # Try multiple click methods
+                                            try:
+                                                print("Trying standard click method...")
+                                                safe_click(driver, payment_button)
+                                            except Exception as click_err:
+                                                print(f"Standard click failed: {click_err}")
+                                                try:
+                                                    print("Trying JavaScript click...")
+                                                    driver.execute_script("arguments[0].click();", payment_button)
+                                                except Exception as js_err:
+                                                    print(f"JavaScript click failed: {js_err}")
+                                                    try:
+                                                        print("Trying direct onclick function...")
+                                                        driver.execute_script("return hit('pay');")
+                                                    except Exception as onclick_err:
+                                                        print(f"JavaScript onclick execution failed: {onclick_err}")
+                                                        # Try form submit as last resort
+                                                        try:
+                                                            form = driver.find_element(By.XPATH, "//form[.//input[@id='btnPay']]")
+                                                            form.submit()
+                                                        except Exception as form_err:
+                                                            print(f"Form submit failed: {form_err}")
+                                                            raise Exception("All payment button click methods failed")
+                                            
+                                            print("Payment confirmation button clicked successfully")
+                                            # Wait for confirmation processing
+                                            random_sleep(5, 8)
+                                        
+                                        except Exception as payment_err:
+                                            print(f"Error with payment confirmation button: {payment_err}")
+                                            driver.save_screenshot(os.path.join(screenshots_dir, 'payment_confirmation_error.png'))
+                                    
+                                    except Exception as btn_err:
+                                        print(f"Error finding or clicking login button: {btn_err}")
+                                        driver.save_screenshot(os.path.join(screenshots_dir, 'cibus_login_button_error.png'))
+                                        
+                                        # Try one more method - hit the Enter key
+                                        try:
+                                            print("Trying to submit with Enter key...")
+                                            company_input = driver.find_element(By.XPATH, "//input[@placeholder='חברה']")
+                                            company_input.send_keys(Keys.ENTER)
+                                            print("Enter key sent")
+                                            random_sleep(5, 8)
+                                        except Exception as key_err:
+                                            print(f"Enter key method failed: {key_err}")
+                                    
+                                    # Switch back to main content
+                                    print("Switching back to main content...")
+                                    driver.switch_to.default_content()
+                                    print("Successfully returned to main content")
+                                else:
+                                    print("Cibus credentials are missing, cannot complete form")
+                                    driver.switch_to.default_content()
+                                    driver.save_screenshot(os.path.join(screenshots_dir, 'cibus_missing_credentials.png'))
+                            
+                            except Exception as iframe_err:
+                                print(f"Error handling Cibus iframe: {iframe_err}")
+                                # Try to switch back to main content in case of error
+                                try:
+                                    driver.switch_to.default_content()
+                                except:
+                                    pass
+                                driver.save_screenshot(os.path.join(screenshots_dir, 'cibus_iframe_error.png'))
+                        except Exception as order_btn_err:
+                            print(f"Error clicking 'Click to order' button: {order_btn_err}")
+                            driver.save_screenshot(os.path.join(screenshots_dir, 'order_button_error.png'))
+                    
+                    except Exception as cibus_err:
+                        print(f"Error selecting Cibus payment option: {cibus_err}")
+                        driver.save_screenshot(os.path.join(screenshots_dir, 'cibus_option_error.png'))
+                    
+                    # Take final screenshot of the checkout process
+                    print("Taking final screenshot of completed order process...")
                     final_screenshot_path = os.path.join(screenshots_dir, 'gift_card_selected.png')
                     driver.save_screenshot(final_screenshot_path)
                     print(f"Final screenshot saved to: {final_screenshot_path}")
@@ -1051,12 +1347,15 @@ def main():
             gmail_email = user.gmail_email
             gmail_password = user.gmail_password
             totp_secret = user.totp_secret
+            cibus_username = user.cibus_username
+            cibus_password = user.cibus_password
+            cibus_company = user.cibus_company
         except Exception as db_err:
             logger.error(f"Database error: {db_err}")
             return False
         
         # Start the login process
-        success = login_to_wolt(driver, gmail_email, gmail_password, totp_secret)
+        success = login_to_wolt(driver, gmail_email, gmail_password, totp_secret, cibus_username, cibus_password, cibus_company)
         logger.info(f"Login process completed. Success: {success}")
         
         # Return the result

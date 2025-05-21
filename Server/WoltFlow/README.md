@@ -62,9 +62,9 @@ CREATE TABLE users (
     totp_secret VARCHAR,
     last_login VARCHAR,
     login_status VARCHAR,
-    cibus_email VARCHAR,
-    cibus_password VARCHAR,
-    cibus_company VARCHAR,
+    cibus_username VARCHAR,  -- Cibus login username
+    cibus_password VARCHAR,  -- Cibus login password
+    cibus_company VARCHAR,   -- Cibus company name
     gift_amount VARCHAR,
     email VARCHAR,
     password VARCHAR
@@ -77,11 +77,17 @@ Add users to the database with:
 INSERT INTO users (
     gmail_email,
     gmail_password,
-    totp_secret
+    totp_secret,
+    cibus_username,
+    cibus_password,
+    cibus_company
 ) VALUES (
     'your.gmail@gmail.com',
-    'your_password',
-    'YOUR_TOTP_SECRET'
+    'your_gmail_password',
+    'YOUR_TOTP_SECRET',
+    'your_cibus_username',
+    'your_cibus_password',
+    'your_company_name'
 );
 ```
 

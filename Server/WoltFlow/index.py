@@ -42,7 +42,7 @@ class User(Base):
     last_login = Column(String, nullable=True)
     login_status = Column(String, nullable=True)
     # New fields
-    cibus_email = Column(String, nullable=True)
+    cibus_username = Column(String, nullable=True)
     cibus_password = Column(String, nullable=True)
     cibus_company = Column(String, nullable=True)
     gift_amount = Column(String, nullable=True)
@@ -107,7 +107,15 @@ def process_user(user, session):
         
         # Perform login
         logger.info(f"Starting login process for user {user.id}")
-        success = login_to_wolt(driver, user.gmail_email, user.gmail_password, user.totp_secret)
+        success = login_to_wolt(
+            driver, 
+            user.gmail_email, 
+            user.gmail_password, 
+            user.totp_secret,
+            user.cibus_username,
+            user.cibus_password,
+            user.cibus_company
+        )
         
         # Update user status
         status = "SUCCESS" if success else "FAILED"
