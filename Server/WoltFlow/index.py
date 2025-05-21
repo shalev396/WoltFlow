@@ -1,82 +1,24 @@
+#python imports
 import os
-import sys
-import logging
 import time
-import json
 import argparse
+#libraries imports
 from datetime import datetime
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, String, MetaData, Table
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+#project imports
+from wolt_login import login_to_wolt
+from utils.chrome_util import cleanup_temp_profiles, launch_fresh_chrome, connect_to_chrome
+from utils.system_util import setup_logging
+from utils.db_util import create_database_connection, update_user_status
+from models.user import User
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Import the wolt_login module
-from wolt_login import login_to_wolt, launch_fresh_chrome, connect_to_chrome, cleanup_temp_profiles
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'woltflow.log'))
-    ]
-)
-
-logger = logging.getLogger("WoltFlow")
-
-# Initialize SQLAlchemy
-Base = declarative_base()
-
-class User(Base):
-    """User model for SQLAlchemy"""
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True)
-    gmail_email = Column(String, nullable=False)
-    gmail_password = Column(String, nullable=False)
-    totp_secret = Column(String, nullable=True)
-    last_login = Column(String, nullable=True)
-    login_status = Column(String, nullable=True)
-    # New fields
-    cibus_username = Column(String, nullable=True)
-    cibus_password = Column(String, nullable=True)
-    cibus_company = Column(String, nullable=True)
-    gift_amount = Column(String, nullable=True)
-    email = Column(String, nullable=True)
-    password = Column(String, nullable=True)
-    
-    def __repr__(self):
-        return f"<User(id={self.id}, email={self.gmail_email})>"
-
-def create_database_connection(db_url=None):
-    """Create SQLAlchemy engine and session"""
-    if db_url is None:
-        # Only use DATABASE_URL without a default fallback
-        db_url = os.getenv('DATABASE_URL')
-        if not db_url:
-            logger.error("DATABASE_URL environment variable is not set")
-            raise ValueError("DATABASE_URL environment variable is required")
-    
-    logger.info(f"Connecting to database: {db_url}")
-    engine = create_engine(db_url)
-    
-    # Create tables if they don't exist
-    Base.metadata.create_all(engine)
-    
-    # Create session
-    Session = sessionmaker(bind=engine)
-    return Session()
-
-def update_user_status(session, user, status, error=None):
-    """Update user's login status and timestamp"""
-    user.last_login = datetime.now().isoformat()
-    user.login_status = status if error is None else f"{status}: {error}"
-    session.commit()
-    logger.info(f"Updated status for user {user.id}: {status}")
+# Configure logging with a file handler
+current_dir = os.path.dirname(os.path.abspath(__file__))
+log_file = os.path.join(current_dir, 'woltflow.log')
+logger = setup_logging("WoltFlow", log_file)
 
 def process_user(user, session):
     """Run the login process for a single user"""
@@ -93,7 +35,7 @@ def process_user(user, session):
         if not chrome_process:
             error_msg = "Failed to launch Chrome browser"
             logger.error(error_msg)
-            update_user_status(session, user, "FAILED", error_msg)
+            update_user_status(session, user, "FAILED", error_msg, logger)
             return False
         
         # Connect to Chrome
@@ -102,7 +44,7 @@ def process_user(user, session):
         if not driver:
             error_msg = "Failed to connect to Chrome browser"
             logger.error(error_msg)
-            update_user_status(session, user, "FAILED", error_msg)
+            update_user_status(session, user, "FAILED", error_msg, logger)
             return False
         
         # Perform login
@@ -119,7 +61,7 @@ def process_user(user, session):
         
         # Update user status
         status = "SUCCESS" if success else "FAILED"
-        update_user_status(session, user, status)
+        update_user_status(session, user, status, logger=logger)
         
         if success:
             logger.info(f"Login successful for user {user.id}")
@@ -130,7 +72,7 @@ def process_user(user, session):
         
     except Exception as e:
         logger.exception(f"Error processing user {user.id}: {str(e)}")
-        update_user_status(session, user, "ERROR", str(e))
+        update_user_status(session, user, "ERROR", str(e), logger)
         return False
         
     finally:
@@ -165,7 +107,7 @@ def main():
     
     try:
         # Connect to database
-        session = create_database_connection(args.db_url)
+        session = create_database_connection(args.db_url, logger)
         
         # Get users to process
         if args.user_id:
