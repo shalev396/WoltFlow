@@ -1,15 +1,17 @@
-#python imports
+# Standard library imports
 import time
 import os
 import pyotp
 import subprocess
 import psutil
-#libraries imports
+
+# Third-party imports
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-#project imports
+
+# Local application imports
 from utils.system_util import cleanup_screenshots, setup_screenshots_dir, setup_logging
 from utils.stealth_util import random_sleep, human_type, safe_click
 from utils.chrome_util import kill_chrome_process, cleanup_temp_profiles, launch_fresh_chrome, connect_to_chrome
@@ -17,171 +19,183 @@ from utils.db_util import create_database_connection
 from models.user import User, Base
 from utils.wolt_util import get_gift_card_url
 
-# Configure logging
+# Initialize logging configuration
 logger = setup_logging("WoltLogin")
 
-# Setup screenshots directory
+# Configure screenshots directory
 screenshots_dir = setup_screenshots_dir()
-logger.info(f"Using screenshots directory: {screenshots_dir}")
+logger.info(f"Screenshots will be saved to: {screenshots_dir}")
 
-# Track temporary profiles for cleanup
+# Resource tracking for cleanup
 temp_profiles = []
 chrome_processes = []
 
-def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_username=None, cibus_password=None, cibus_company=None,gift_amount=None):
-    """Navigate to Wolt and log in with Google
+def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_username=None, cibus_password=None, cibus_company=None, gift_amount=None):
+    """Execute the complete Wolt gift card purchase workflow.
+    
+    This function performs the following major steps:
+    1. Google Authentication:
+       - Navigate to Wolt
+       - Login with Google credentials
+       - Handle 2FA if enabled
+    2. Wolt Gift Card Selection:
+       - Navigate to gift cards page
+       - Clear existing cart
+       - Select specified gift card amount
+    3. Cibus Payment Process:
+       - Complete checkout process
+       - Handle Cibus authentication
+       - Confirm payment
     
     Args:
-        driver: Selenium WebDriver instance
-        email: Google account email address
-        password: Google password
-        totp_secret: TOTP secret for 2FA (can include spaces)
-        cibus_username: Cibus username for payment
-        cibus_password: Cibus password for payment
-        cibus_company: Cibus company name for payment
-        
+        driver (selenium.webdriver.remote.webdriver.WebDriver): Active WebDriver instance.
+        email (str): Google account email for authentication.
+        password (str): Google account password.
+        totp_secret (str): TOTP secret key for 2FA (spaces allowed).
+        cibus_username (str): Cibus account username.
+        cibus_password (str): Cibus account password.
+        cibus_company (str): Cibus company identifier.
+        gift_amount (str): Desired gift card amount in ILS.
+    
     Returns:
-        bool: True if login was successful, False otherwise
+        bool: True if the entire workflow completes successfully, False otherwise.
+    
+    Note:
+        The function takes screenshots at critical points and during errors.
+        Screenshots are saved to the configured screenshots directory.
     """
     try:
-        # Set up TOTP generator if secret provided
+        # Initialize TOTP generator if 2FA is enabled
         totp = None
         if totp_secret:
-            # Clean the secret by removing spaces and any other non-base32 characters
+            # Remove spaces and non-base32 characters from secret
             clean_totp_secret = totp_secret.replace(' ', '').replace('-', '').upper()
             totp = pyotp.TOTP(clean_totp_secret)
         
+        logger.info("Starting Google authentication workflow")
         print("===========Starting 'Google auth' step ===========")
 
-        #Step:1
-        # Go to Wolt's Israeli site
-        print("Navigating to Wolt...")
+        # Step 1: Navigate to Wolt Israel
+        logger.info("Navigating to Wolt homepage")
         driver.get("https://wolt.com/he/isr")
         random_sleep(3, 5)
 
-        #Step:2
-        # Click login button
-        print("Clicking login button")
+        # Step 2: Initiate login process
+        logger.info("Clicking login button")
         login_buttons = driver.find_elements(By.XPATH, "//*[contains(text(), 'כניסה')]")
         safe_click(driver, login_buttons[0])  
         random_sleep(2, 4)
 
-        #Step:3
-        # click Google login option 
-        print("Selecting Google login option (כניסה דרך גוגל)...")
+        # Step 3: Select Google authentication
+        logger.info("Selecting Google authentication method")
         google_buttons = driver.find_elements(By.XPATH, "//*[contains(text(), 'גוגל')]")
         safe_click(driver, google_buttons[0])
         random_sleep(5, 8)
 
-        #Step:4
-        # Enter email
-        print("entering email...")
+        # Step 4: Enter Google email
+        logger.info("Entering Google email")
         email_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "identifierId"))
         )
         email_input.clear()
         human_type(email_input, email)
 
-        #Step:5
-        # Click Next
+        # Step 5: Proceed to password
+        logger.info("Proceeding to password entry")
         next_buttons = driver.find_elements(By.XPATH, "//span[text()='הבא']")
-        print("Clicking Next button after email...")
         safe_click(driver, next_buttons[0])
         random_sleep(2, 4)
 
-        #Step:6
-        # enter password
+        # Step 6: Enter Google password
+        logger.info("Entering Google password")
         password_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//input[@type='password']"))
         )
-        print("Found password field, entering password...")
         password_input.clear()
         human_type(password_input, password)
 
-        #Step:7
-        # Click Next
+        # Step 7: Submit password
+        logger.info("Submitting password")
         next_buttons = driver.find_elements(By.XPATH, "//span[text()='הבא']")
-        print("Clicking Next button after password...")
         safe_click(driver, next_buttons[0])
         random_sleep(3, 5)
 
-        #Step:8
-        # Click another way
-        print("Looking for 'דרך אחרת' (another way) button...")
+        # Step 8: Handle alternative 2FA method selection
+        logger.info("Checking for alternative 2FA options")
         other_way_buttons = driver.find_elements(By.XPATH, "//span[contains(text(),'דרך אחרת')]")
         if other_way_buttons:
+            logger.info("Selecting alternative 2FA method")
             safe_click(driver, other_way_buttons[0])
             random_sleep(2, 4)
         else:
-            print("'Another way' button not found, skipping step...")
+            logger.info("No alternative 2FA selection needed")
 
-        #Step:9
-        # Click Get verification code from application
-        print("Looking for 'קבל קוד אימות מאפליקציית' (Get verification code) option...")
+        # Step 9: Select and complete 2FA verification
+        logger.info("Initiating 2FA verification")
         verify_app_options = driver.find_elements(By.XPATH, "//*[contains(text(), 'קוד אימות')]")
         safe_click(driver, verify_app_options[0])
         random_sleep(2, 4)
-        # Handle 2FA 
-        print("Checking for 2FA prompt...")
+        
+        logger.info("Handling 2FA code entry")
         random_sleep(3, 5)
         totp_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//input[@type='tel']"))
         )
-        # Generate TOTP code
-        print("Generating TOTP code...")
+        
+        logger.info("Generating TOTP code")
         code = totp.now()
-        print(f"Generated code: {code}")
-        # enter code
+        logger.debug(f"Generated TOTP code: {code}")
+        
         totp_input.clear()
         human_type(totp_input, code)
         random_sleep(1, 2)
         
-        #Step:10
-        # Click next
+        # Step 10: Complete 2FA verification
+        logger.info("Completing 2FA verification")
         random_sleep(10, 20)
         next_button = driver.find_elements(By.XPATH, "//span[text()='הבא']")
         safe_click(driver, next_button[0])
         random_sleep(3, 5)
-        print("Logged in successfully")
-        # Check if login was successful after automation
-        print("Verifying login status...")
+        
+        # Verify successful login
+        logger.info("Verifying login status")
         random_sleep(3, 5)
         
-        # Define login success indicators
-        logged_in_indicators = "//img[@alt='פרופיל']" # Hebrew "Profile" image - most reliable indicator
-        # Check if login was successful
+        logged_in_indicators = "//img[@alt='פרופיל']"  # Profile image indicator
         if driver.find_elements(By.XPATH, logged_in_indicators)[0].is_displayed():
-            print("Login successful")
+            logger.info("Google authentication successful")
         else:
-            print("Login failed")
+            logger.error("Google authentication failed")
             return False
         
+        logger.info("Google authentication workflow completed")
         print("===========Completed 'Google auth' step ===========")
 
-        # Start Wolt Flow steps
+        # Begin gift card selection workflow
+        logger.info("Starting gift card selection workflow")
         print("=================Starting 'Wolt Flow' step=================")
-        # Step:1
-        #Go to Wolt Wolt gift cards page
-        print("Navigating to Wolt Gift Cards page...")
+        
+        # Step 1: Navigate to gift cards page
+        logger.info("Navigating to gift cards page")
         gift_card_url = "https://wolt.com/he/isr/%D7%AA%D7%B4%D7%90,%20%D7%94%D7%A8%D7%A6%D7%9C%D7%99%D7%94%20%D7%95%D7%94%D7%A1%D7%91%D7%99%D7%91%D7%94/venue/woltilgiftcards"
         driver.get(gift_card_url)
         random_sleep(5, 8)
-        #Step:2
-        #clear cart
-        print("clearing cart...")
-        # Handle save order dialog if present
+        
+        # Step 2: Clear existing cart
+        logger.info("Clearing existing cart items")
         save_order_dialogs = driver.find_elements(By.XPATH, "//h2[normalize-space(text())='אשמח להמשיך']")
         if save_order_dialogs and save_order_dialogs[0].is_displayed():
+            logger.info("Handling save order dialog")
             safe_click(driver, driver.find_elements(By.XPATH, "//button[normalize-space(.)='לא']")[0])
             random_sleep(1, 2)
             
-            # Open cart
             cart_buttons = driver.find_elements(By.XPATH, "//button[@aria-label='ההזמנות שלך']")
             if cart_buttons:
+                logger.info("Opening cart")
                 safe_click(driver, cart_buttons[0])
                 random_sleep(1, 2)
                 
-                # Delete all items
+                logger.info("Removing cart items")
                 while True:
                     delete_buttons = driver.find_elements(By.XPATH, "//button[@aria-label='מחיקה']")
                     if not delete_buttons:
@@ -189,96 +203,89 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
                     safe_click(driver, delete_buttons[0])
                     random_sleep(1, 2)
                 
-                # Close cart
+                logger.info("Closing cart")
                 close_buttons = driver.find_elements(By.XPATH, "//button[@aria-label='סגירה']")
                 if close_buttons:
                     safe_click(driver, close_buttons[0])
                     random_sleep(1, 2)
-        #Step:3
-        # Redirect to gift card with {gift_amount} ils
-        print(f"redirecting to {gift_amount} gift card option...")
+        
+        # Step 3: Select specific gift card amount
+        logger.info(f"Selecting {gift_amount} ILS gift card")
         gift_card_url = get_gift_card_url(int(gift_amount))
-        if gift_card_url==None:
-            print(f"No gift card option found for {gift_amount}")
+        if gift_card_url is None:
+            logger.error(f"Gift card amount {gift_amount} ILS not available")
             return False
         driver.get(gift_card_url)
         random_sleep(5, 8)
-        #Step:4
-        # Add to gift card cart
-        print("clicking 'Add to Order' button...")
+        
+        # Step 4: Add gift card to cart
+        logger.info("Adding gift card to cart")
         add_order_button = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.XPATH,"//span[normalize-space(text())='להוסיף להזמנה']"))
         )
         safe_click(driver, add_order_button)
         random_sleep(3, 5)
-        #Step:5
-        # Redirect to cart page
-        print("Navigating to checkout page...")
+        
+        # Step 5: Proceed to checkout
+        logger.info("Proceeding to checkout")
         checkout_url = "https://wolt.com/he/isr/%D7%AA%D7%B4%D7%90,%20%D7%94%D7%A8%D7%A6%D7%9C%D7%99%D7%94%20%D7%95%D7%94%D7%A1%D7%91%D7%99%D7%91%D7%94/venue/woltilgiftcards/checkout"
         driver.get(checkout_url)
-        print("Waiting for checkout page to load...")
         random_sleep(5, 8)
         
-        #Step:6
-        # Click payment method
-        print("clicking payment method...")
+        # Step 6: Select payment method
+        logger.info("Opening payment method selection")
         checkout_element = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.XPATH, "/html/body/div[2]/div[2]/main/div[4]/div[2]/div[1]/ul/li/a"))
         )
         safe_click(driver, checkout_element)
         random_sleep(3, 5)
-        #Step:7
-        # Click Cibus
-        print("Clicking Cibus payment option...")
+        
+        # Step 7: Select Cibus payment
+        logger.info("Selecting Cibus payment method")
         cibus_element = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.XPATH, "//span[normalize-space(text())='Cibus']"))
         )
         safe_click(driver, cibus_element)
         random_sleep(3, 5)
         
-        #Step:8
-        # Click X if needed
-        print("Checking for modal popup...")
+        # Step 8: Handle modal popup if present
+        logger.info("Checking for modal popup")
         modal_buttons = driver.find_elements(By.XPATH, "/html/body/div[4]/div[8]/div/div[2]/div/aside/div[1]/button")
         if modal_buttons:
+            logger.info("Closing modal popup")
             safe_click(driver, modal_buttons[0])
             random_sleep(2, 3)
         else:
-            print("Modal not found, skipping...")
+            logger.info("No modal popup found")
         
-        #Step:9
-        # Click to order
-        print("Looking for 'Click to order' button (לחצו להזמנה)...")
+        # Step 9: Confirm order
+        logger.info("Initiating order confirmation")
         order_button_xpath = "//span[normalize-space(text())='לחצו להזמנה']"
         order_button = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.XPATH, order_button_xpath))
         )
-        print("Found 'Click to order' button, clicking...")
         safe_click(driver, order_button)
-        print("'Click to order' button clicked successfully")
         random_sleep(3, 5)
 
+        logger.info("Gift card selection workflow completed")
         print("===========Completed 'Wolt Flow' step ===========")
 
-        # Start Cibus iframe steps
+        # Begin Cibus payment workflow
+        logger.info("Starting Cibus payment workflow")
         print("=================Starting 'Cibus iframe' step=================")
 
-        #Step:1
-        # Handle Cibus iframe form
-        print("Waiting for Cibus iframe to load...")
+        # Step 1: Switch to Cibus iframe
+        logger.info("Locating Cibus payment iframe")
         iframe_xpath = "//iframe[@title='cibus-challenge']"
         iframe = WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.XPATH, iframe_xpath))
         )
-        print("Cibus iframe found, switching to iframe...")
-        # Switch to the iframe
         driver.switch_to.frame(iframe)
-        print("Successfully switched to Cibus iframe")
+        logger.info("Switched to Cibus payment iframe")
         random_sleep(2, 3)
 
-        #Step:2
-        # Enter Cibus username
-        print("Entering Cibus username...")
+        # Step 2: Enter Cibus credentials
+        logger.info("Entering Cibus username")
         username_input = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='שם משתמש']"))
         )
@@ -286,9 +293,7 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         human_type(username_input, cibus_username)
         random_sleep(1, 2)
         
-        #Step:3
-        # Enter Cibus password
-        print("Entering Cibus password...")
+        logger.info("Entering Cibus password")
         password_input = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='סיסמה']"))
         )
@@ -296,9 +301,7 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         human_type(password_input, cibus_password)
         random_sleep(1, 2)
         
-        #Step:4
-        # Enter Cibus company
-        print("Entering Cibus company...")
+        logger.info("Entering Cibus company")
         company_input = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='חברה']"))
         )
@@ -306,41 +309,42 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         human_type(company_input, cibus_company)
         random_sleep(1, 2)
         
-        #Step:5
-        # Click Login
-        print("Clicking Cibus login button...")
+        # Step 3: Complete Cibus login
+        logger.info("Submitting Cibus credentials")
         login_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "btnSubmit"))
         )  
         safe_click(driver, login_button)
-        random_sleep(5, 8)  # Give time for login to process
+        random_sleep(5, 8)
         
-        #Step:6
-        # Click confirm payment with Cibus
-        print("Looking for 'Confirm payment with Cibus' button...")
+        # Step 4: Confirm Cibus payment
+        logger.info("Confirming Cibus payment")
         payment_button = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.ID, "btnPay"))
         )
         safe_click(driver, payment_button)
-        # Wait for confirmation processing
         random_sleep(5, 8)
-    
-    
-
-        #Step:7 take screenshot
-        print("Switching back to main content...")
+        
+        # Return to main content and capture final state
+        logger.info("Returning to main content")
         driver.switch_to.default_content()
-        print("Successfully returned to main content")
-        # Take final screenshot of the checkout process
-        print("Taking final screenshot of completed order process...")
+        
+        # Capture final screenshot
+        logger.info("Capturing final workflow screenshot")
         final_screenshot_path = os.path.join(screenshots_dir, 'gift_card_selected.png')
         driver.save_screenshot(final_screenshot_path)
-        print(f"Final screenshot saved to: {final_screenshot_path}")
-        # Clean up old screenshots that are not errors or the final screenshot
+        logger.info(f"Final screenshot saved: {final_screenshot_path}")
+        
+        # Cleanup old screenshots
+        logger.info("Cleaning up old screenshots")
         cleanup_screenshots(screenshots_dir, ['error', 'failed', 'gift_card_selected.png'])
+        
+        logger.info("Workflow completed successfully")
         return True
     
     except Exception as e:
-        print(f"Login failed with error: {e}")
-        driver.save_screenshot(os.path.join(screenshots_dir, 'error_screenshot.png'))
+        logger.error(f"Workflow failed: {str(e)}")
+        error_screenshot_path = os.path.join(screenshots_dir, 'error_screenshot.png')
+        driver.save_screenshot(error_screenshot_path)
+        logger.info(f"Error screenshot saved: {error_screenshot_path}")
         return False

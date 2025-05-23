@@ -6,14 +6,22 @@ from sqlalchemy.orm import sessionmaker
 from models.user import Base, User
 
 def create_database_connection(db_url=None, logger=None):
-    """Create SQLAlchemy engine and session
+    """Create and configure a SQLAlchemy database connection.
+    
+    This function establishes a connection to the database, creates tables if they
+    don't exist, and returns a session for database operations.
     
     Args:
-        db_url: Database URL. If None, takes from DATABASE_URL environment variable
-        logger: Logger instance to use. If None, doesn't log anything
-        
+        db_url (str, optional): Database connection URL. If None, reads from DATABASE_URL
+            environment variable.
+        logger (logging.Logger, optional): Logger instance for connection logging.
+            If None, logging is disabled.
+    
     Returns:
-        Session: SQLAlchemy session
+        sqlalchemy.orm.Session: Configured database session for operations.
+    
+    Raises:
+        ValueError: If DATABASE_URL environment variable is not set when db_url is None.
     """
     if db_url is None:
         # Only use DATABASE_URL without a default fallback
@@ -36,14 +44,17 @@ def create_database_connection(db_url=None, logger=None):
     return Session()
 
 def update_user_status(session, user, status, error=None, logger=None):
-    """Update user's login status and timestamp
+    """Update a user's login status and timestamp in the database.
+    
+    Records the result of a login attempt for tracking and monitoring purposes.
     
     Args:
-        session: SQLAlchemy session
-        user: User instance to update
-        status: Status string
-        error: Optional error message
-        logger: Logger instance. If None, doesn't log
+        session (sqlalchemy.orm.Session): Active database session.
+        user (models.User): User instance to update.
+        status (str): Status of the login attempt (SUCCESS/FAILED/ERROR).
+        error (str, optional): Error message if the login failed.
+        logger (logging.Logger, optional): Logger instance for status updates.
+            If None, logging is disabled.
     """
     user.last_login = datetime.now().isoformat()
     user.login_status = status if error is None else f"{status}: {error}"

@@ -1,13 +1,17 @@
 def get_gift_card_url(amount):
-    """
-    Get the URL for a specific gift card amount.
+    """Get the URL for a specific Wolt gift card amount.
+    
+    Maps gift card amounts to their corresponding Wolt product URLs.
+    Supports various denominations from 20 to 1500 ILS.
     
     Args:
-        amount (int): The gift card amount to look up
-        
+        amount (int): The desired gift card amount in ILS.
+    
     Returns:
-        str: The URL for the specified amount, or None if not found
+        str or None: The product URL for the specified amount, or None if the
+            amount is not available.
     """
+    # Available gift card denominations and their product URLs
     gift_cards = [
         {"amount": 20, "url": "https://wolt.com/he/isr/tel-aviv/venue/woltilgiftcards/itemid-5e452869307ba76c96cb9c2d"},
         {"amount": 25, "url": "https://wolt.com/he/isr/tel-aviv/venue/woltilgiftcards/itemid-5e453b79e69e3e55f1bed164"},
@@ -44,6 +48,7 @@ def get_gift_card_url(amount):
 
     ]
     
+    # Find and return URL for requested amount
     for card in gift_cards:
         if card["amount"] == amount:
             return card["url"]
