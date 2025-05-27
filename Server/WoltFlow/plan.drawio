@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="IcHrDzMASmOuBeIdE3q8" name="Page-1">
-        <mxGraphModel dx="1196" dy="833" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="2733" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -16,7 +16,7 @@
                 <mxCell id="4" value="Wolt Flow" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
                     <mxGeometry x="120" y="200" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="5" value="Gmail + apply code" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+                <mxCell id="5" value="Gmail + apply code" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
                     <mxGeometry x="920" y="200" width="120" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="9" style="edgeStyle=none;html=1;" parent="1" source="6" target="8" edge="1">
@@ -63,7 +63,7 @@
                 <mxCell id="20" value="use totp + user.totp to get 6 digits code" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="-360" y="1520" width="200" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="149" style="edgeStyle=none;html=1;" edge="1" parent="1" source="23" target="148">
+                <mxCell id="149" style="edgeStyle=none;html=1;" parent="1" source="23" target="148" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="23" value="Click next" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -187,7 +187,7 @@
                 <mxCell id="75" style="edgeStyle=none;html=1;" parent="1" source="63" target="65" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="63" value="Cibus iframe" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+                <mxCell id="63" value="Cibus iframe" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
                     <mxGeometry x="520" y="200" width="120" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="64" style="edgeStyle=none;html=1;" parent="1" source="65" target="67" edge="1">
@@ -425,7 +425,7 @@
                 <mxCell id="141" value="if &lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;another&amp;nbsp;&lt;/span&gt;wat available" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="-300" y="1160" width="80" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="148" value="Check if img alt profile exist" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="148" value="Check if img alt profile exist" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="-360" y="1760" width="200" height="60" as="geometry"/>
                 </mxCell>
             </root>

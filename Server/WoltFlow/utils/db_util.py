@@ -16,7 +16,7 @@ def create_database_connection(db_url=None, logger=None):
             environment variable.
         logger (logging.Logger, optional): Logger instance for connection logging.
             If None, logging is disabled.
-    
+        
     Returns:
         sqlalchemy.orm.Session: Configured database session for operations.
     
