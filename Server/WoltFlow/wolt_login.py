@@ -118,7 +118,7 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         logger.info("Submitting password")
         next_buttons = driver.find_elements(By.XPATH, "//span[text()='הבא']")
         safe_click(driver, next_buttons[0])
-        random_sleep(2, 4)
+        random_sleep(3, 5)
 
         # Step 8: Handle alternative 2FA method selection
         logger.info("Checking for alternative 2FA options")
@@ -126,7 +126,7 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         if other_way_buttons:
             logger.info("Selecting alternative 2FA method")
             safe_click(driver, other_way_buttons[0])
-            random_sleep(2, 4)
+            random_sleep(3, 5)
         else:
             logger.info("No alternative 2FA selection needed")
 
@@ -373,7 +373,7 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
 
                             # Step 3: Extract gift card code from PDF
                             logger.info("Extracting gift card code from PDF")
-                            code_p = driver.find_elements(By.XPATH, "/html/body/div[30]/div[3]/div[4]/div[3]/div[1]/div/div[2]/div[2]/p[3]")
+                            code_p = driver.find_elements(By.XPATH, "//p[contains(normalize-space(.), 'קוד')]")
                             code = code_p[0].text.replace(" :קוד", "")
                             driver.switch_to.default_content()
                             found_wolt_email = True
