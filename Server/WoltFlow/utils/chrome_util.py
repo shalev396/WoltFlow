@@ -21,59 +21,15 @@ chrome_processes = []
 
 def get_chrome_path():
     """Find the Chrome executable path"""
-    # First check if Chrome path is set in environment variable (for Lambda)
-    chrome_path_env = os.environ.get("CHROME_PATH")
-    if chrome_path_env and os.path.exists(chrome_path_env):
-        logger.info(f"Using Chrome from environment variable: {chrome_path_env}")
-        return chrome_path_env
-    
     # Get the absolute path to the current directory
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Check Lambda specific location
-    lambda_chrome_path = "/opt/chrome/chrome"
-    if os.path.exists(lambda_chrome_path):
-        logger.info(f"Using Chrome from Lambda path: {lambda_chrome_path}")
-        return lambda_chrome_path
-    
-    # First check standard Linux Chrome locations (higher priority in Docker)
-    linux_chrome_paths = [
-        "/usr/bin/google-chrome",  # Standard Debian/Ubuntu location
-        "/usr/bin/google-chrome-stable",  # Alternative Linux location
-        "/opt/google/chrome/chrome"  # Another possible location
-    ]
-    
-    for path in linux_chrome_paths:
-        if os.path.exists(path):
-            logger.info(f"Using Chrome from Linux path: {path}")
-            return path
-    
+
     # Try several possible paths for the local Chrome installation
-    local_chrome_paths = [
-        os.path.join(current_dir, "chrome", "chrome.exe"),  # Direct in chrome folder - prioritize this
-    ]
-    
-    # Look for chrome.exe in the 136.0.7103.114 folder - there might not be one there
-    version_dir = os.path.join(current_dir, "chrome", "136.0.7103.114")
-    if os.path.exists(version_dir):
-        local_chrome_paths.append(os.path.join(version_dir, "chrome.exe"))
-    
-    for path in local_chrome_paths:
-        if os.path.exists(path):
-            logger.info(f"Using Chrome from local path: {path}")
-            return path
-    
-    # Fallback paths if local Chrome is not found
-    chrome_paths = [
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",  # Windows
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",  # Windows 32-bit on 64-bit
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",  # macOS
-    ]
-    
-    for path in chrome_paths:
-        if os.path.exists(path):
-            logger.info(f"Using Chrome from system path: {path}")
-            return path
+    local_chrome_path = os.path.join(current_dir, "..", "chrome", "chrome.exe")
+
+    if os.path.exists(local_chrome_path):
+        logger.info(f"Using Chrome from local path: {local_chrome_path}")
+        return local_chrome_path
     
     # If nothing is found, log the error
     logger.error("No Chrome installation found. Please ensure Chrome is installed.")
@@ -364,37 +320,6 @@ def kill_existing_chrome_debugging_sessions(port):
                         print(f"Error terminating process {pid}: {e}")
             else:
                 print(f"No processes found using port {port}")
-        
-        # Linux/Mac
-        else:
-            lsof_result = subprocess.run(
-                f"lsof -ti tcp:{port}", 
-                shell=True, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
-                text=True
-            )
-            
-            if lsof_result.stdout.strip():
-                found_processes = True
-                pids = lsof_result.stdout.strip().split('\n')
-                
-                for pid_str in pids:
-                    try:
-                        pid = int(pid_str.strip())
-                        if pid > 0 and psutil.pid_exists(pid):
-                            process = psutil.Process(pid)
-                            if "chrome" in process.name().lower():
-                                print(f"Terminating Chrome process with PID {pid}")
-                                process.terminate()
-                                try:
-                                    process.wait(timeout=3)
-                                except psutil.TimeoutExpired:
-                                    print(f"Process {pid} didn't terminate in time, force killing")
-                                    os.kill(pid, signal.SIGKILL)
-                    except Exception as e:
-                        print(f"Error terminating process {pid}: {e}")
-        
         if found_processes:
             print(f"Killed existing Chrome processes on port {port}")
         else:

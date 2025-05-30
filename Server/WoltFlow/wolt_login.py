@@ -338,7 +338,7 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         
         
         # Wait for email to be sent
-        random_sleep(15,30)
+        random_sleep(40,60)
         logger.info("Cibus payment workflow completed")
         print("===========Completed 'Cibus iframe' step ===========")
 

@@ -1,74 +1,48 @@
-FROM python:3.9-slim
+# escape=`
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+LABEL maintainer="shalev396@gmail.com"
 
-# Install dependencies for Chrome
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    xvfb \
-    libglib2.0-0 \
-    libnss3 \
-    libgconf-2-4 \
-    libfontconfig1 \
-    libxcb1 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxext6 \
-    libxi6 \
-    libxtst6 \
-    libxrandr2 \
-    libxss1 \
-    libxkbcommon0 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libcups2 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libasound2 \
-    dbus \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop';"]
 
-# Install Chrome for Linux
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR C:\app
 
-# Set up a non-root user for Chrome to run more safely
-RUN groupadd -r woltuser && useradd -r -g woltuser -G audio,video woltuser \
-    && mkdir -p /home/woltuser/Downloads \
-    && chown -R woltuser:woltuser /home/woltuser
+# Install Python (embeddable + pip) – assume this is already working
+RUN Invoke-WebRequest `
+      -UseBasicParsing `
+      -Uri "https://www.python.org/ftp/python/3.11.4/python-3.11.4-embed-amd64.zip" `
+      -OutFile python.zip; `
+    Expand-Archive python.zip -DestinationPath C:\Python; `
+    Remove-Item python.zip; `
+    Rename-Item C:\Python\python311._pth python311.pth; `
+    New-Item -ItemType Directory -Path C:\Python\DLLs; `
+    Invoke-WebRequest `
+      -UseBasicParsing `
+      -Uri "https://bootstrap.pypa.io/get-pip.py" `
+      -OutFile C:\Python\get-pip.py; `
+    C:\Python\python.exe C:\Python\get-pip.py; `
+    Remove-Item C:\Python\get-pip.py
 
-# Create working directory
-WORKDIR /app
+# Add Python to PATH
+ENV PATH C:\Python;C:\Python\Scripts;%PATH%
 
-# First copy and install requirements to leverage Docker cache
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Chrome silently
+RUN Invoke-WebRequest `
+      -UseBasicParsing `
+      -Uri "https://dl.google.com/chrome/install/latest/chrome_installer.exe" `
+      -OutFile chrome_installer.exe; `
+    Start-Process chrome_installer.exe -ArgumentList "/silent","/install" -NoNewWindow -Wait; `
+    Remove-Item chrome_installer.exe
 
-# Copy application code
+# Copy application files
 COPY . .
 
-# Create necessary directories with proper permissions
-RUN mkdir -p /app/screenshots /app/chrome_profiles \
-    && chmod -R 755 /app/screenshots /app/chrome_profiles \
-    && chown -R woltuser:woltuser /app
+# Install Python dependencies
+RUN ["C:\\Python\\python.exe", "-m", "pip", "install", "--no-cache-dir", "-r", "requirements.txt"]
 
-# Create a wrapper script to run with xvfb
-RUN echo '#!/bin/bash\nxvfb-run --server-args="-screen 0 1920x1080x24" python "$@"' > /app/run_with_xvfb.sh \
-    && chmod +x /app/run_with_xvfb.sh
+# Ensure crash dumps directory exists and is writable
+RUN New-Item -ItemType Directory -Path C:\tmp\Crashpad
 
-# Switch to non-root user
-USER woltuser
-
-# Expose port for remote debugging
+# Expose DevTools port
 EXPOSE 9222
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-
-# Run with xvfb to provide a virtual display for Chrome
-CMD ["/app/run_with_xvfb.sh", "wolt_login.py"] 
+CMD ["C:\\Python\\python.exe", "index.py"]
