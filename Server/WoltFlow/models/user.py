@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Boolean, Float
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
+from models.base import Base
 
 class User(Base):
     """SQLAlchemy model representing a user in the WoltFlow system.
@@ -11,44 +11,25 @@ class User(Base):
     
     Attributes:
         id (int): Primary key for user identification.
-        gmail_email (str): User's Gmail email address for Google authentication.
-        gmail_password (str): User's Gmail password.
-        totp_secret (str): Time-based One-Time Password secret for 2FA.
-        last_login (str): ISO format timestamp of user's last login attempt.
-        login_status (str): Status of the last login attempt (SUCCESS/FAILED/ERROR).
-        cibus_username (str): Username for Cibus authentication.
-        cibus_password (str): Password for Cibus authentication.
-        cibus_company (str): Company name for Cibus authentication.
-        gift_amount (str): Desired Wolt gift card amount.
         email (str): Additional email for notifications (optional).
         password (str): Additional password field (optional).
+        in_notification (bool): Indicates whether the user is in notification mode.
+        total_saved (float): Total amount saved by the user.
     """
     __tablename__ = 'users'
     
     # Core user identification
     id = Column(Integer, primary_key=True)
-    
-    # Google authentication fields
-    gmail_email = Column(String, nullable=False)
-    gmail_password = Column(String, nullable=False)
-    totp_secret = Column(String, nullable=True)
-    
-    # Login tracking
-    last_login = Column(String, nullable=True)
-    login_status = Column(String, nullable=True)
-    
-    # Cibus authentication fields
-    cibus_username = Column(String, nullable=True)
-    cibus_password = Column(String, nullable=True)
-    cibus_company = Column(String, nullable=True)
-    
-    # Gift card configuration
-    gift_amount = Column(String, nullable=True)
-    
+ 
     # Additional fields
-    email = Column(String, nullable=True)
-    password = Column(String, nullable=True)
+    email = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+    in_notification = Column(Boolean, default=False)
+    total_saved = Column(Float, default=0.0)
+    
+    # Relationships
+    runs = relationship("Run", back_populates="user", lazy="dynamic")
     
     def __repr__(self):
         """Return a string representation of the User instance."""
-        return f"<User(id={self.id}, email={self.gmail_email})>"
+        return f"<User(id={self.id}, email={self.email})>"

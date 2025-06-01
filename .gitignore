@@ -29,14 +29,12 @@ ENV/
 env.bak/
 venv.bak/
 
-# Sensitive data
-Server/WoltFlow/secret.json
-Server/WoltFlow/cookies/
+# screenshots
 *.png
-Server/WoltFlow/temp_profile_*/
+
+# chrome profiles
 Server/WoltFlow/chrome_profile/
-Server/WoltFlow/chrome/*/master_preferences
-Server/WoltFlow/chrome_profiles/*/master_preferences
+Server/WoltFlow/chrome/*
 
 # IDE
 .idea/
@@ -53,15 +51,7 @@ logs/
 .DS_Store
 Thumbs.db 
 
+# Server
 .serverless
-*.pyc
-*.pyo
 db.json
-__pycache__/
-temp_profile_*/
-screenshots/
-chrome_profiles/
-chrome/*/master_preferences
-chrome_profiles/*/master_preferences
-*chrome
 *node_modules

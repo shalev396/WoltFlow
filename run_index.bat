@@ -28,7 +28,3 @@ if %UPTIME% LEQ 15 (
     echo Uptime > 15 minutes → leaving PC on.
 )
 
-REM 5) Pause so you can see output (remove if running non‐interactive)
-echo.
-echo Press any key to close this window...
-pause >nul
