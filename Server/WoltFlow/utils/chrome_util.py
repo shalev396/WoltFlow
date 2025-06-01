@@ -355,7 +355,9 @@ def launch_fresh_chrome(debugging_port=9222):
         "--no-default-browser-check",
         # Add additional options to make it more reliable
         "--no-sandbox",
-        "--disable-dev-shm-usage"
+        "--disable-dev-shm-usage",
+        # "--headless",
+        "--window-size=1920,1080"
     ]
     
     # Launch Chrome
