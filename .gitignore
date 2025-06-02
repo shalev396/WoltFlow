@@ -33,8 +33,8 @@ venv.bak/
 *.png
 
 # chrome profiles
-Server/WoltFlow/chrome_profile/
-Server/WoltFlow/chrome/*
+*chrome_profile/
+*chrome/
 
 # IDE
 .idea/

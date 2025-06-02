@@ -15,10 +15,10 @@ for /f %%u in ('
 echo System uptime is %UPTIME% minute(s).
 
 REM 2) Change to the project directory
-cd /d "C:\Projects\My Github\WoltFlow\Server\WoltFlow"
+cd /d "C:\Projects\My Github\WoltFlow\Script"
 
 REM 3) Run the Python script inside the virtual environment
-"C:\Projects\My Github\WoltFlow\Server\WoltFlow\.venv\Scripts\python.exe" "C:\Projects\My Github\WoltFlow\Server\WoltFlow\index.py"
+"C:\Projects\My Github\WoltFlow\Script\.venv\Scripts\python.exe" "C:\Projects\My Github\WoltFlow\Script\index.py"
 
 REM 4) If PC just booted (uptime ≤ 5), shut it down
 if %UPTIME% LEQ 15 (
