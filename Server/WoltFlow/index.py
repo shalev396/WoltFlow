@@ -87,7 +87,9 @@ def process_user(user_data, session):
             user_data['cibus_username'],
             user_data['cibus_password'],
             user_data['cibus_company'],
-            user_data['gift_amount']
+            user_data['gift_amount'],
+            run.id,
+            session
         )
         
         # Update run status and amount

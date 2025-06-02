@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from models.user import Base, User
 from models.base import Base
+from models.screenshot import Screenshot
 
 def create_database_connection(db_url=None, logger=None):
     """Create and configure a SQLAlchemy database connection.
@@ -118,8 +119,6 @@ def create_screenshot(session, run_id, url, is_error=False, logger=None):
     Returns:
         models.Screenshot: Created screenshot instance.
     """
-    from models.screenshot import Screenshot
-    
     try:
         screenshot = Screenshot(
             run_id=run_id,
@@ -137,5 +136,38 @@ def create_screenshot(session, run_id, url, is_error=False, logger=None):
     except SQLAlchemyError as e:
         if logger:
             logger.error(f"Failed to create screenshot record: {str(e)}")
+        session.rollback()
+        raise
+
+def save_screenshot(session, run_id, url, is_error=False, logger=None):
+    """Save a screenshot record to the database.
+    
+    Args:
+        session (sqlalchemy.orm.Session): Active database session.
+        run_id (int): ID of the associated run.
+        url (str): URL of the screenshot in S3.
+        is_error (bool): Whether this is an error screenshot.
+        logger (logging.Logger, optional): Logger instance for logging.
+        
+    Returns:
+        Screenshot: The created screenshot record.
+    """
+    try:
+        screenshot = Screenshot(
+            run_id=run_id,
+            url=url,
+            is_error=is_error
+        )
+        session.add(screenshot)
+        session.commit()
+        
+        if logger:
+            logger.info(f"Saved screenshot record for run {run_id}: {url}")
+            
+        return screenshot
+        
+    except SQLAlchemyError as e:
+        if logger:
+            logger.error(f"Failed to save screenshot record: {str(e)}")
         session.rollback()
         raise 

@@ -1,9 +1,8 @@
 # Standard library imports
-import time
 import os
 import pyotp
-import subprocess
-import psutil
+import base64
+
 
 # Third-party imports
 from selenium.webdriver.common.by import By
@@ -14,10 +13,11 @@ from selenium.webdriver.common.keys import Keys
 # Local application imports
 from utils.system_util import cleanup_screenshots, setup_screenshots_dir, setup_logging
 from utils.stealth_util import random_sleep, human_type, safe_click
-from utils.chrome_util import kill_chrome_process, cleanup_temp_profiles, launch_fresh_chrome, connect_to_chrome
-from utils.db_util import create_database_connection
-from models.user import User, Base
 from utils.wolt_util import get_gift_card_url
+
+# S3
+from utils.s3_util import upload_image_to_s3, convert_image_to_base64
+from utils.db_util import save_screenshot   
 
 # Initialize logging configuration
 logger = setup_logging("WoltLogin")
@@ -30,7 +30,7 @@ logger.info(f"Screenshots will be saved to: {screenshots_dir}")
 temp_profiles = []
 chrome_processes = []
 
-def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_username=None, cibus_password=None, cibus_company=None, gift_amount=None):
+def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_username=None, cibus_password=None, cibus_company=None, gift_amount=None, run_id=None, session=None):
     """Execute the complete Wolt gift card purchase workflow.
     
     This function performs the following major steps:
@@ -56,6 +56,8 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         cibus_password (str): Cibus account password.
         cibus_company (str): Cibus company identifier.
         gift_amount (str): Desired gift card amount in ILS.
+        run_id (str): Unique identifier for the current run.
+        session (str): Unique identifier for the current session.
     
     Returns:
         bool: True if the entire workflow completes successfully, False otherwise.
@@ -419,6 +421,12 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
         logger.info("Capturing gift card redemption confirmation screenshot")
         final_screenshot_path = os.path.join(screenshots_dir, 'code_applied.png')
         driver.save_screenshot(final_screenshot_path)
+        try:
+            base64_image = convert_image_to_base64(final_screenshot_path)
+            s3_url = upload_image_to_s3(base64_image)
+            save_screenshot(session, run_id, s3_url, is_error=False, logger=logger)
+        except Exception as e:
+            logger.error(f"Failed to save or process error screenshot: {str(e)}")
         logger.info(f"Redemption confirmation screenshot saved: {final_screenshot_path}")
         
         # Cleanup old screenshots
@@ -434,6 +442,27 @@ def login_to_wolt(driver, email=None, password=None, totp_secret=None, cibus_use
     except Exception as e:
         logger.error(f"Workflow failed: {str(e)}")
         error_screenshot_path = os.path.join(screenshots_dir, 'error_screenshot.png')
-        driver.save_screenshot(error_screenshot_path)
-        logger.info(f"Error screenshot saved: {error_screenshot_path}")
+        try:
+            driver.save_screenshot(error_screenshot_path)
+            logger.info(f"Error screenshot saved locally: {error_screenshot_path}")
+            
+            # Convert screenshot to base64 and upload to S3
+            base64_image = convert_image_to_base64(error_screenshot_path)
+            if base64_image:
+                try:
+                    s3_url = upload_image_to_s3(base64_image)
+                    logger.info(f"Error screenshot uploaded to S3: {s3_url}")
+                    
+                    # Save screenshot record to database if we have session and run_id
+                    if session and run_id:
+                        save_screenshot(session, run_id, s3_url, is_error=True, logger=logger)
+                        
+                except Exception as s3_error:
+                    logger.error(f"Failed to upload screenshot to S3: {str(s3_error)}")
+            else:
+                logger.error("Failed to convert screenshot to base64. S3 upload skipped.")
+
+        except Exception as screenshot_error:
+            logger.error(f"Failed to save or process error screenshot: {str(screenshot_error)}")
+        
         return False
