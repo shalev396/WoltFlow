@@ -6,7 +6,6 @@ import psutil
 import subprocess
 import signal
 import logging
-import random
 from selenium import webdriver
 
 # Configure logging

@@ -3,7 +3,7 @@ service: woltflow-server
 provider:
   name: aws
   runtime: nodejs18.x
-  stage: ${opt:stage, 'dev'}
+  # stage: ${opt:stage, 'dev'}
   region: eu-central-1
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
@@ -24,7 +24,7 @@ functions:
     handler: src/handlers/auth/login.handler
     events:
       - http:
-          path: /auth/login
+          path: /api/auth/login
           method: post
           cors: true
 
@@ -32,7 +32,7 @@ functions:
     handler: src/handlers/auth/register.handler
     events:
       - http:
-          path: /auth/register
+          path: /api/auth/register
           method: post
           cors: true
 
@@ -40,7 +40,7 @@ functions:
     handler: src/handlers/auth/refresh-token.handler
     events:
       - http:
-          path: /auth/refresh-token
+          path: /api/auth/refresh-token
           method: post
           cors: true
 
@@ -48,7 +48,7 @@ functions:
     handler: src/handlers/run/get-runs.handler
     events:
       - http:
-          path: /run/{userId}
+          path: /api/run/{userId}
           method: get
           cors: true
 
@@ -56,7 +56,7 @@ functions:
     handler: src/handlers/screenshot/get-screenshots.handler
     events:
       - http:
-          path: /screenshot/{runId}
+          path: /api/screenshot/{runId}
           method: get
           cors: true
 
@@ -64,12 +64,15 @@ functions:
     handler: src/handlers/screenshot/delete-screenshot.handler
     events:
       - http:
-          path: /screenshot/{id}
+          path: /api/screenshot/{id}
           method: delete
           cors: true
 
 custom:
   serverless-offline:
     httpPort: 3000
+    lambdaPort: 3002
+    noPrependStageInUrl: true
+    reloadHandler: true
   serverless-plugin-typescript:
     tsConfigFileLocation: "./tsconfig.json"

@@ -31,7 +31,10 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       };
     }
 
-    const isValidPassword = await comparePassword(password, user.password);
+    const isValidPassword = await comparePassword(
+      password + process.env.PASSWORD_SECRET,
+      user.password
+    );
 
     if (!isValidPassword) {
       return {
