@@ -1,0 +1,75 @@
+service: woltflow-server
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: eu-central-1
+  environment:
+    DATABASE_URL: ${env:DATABASE_URL}
+    ENV: ${env:ENV}
+    REGISTERABLE: ${env:REGISTERABLE}
+    JWT_SECRET: ${env:JWT_SECRET}
+    PASSWORD_SECRET: ${env:PASSWORD_SECRET}
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-plugin-typescript
+
+useDotenv: true
+
+functions:
+  login:
+    handler: src/handlers/auth/login.handler
+    events:
+      - http:
+          path: /auth/login
+          method: post
+          cors: true
+
+  register:
+    handler: src/handlers/auth/register.handler
+    events:
+      - http:
+          path: /auth/register
+          method: post
+          cors: true
+
+  refreshToken:
+    handler: src/handlers/auth/refresh-token.handler
+    events:
+      - http:
+          path: /auth/refresh-token
+          method: post
+          cors: true
+
+  getRuns:
+    handler: src/handlers/run/get-runs.handler
+    events:
+      - http:
+          path: /run/{userId}
+          method: get
+          cors: true
+
+  getScreenshots:
+    handler: src/handlers/screenshot/get-screenshots.handler
+    events:
+      - http:
+          path: /screenshot/{runId}
+          method: get
+          cors: true
+
+  deleteScreenshot:
+    handler: src/handlers/screenshot/delete-screenshot.handler
+    events:
+      - http:
+          path: /screenshot/{id}
+          method: delete
+          cors: true
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+  serverless-plugin-typescript:
+    tsConfigFileLocation: "./tsconfig.json"

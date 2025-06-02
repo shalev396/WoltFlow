@@ -55,5 +55,5 @@ Thumbs.db
 .serverless
 db.json
 *node_modules
-
+.build
 15

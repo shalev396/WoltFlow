@@ -1,0 +1,33 @@
+{
+  "name": "woltflow-server",
+  "version": "1.0.0",
+  "description": "WoltFlow Serverless Backend",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "serverless offline",
+    "deploy": "serverless deploy"
+  },
+  "dependencies": {
+    "@types/node": "^18.x",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.x",
+    "jsonwebtoken": "^9.x",
+    "pg": "^8.x",
+    "pg-hstore": "^2.x",
+    "sequelize": "^6.x"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.126",
+    "@types/bcryptjs": "^2.4.x",
+    "@types/jsonwebtoken": "^9.x",
+    "serverless": "^3.x",
+    "serverless-dotenv-plugin": "^4.x",
+    "serverless-offline": "^13.3.2",
+    "serverless-plugin-typescript": "^2.x",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
