@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { api } from "@/api/api";
+import { authApi } from "@/api/auth";
+import { initializeTokenRefresh } from "@/store/tokenManager";
 import type { User } from "@/types";
 
 interface AuthState {
@@ -35,16 +36,35 @@ const initialState: AuthState = {
 export const login = createAsyncThunk(
   "auth/login",
   async (credentials: { email: string; password: string }) => {
-    const response = await api.post("/auth/login", credentials);
-    return response.data;
+    const response = await authApi.login(credentials);
+    return response;
   }
 );
 
 export const register = createAsyncThunk(
   "auth/register",
   async (credentials: { email: string; password: string }) => {
-    const response = await api.post("/auth/register", credentials);
-    return response.data;
+    const response = await authApi.register(credentials);
+    return response;
+  }
+);
+
+export const refreshToken = createAsyncThunk(
+  "auth/refreshToken",
+  async (_, { getState, rejectWithValue }) => {
+    const state = getState() as { user: AuthState };
+    const { refreshToken } = state.user;
+
+    if (!refreshToken) {
+      return rejectWithValue("No refresh token available");
+    }
+
+    try {
+      const response = await authApi.refreshToken({ refreshToken });
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to refresh token");
+    }
   }
 );
 
@@ -70,6 +90,7 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Login cases
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -82,11 +103,14 @@ const userSlice = createSlice({
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("accessToken", action.payload.accessToken);
         localStorage.setItem("refreshToken", action.payload.refreshToken);
+        // Initialize token refresh
+        initializeTokenRefresh();
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || "Login failed";
       })
+      // Register cases
       .addCase(register.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -99,10 +123,22 @@ const userSlice = createSlice({
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("accessToken", action.payload.accessToken);
         localStorage.setItem("refreshToken", action.payload.refreshToken);
+        // Initialize token refresh
+        initializeTokenRefresh();
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || "Registration failed";
+      })
+      // Refresh token cases
+      .addCase(refreshToken.fulfilled, (state, action) => {
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        localStorage.setItem("accessToken", action.payload.accessToken);
+        localStorage.setItem("refreshToken", action.payload.refreshToken);
+      })
+      .addCase(refreshToken.rejected, (state, action) => {
+        state.error = action.payload as string;
       });
   },
 });

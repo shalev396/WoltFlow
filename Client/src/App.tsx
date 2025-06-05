@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { store } from "@/store/store";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/sonner";
+import { TokenRefreshInitializer } from "@/components/TokenRefreshInitializer";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -15,6 +16,7 @@ import NotFound from "@/pages/NotFound";
 export default function App() {
   return (
     <Provider store={store}>
+      <TokenRefreshInitializer />
       <ThemeProvider defaultTheme="system" storageKey="woltflow-theme">
         <Router>
           <Routes>

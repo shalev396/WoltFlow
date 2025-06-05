@@ -2,7 +2,8 @@ service: woltflow-server
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs22.x
+  timeout: 30 # remove this
   # stage: ${opt:stage, 'dev'}
   region: eu-central-1
   environment:

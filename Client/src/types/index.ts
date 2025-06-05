@@ -27,3 +27,8 @@ export interface AuthResponse {
   refreshToken: string;
   user: User;
 }
+
+export interface JWTPayload {
+  exp: number;
+  [key: string]: any;
+}
