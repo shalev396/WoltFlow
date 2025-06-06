@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/store/slices/userSlice";
+import { format } from "date-fns";
+import { Loader2 } from "lucide-react";
+
+import { clearUser } from "@/store/slices/googleUserSlice";
 import type { RootState, AppDispatch } from "@/store/store";
-import { api } from "@/api/api";
+
+// import { api } from "@/api/api";
 import type { Run } from "@/types";
+
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,55 +27,43 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
+  const googleUser = useSelector((state: RootState) => state.googleUser);
   const dispatch = useDispatch<AppDispatch>();
-  const { user } = useSelector((state: RootState) => state.user);
-  const [runs, setRuns] = useState<Run[]>([]);
+  const [
+    runs,
+    //setRuns
+  ] = useState<Run[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRuns = async () => {
-      try {
-        const response = await api.get(`/run/${user?.id}`);
-        setRuns(response.data);
-      } catch (error) {
-        toast.error("Failed to fetch runs");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (user?.id) {
-      fetchRuns();
-    }
-  }, [user?.id]);
-
+  const navigate = useNavigate();
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(clearUser());
+    navigate("/");
   };
 
-  const handleNotificationToggle = async () => {
-    try {
-      await api.patch(`/user/${user?.id}`, {
-        in_notification: !user?.in_notification,
-      });
-      toast.success("Notification settings updated");
-    } catch (error) {
-      toast.error("Failed to update notification settings");
-    }
-  };
+  useEffect(() => {
+    // Reset loading state when user data changes
+    setIsLoading(false);
+    console.log(googleUser);
+  }, [googleUser]);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b bg-background/80">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Dashboard
+            </h1>
+            {googleUser?.name && (
+              <span className="text-sm text-muted-foreground">
+                Welcome, {googleUser.name}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <ModeToggle />
             <Button variant="outline" onClick={handleLogout}>
@@ -98,16 +91,14 @@ export default function Dashboard() {
                     Email
                   </p>
                   <p className="text-lg font-medium text-foreground">
-                    {user?.email}
+                    {googleUser?.email}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">
                     Total Saved
                   </p>
-                  <p className="text-lg font-medium text-foreground">
-                    ₪{user?.total_saved.toFixed(2)}
-                  </p>
+                  <p className="text-lg font-medium text-foreground">₪{100}</p>
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="space-y-1">
@@ -118,10 +109,7 @@ export default function Dashboard() {
                       Receive alerts about your purchases
                     </p>
                   </div>
-                  <Switch
-                    checked={user?.in_notification}
-                    onCheckedChange={handleNotificationToggle}
-                  />
+                  <Switch checked={true} onCheckedChange={() => {}} />
                 </div>
               </div>
             </CardContent>

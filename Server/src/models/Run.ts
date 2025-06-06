@@ -1,6 +1,6 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/database";
-import { Run as RunType } from "../types";
+import { Run as RunType } from "../typescript/types";
 import User from "./User";
 
 class Run extends Model<RunType> implements RunType {

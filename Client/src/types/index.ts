@@ -1,10 +1,3 @@
-export interface User {
-  id: number;
-  email: string;
-  in_notification: boolean;
-  total_saved: number;
-}
-
 export interface Run {
   id?: number;
   user_id: number;
@@ -22,13 +15,22 @@ export interface Screenshot {
   is_error: boolean;
 }
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
-}
-
-export interface JWTPayload {
-  exp: number;
-  [key: string]: any;
+export interface GoogleUser {
+  email: string;
+  name: string;
+  picture: string;
+  // iss: string;
+  // azp: string;
+  // aud: string;
+  // sub: string;
+  // email: string;
+  // email_verified: boolean;
+  // nbf: number;
+  // name: string;
+  // picture: string;
+  // given_name: string;
+  // family_name: string;
+  // iat: number;
+  // exp: number;
+  // jti: string;
 }

@@ -1,6 +1,6 @@
 # WoltFlow Server
 
-A serverless Node.js backend for WoltFlow using AWS Lambda, Sequelize, and PostgreSQL.
+A serverless Node.js backend for WoltFlow using AWS Lambda, Sequelize, PostgreSQL, and Google OAuth2 authentication.
 
 ## Project Structure
 
@@ -11,23 +11,25 @@ Server/
 │   │   └── database.ts
 │   ├── handlers/
 │   │   ├── auth/
-│   │   │   ├── login.ts
-│   │   │   ├── register.ts
-│   │   │   └── refresh-token.ts
-│   │   ├── run/
-│   │   │   └── get-runs.ts
-│   │   └── screenshot/
-│   │       ├── get-screenshots.ts
-│   │       └── delete-screenshot.ts
+│   │   │   ├── oauthStart.ts
+│   │   │   ├── oauthCallback.ts
+│   │   │   └── authMeHandler.ts
+│   │   ├── gmail/
+│   │   │   └── getDailyCode.ts
+│   │   └── setting/
+│   │       ├── getusersettings.ts
+│   │       └── setusersettings.ts
+│   ├── middlewares/
+│   │   └── auth.ts
 │   ├── models/
 │   │   ├── User.ts
+│   │   ├── Setting.ts
+│   │   ├── Code.ts
 │   │   ├── Run.ts
 │   │   └── Screenshot.ts
-│   ├── types/
-│   │   └── index.ts
-│   └── utils/
-│       ├── auth.ts
-│       └── middleware.ts
+│   └── typescript/
+│       ├── interfaces/
+│       └── types/
 ├── .env
 ├── package.json
 ├── serverless.yml
@@ -40,10 +42,12 @@ Create a `.env` file with the following variables:
 
 ```
 DATABASE_URL=your_database_url
+DATABASE_URL_DEV=your_development_database_url
 ENV=Development
-REGISTERABLE=true
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+OAUTH_REDIRECT_URI=your_oauth_redirect_uri
 JWT_SECRET=your_jwt_secret
-PASSWORD_SECRET=your_password_secret
 ```
 
 ## Setup
@@ -72,50 +76,90 @@ npm run deploy
 
 ### Authentication
 
-All authenticated endpoints require a Bearer token in the Authorization header:
+The application uses Google OAuth2 for authentication. All authenticated endpoints require a session token cookie.
 
-```
-Authorization: Bearer <access_token>
-```
+#### GET `/api/oauth2/start`
 
-#### POST `/auth/register`
+Start the OAuth2 flow by redirecting to Google's consent screen.
 
-Register a new user.
+Response: Redirects to Google OAuth consent screen
 
-Request:
+#### GET `/api/oauth2/callback`
+
+OAuth2 callback endpoint that handles the response from Google.
+
+Response: Sets session cookie and redirects to dashboard
+
+#### GET `/api/auth/me`
+
+Get the current authenticated user's information.
+
+Response (200):
 
 ```json
 {
   "email": "user@example.com",
-  "password": "securePassword123"
+  "name": "User Name",
+  "picture": "https://..."
 }
 ```
 
-Response (201):
+### Gmail Integration
+
+#### GET `/api/gmail/daily-code`
+
+Get the Wolt gift card code from the user's Gmail.
+
+Query Parameters:
+
+- `uid`: User ID (required)
+- `date`: Target date (optional, Development only)
+
+Response (200):
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": 1,
-    "email": "user@example.com",
-    "in_notification": false,
-    "total_saved": 0
-  }
+  "success": true
 }
 ```
 
-#### POST `/auth/login`
+### User Settings
 
-Login with existing credentials.
+#### GET `/api/setting`
 
-Request:
+Get user settings. Requires authentication.
+
+Response (200):
 
 ```json
 {
-  "email": "user@example.com",
-  "password": "securePassword123"
+  "settingsId": 1,
+  "userId": "google-user-id",
+  "isNotification": false,
+  "woltAccessToken": "token",
+  "woltRefreshToken": "token",
+  "cibusName": "username",
+  "cibusPassword": "password",
+  "cibusCompany": "company",
+  "giftAmount": 50.0
+}
+```
+
+#### POST `/api/setting`
+
+Update user settings. Requires authentication.
+
+Request Body:
+
+```json
+{
+  "isNotification": true,
+  "woltAccessToken": "token",
+  "woltRefreshToken": "token",
+  "cibusName": "username",
+  "cibusPassword": "password",
+  "cibusCompany": "company",
+  "giftAmount": 50.0
 }
 ```
 
@@ -123,115 +167,65 @@ Response (200):
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": 1,
-    "email": "user@example.com",
-    "in_notification": false,
-    "total_saved": 0
-  }
+  "settingsId": 1,
+  "userId": "google-user-id",
+  "isNotification": true
+  // ... updated fields
 }
 ```
 
-#### POST `/auth/refresh-token`
+## Database Models
 
-Get a new access token using a refresh token.
+### User
 
-Request:
+- `userId` (PK): Google user ID
+- `refreshToken`: Google OAuth refresh token
+- `createdAt`, `updatedAt`: Timestamps
 
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
-}
-```
+### Setting
 
-Response (200):
+- `settingsId` (PK): Auto-incrementing ID
+- `userId` (FK): Reference to User
+- `isNotification`: Boolean
+- `woltAccessToken`: String
+- `woltRefreshToken`: String
+- `cibusName`: String
+- `cibusPassword`: String
+- `cibusCompany`: String
+- `giftAmount`: Decimal
+- `createdAt`, `updatedAt`: Timestamps
 
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
-}
-```
+### Code
 
-### Runs
+- `codeId` (PK): Auto-incrementing ID
+- `userId` (FK): Reference to User
+- `code`: String
+- `isUsed`: Boolean
+- `createdAt`, `updatedAt`: Timestamps
 
-#### GET `/run/{userId}`
+### Run
 
-Get all runs for a user. Requires authentication.
+- `id` (PK): Auto-incrementing ID
+- `user_id` (FK): Reference to User
+- `status`: Enum ('failed', 'in progress', 'success')
+- `amount`: Float
+- `is_notify`: Boolean
+- `created_at`, `updated_at`: Timestamps
 
-Response (200):
+### Screenshot
 
-```json
-[
-  {
-    "id": 1,
-    "user_id": 1,
-    "created_at": "2024-03-14T12:00:00Z",
-    "updated_at": "2024-03-14T12:30:00Z",
-    "status": "success",
-    "amount": 150.5,
-    "is_notify": false
-  }
-]
-```
-
-### Screenshots
-
-#### GET `/screenshot/{runId}`
-
-Get all screenshots for a run. Requires authentication.
-
-Response (200):
-
-```json
-[
-  {
-    "id": 1,
-    "run_id": 1,
-    "url": "https://example.com/screenshot1.jpg",
-    "is_error": false
-  }
-]
-```
-
-#### DELETE `/screenshot/{id}`
-
-Delete a specific screenshot. Requires authentication.
-
-Response (204):
-
-```
-No content
-```
+- `id` (PK): Auto-incrementing ID
+- `run_id` (FK): Reference to Run
+- `url`: String
+- `is_error`: Boolean
 
 ## Error Responses
-
-### Validation Error (400)
-
-```json
-{
-  "message": "Email and password are required",
-  "statusCode": 400
-}
-```
 
 ### Authentication Error (401)
 
 ```json
 {
-  "message": "Invalid token",
-  "statusCode": 401
-}
-```
-
-### Authorization Error (403)
-
-```json
-{
-  "message": "Unauthorized access",
-  "statusCode": 403
+  "error": "Not authenticated"
 }
 ```
 
@@ -239,27 +233,23 @@ No content
 
 ```json
 {
-  "message": "Resource not found",
-  "statusCode": 404
+  "error": "Resource not found"
 }
 ```
 
-### Conflict Error (409)
+### Server Error (500)
 
 ```json
 {
-  "message": "Email already exists",
-  "statusCode": 409
+  "error": "Internal error"
 }
 ```
 
-## Security Features
+## Development Features
 
-- Access tokens expire in 20 minutes
-- Refresh tokens expire in 7 days
-- All endpoints require authentication except login and register
-- Users can only access their own data
-- Registration can be disabled via REGISTERABLE environment variable
-- Passwords are hashed with bcrypt + additional secret
-- All endpoints support CORS
-- SSL enabled for database connection
+- Uses `serverless-offline` for local development
+- TypeScript support with `serverless-plugin-typescript`
+- Environment variables support with `serverless-dotenv-plugin`
+- CORS configured for local development (`http://localhost:5173`)
+- Database connection pooling with Sequelize
+- Automatic table creation/updates in development mode

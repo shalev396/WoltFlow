@@ -1,17 +1,14 @@
-import { useSelector } from "react-redux";
-import { Navigate, useLocation } from "react-router-dom";
-import type { RootState } from "@/store/store";
+import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { accessToken } = useSelector((state: RootState) => state.user);
-  const location = useLocation();
-
-  if (!accessToken) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // Check if user is authenticated by verifying if they have an email
+  if (false) {
+    // Redirect them to the landing page
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

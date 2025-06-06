@@ -1,45 +1,28 @@
-import { Model, DataTypes } from "sequelize";
+// models/User.ts
+import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
-import { User as UserType } from "../types";
 
-class User extends Model<UserType> implements UserType {
-  public id!: number;
-  public email!: string;
-  public password!: string;
-  public in_notification!: boolean;
-  public total_saved!: number;
+export default class User extends Model {
+  public userId!: string; // Google sub (unique ID)
+  public refreshToken!: string; // Google refresh token
+  // Timestamps
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 User.init(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+    userId: {
+      type: DataTypes.STRING,
       primaryKey: true,
     },
-    email: {
-      type: DataTypes.STRING(255),
+    refreshToken: {
+      type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
-    },
-    password: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    in_notification: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    total_saved: {
-      type: DataTypes.FLOAT,
-      defaultValue: 0.0,
     },
   },
   {
+    tableName: "Users",
     sequelize,
-    tableName: "users",
-    timestamps: false,
   }
 );
-
-export default User;

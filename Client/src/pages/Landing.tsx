@@ -2,23 +2,32 @@ import { Link } from "react-router-dom";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
+import type {
+  //AppDispatch
+  RootState,
+} from "@/store/store";
 
 import { useRef } from "react";
 import { ArrowRight, Bot, Gift, Shield } from "lucide-react";
 
+// import { useDispatch } from "react-redux";
+
+import LoginButton from "@/components/LoginButton";
+
 export default function Landing() {
-  const { user } = useSelector((state: RootState) => state.user);
+  const googleUser = useSelector((state: RootState) => state.googleUser);
+  console.log(googleUser);
+
   const headerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const automationRef = useRef<HTMLDivElement>(null);
   const creditsRef = useRef<HTMLDivElement>(null);
 
+  // const dispatch = useDispatch<AppDispatch>();
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-
       <header
         ref={headerRef}
         className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b bg-background/80"
@@ -29,20 +38,7 @@ export default function Landing() {
           </h1>
           <div className="flex items-center gap-4">
             <ModeToggle />
-            {user ? (
-              <Button asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button variant="outline" asChild>
-                  <Link to="/login">Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/register">Register</Link>
-                </Button>
-              </div>
-            )}
+            <LoginButton />
           </div>
         </div>
       </header>
