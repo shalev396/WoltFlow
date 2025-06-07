@@ -1,4 +1,3 @@
-// src/models/Settings.ts
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
 import User from "./User";
@@ -7,8 +6,7 @@ export default class Setting extends Model {
   public settingsId!: number;
   public userId!: string;
   public isNotification!: boolean;
-  public woltAccessToken!: string | null;
-  public woltRefreshToken!: string | null;
+  public cookies!: string | null; // <-- new field
   public cibusName!: string | null;
   public cibusPassword!: string | null;
   public cibusCompany!: string | null;
@@ -29,22 +27,18 @@ Setting.init(
       allowNull: false,
       references: {
         model: User,
-        key: 'userId',
+        key: "userId",
       },
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
     isNotification: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
       allowNull: false,
     },
-    woltAccessToken: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    woltRefreshToken: {
-      type: DataTypes.TEXT,
+    cookies: {
+      type: DataTypes.TEXT, // <-- store array of cookie objects
       allowNull: true,
     },
     cibusName: {
@@ -65,9 +59,9 @@ Setting.init(
     },
   },
   {
-    tableName: "Settings",
+    tableName: "Setting",
     sequelize,
   }
 );
 
-Setting.belongsTo(User, { foreignKey: 'userId' });
+Setting.belongsTo(User, { foreignKey: "userId" });

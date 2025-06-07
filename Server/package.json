@@ -19,6 +19,7 @@
     "pdf-parse": "^1.1.1",
     "pg": "^8.x",
     "pg-hstore": "^2.x",
+    "selenium-webdriver": "^4.33.0",
     "sequelize": "^6.x"
   },
   "devDependencies": {
@@ -26,6 +27,7 @@
     "@types/bcryptjs": "^2.4.x",
     "@types/jsonwebtoken": "^9.x",
     "@types/pdf-parse": "^1.1.5",
+    "@types/selenium-webdriver": "^4.1.28",
     "serverless": "^3.x",
     "serverless-dotenv-plugin": "^4.x",
     "serverless-offline": "^13.3.2",

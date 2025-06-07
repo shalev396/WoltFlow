@@ -57,3 +57,6 @@ db.json
 *node_modules
 .build
 15
+
+*chrome-layer
+*chromedriver-layer

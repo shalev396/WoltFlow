@@ -19,4 +19,11 @@ const sequelize = new Sequelize(databaseUrl, {
   logging: process.env.ENV === "Development" ? console.log : false,
 });
 
+// Sync database in development mode
+if (process.env.ENV === "Development") {
+  sequelize.sync({ alter: true }).catch((err) => {
+    console.error("Error syncing database:", err);
+  });
+}
+
 export default sequelize;

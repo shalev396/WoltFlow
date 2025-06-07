@@ -12,6 +12,7 @@ provider:
     GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
     OAUTH_REDIRECT_URI: ${env:OAUTH_REDIRECT_URI}
     JWT_SECRET: ${env:JWT_SECRET}
+    IS_OFFLINE: ${env:IS_OFFLINE, "false"}
 
 plugins:
   - serverless-offline
@@ -140,6 +141,31 @@ functions:
             allowCredentials: true
             allowMethods:
               - POST
+              - OPTIONS
+  woltBuyGift:
+    handler: src/handlers/automation/woltBuyGift.handler
+    layers:
+      - { Ref: HeadlessChromiumLambdaLayer }
+      - { Ref: ChromedriverLambdaLayer }
+    memorySize: 1024
+    timeout: 30
+    events:
+      - http:
+          path: /api/wolt/buyGift
+          method: get
+          cors:
+            origin: "http://localhost:5173"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cookie
+            allowCredentials: true
+            allowMethods:
+              - GET
               - OPTIONS
 
 custom:

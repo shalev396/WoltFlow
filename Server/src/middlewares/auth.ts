@@ -5,13 +5,16 @@ import {
   ICustomAPIGatewayProxyEvent,
   ICustomContext,
 } from "../typescript/interfaces/aws";
+import { APIGatewayProxyResult } from "aws-lambda";
 
-export const authMiddleware = (handler: CustomAPIGatewayProxyHandler) => {
+export const authMiddleware = (
+  handler: CustomAPIGatewayProxyHandler
+): CustomAPIGatewayProxyHandler => {
   return async (
     event: ICustomAPIGatewayProxyEvent,
     context: ICustomContext,
     callback: (error?: Error | null | string, result?: any) => void
-  ) => {
+  ): Promise<APIGatewayProxyResult> => {
     try {
       const cookieHeader = event.headers.Cookie || event.headers.cookie || "";
       const cookies = Object.fromEntries(
@@ -32,7 +35,7 @@ export const authMiddleware = (handler: CustomAPIGatewayProxyHandler) => {
       event.userId = payload.userId;
       context.userId = payload.userId;
 
-      return handler(event as IAuthenticatedEvent, context, callback);
+      return await handler(event as IAuthenticatedEvent, context, callback);
     } catch (err: any) {
       return {
         statusCode: 401,

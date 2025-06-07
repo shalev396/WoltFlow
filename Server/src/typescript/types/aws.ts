@@ -20,4 +20,4 @@ export type CustomAPIGatewayProxyHandler = (
     error?: Error | null | string,
     result?: APIGatewayProxyResult
   ) => void
-) => Promise<APIGatewayProxyResult> | void;
+) => Promise<APIGatewayProxyResult>;
