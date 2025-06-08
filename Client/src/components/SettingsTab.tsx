@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -35,8 +36,7 @@ const GIFT_CARD_AMOUNTS = [
 
 const formSchema = z.object({
   isNotification: z.boolean(),
-  woltAccessToken: z.string().min(1, "Wolt access token is required"),
-  woltRefreshToken: z.string().min(1, "Wolt refresh token is required"),
+  cookies: z.string().min(1, "Cookies are required"),
   cibusName: z.string().min(1, "Username is required"),
   cibusPassword: z.string().min(1, "Password is required"),
   cibusCompany: z.string().min(1, "Company is required"),
@@ -52,8 +52,7 @@ export function SettingsTab() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       isNotification: false,
-      woltAccessToken: "",
-      woltRefreshToken: "",
+      cookies: "",
       cibusName: "",
       cibusPassword: "",
       cibusCompany: "",
@@ -67,8 +66,7 @@ export function SettingsTab() {
         const settings = await settingsService.getSettings();
         form.reset({
           isNotification: settings.isNotification,
-          woltAccessToken: settings.woltAccessToken || "",
-          woltRefreshToken: settings.woltRefreshToken || "",
+          cookies: settings.cookies || "",
           cibusName: settings.cibusName || "",
           cibusPassword: settings.cibusPassword || "",
           cibusCompany: settings.cibusCompany || "",
@@ -91,6 +89,17 @@ export function SettingsTab() {
   async function onSubmit(values: FormData) {
     try {
       setIsLoading(true);
+
+      // Validate JSON format for cookies
+      try {
+        JSON.parse(values.cookies);
+      } catch {
+        toast.error("Invalid cookies format", {
+          description: "Please provide valid JSON format for cookies",
+        });
+        return;
+      }
+
       await settingsService.updateSettings(values);
       toast.success("Settings updated successfully", {
         description: "Your changes have been saved",
@@ -143,29 +152,21 @@ export function SettingsTab() {
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="woltAccessToken"
+              name="cookies"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Access Token</FormLabel>
+                  <FormLabel>Wolt Cookies (JSON format)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="password" className="bg-card" />
+                    <Textarea
+                      {...field}
+                      className="bg-card min-h-[200px] font-mono text-sm"
+                      placeholder='[{"domain":".wolt.com","name":"__wtoken","value":"..."}]'
+                    />
                   </FormControl>
-                  <FormDescription>Your Wolt API access token</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="woltRefreshToken"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Refresh Token</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="password" className="bg-card" />
-                  </FormControl>
-                  <FormDescription>Your Wolt API refresh token</FormDescription>
+                  <FormDescription>
+                    Paste your Wolt cookies in JSON format. You can get these
+                    from your browser's developer tools.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

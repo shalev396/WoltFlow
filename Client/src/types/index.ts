@@ -25,8 +25,7 @@ export interface UserSettings {
   settingsId: number;
   userId: string;
   isNotification: boolean;
-  woltAccessToken: string | null;
-  woltRefreshToken: string | null;
+  cookies: string | null;
   cibusName: string | null;
   cibusPassword: string | null;
   cibusCompany: string | null;
@@ -41,8 +40,7 @@ export type UserSettingsUpdate = Partial<
 
 export type FormSettings = {
   isNotification: boolean;
-  woltAccessToken: string;
-  woltRefreshToken: string;
+  cookies: string;
   cibusName: string;
   cibusPassword: string;
   cibusCompany: string;

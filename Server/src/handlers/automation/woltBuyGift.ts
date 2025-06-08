@@ -35,7 +35,12 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
 
   const options = new chrome.Options()
     .setChromeBinaryPath(chromeBinary)
-    .addArguments("--headless", "--disable-gpu", "--window-size=1920,1080");
+    .addArguments(
+      "--headless",
+      "--disable-gpu",
+      "--window-size=1920,1080",
+      "--incognito"
+    );
 
   const driver = await new Builder()
     .forBrowser("chrome")
@@ -87,7 +92,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     const continueDialogs = await waitForElement(
       driver,
       By.xpath("//h2[normalize-space(text())='אשמח להמשיך']"),
-      2000
+      3000
     );
 
     if (continueDialogs) {
@@ -133,7 +138,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       throw new Error(`Gift card amount ${giftAmount} ILS not available`);
     }
     await driver.get(giftUrl);
-    await sleep(2000);
+    await sleep(3000);
     //script end
 
     // 6️⃣ Capture screenshot
