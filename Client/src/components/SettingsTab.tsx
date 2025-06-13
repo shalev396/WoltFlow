@@ -36,7 +36,8 @@ const GIFT_CARD_AMOUNTS = [
 
 const formSchema = z.object({
   isNotification: z.boolean(),
-  cookies: z.string().min(1, "Cookies are required"),
+  wrtoken: z.string().min(1, "Refresh token is required"),
+  wtoken: z.string().min(1, "Access token is required"),
   cibusName: z.string().min(1, "Username is required"),
   cibusPassword: z.string().min(1, "Password is required"),
   cibusCompany: z.string().min(1, "Company is required"),
@@ -52,7 +53,8 @@ export function SettingsTab() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       isNotification: false,
-      cookies: "",
+      wrtoken: "",
+      wtoken: "",
       cibusName: "",
       cibusPassword: "",
       cibusCompany: "",
@@ -66,7 +68,8 @@ export function SettingsTab() {
         const settings = await settingsService.getSettings();
         form.reset({
           isNotification: settings.isNotification,
-          cookies: settings.cookies || "",
+          wrtoken: settings.wrtoken || "",
+          wtoken: settings.wtoken || "",
           cibusName: settings.cibusName || "",
           cibusPassword: settings.cibusPassword || "",
           cibusCompany: settings.cibusCompany || "",
@@ -90,12 +93,10 @@ export function SettingsTab() {
     try {
       setIsLoading(true);
 
-      // Validate JSON format for cookies
-      try {
-        JSON.parse(values.cookies);
-      } catch {
-        toast.error("Invalid cookies format", {
-          description: "Please provide valid JSON format for cookies",
+      // Validate tokens
+      if (!values.wrtoken.trim() || !values.wtoken.trim()) {
+        toast.error("Invalid tokens", {
+          description: "Both tokens are required",
         });
         return;
       }
@@ -152,20 +153,39 @@ export function SettingsTab() {
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="cookies"
+              name="wrtoken"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Wolt Cookies (JSON format)</FormLabel>
+                  <FormLabel>Wolt Refresh Token</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
-                      className="bg-card min-h-[200px] font-mono text-sm"
-                      placeholder='[{"domain":".wolt.com","name":"__wtoken","value":"..."}]'
+                      className="bg-card min-h-[100px] font-mono text-sm"
+                      placeholder="Your Wolt refresh token"
                     />
                   </FormControl>
                   <FormDescription>
-                    Paste your Wolt cookies in JSON format. You can get these
-                    from your browser's developer tools.
+                    Your Wolt refresh token used for authentication.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="wtoken"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Wolt Access Token</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      className="bg-card min-h-[100px] font-mono text-sm"
+                      placeholder="Your Wolt access token"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Your Wolt access token used for API requests.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

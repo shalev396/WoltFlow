@@ -6,7 +6,9 @@ export default class Setting extends Model {
   public settingsId!: number;
   public userId!: string;
   public isNotification!: boolean;
-  public cookies!: string | null; // <-- new field
+  public cookies!: string | null; // <-- deprecated field (keep for now)
+  public wrtoken!: string | null; // <-- new field
+  public wtoken!: string | null; // <-- new field
   public cibusName!: string | null;
   public cibusPassword!: string | null;
   public cibusCompany!: string | null;
@@ -38,7 +40,15 @@ Setting.init(
       allowNull: false,
     },
     cookies: {
-      type: DataTypes.TEXT, // <-- store array of cookie objects
+      type: DataTypes.TEXT, // <-- deprecated (keep for backward compatibility)
+      allowNull: true,
+    },
+    wrtoken: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    wtoken: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     cibusName: {

@@ -1,5 +1,8 @@
+import path from "path";
+import fs from "fs";
 import { By, until, WebDriver, WebElement } from "selenium-webdriver";
 import { TimeoutError } from "sequelize";
+import { sleep } from "./general";
 
 export function getGiftCardUrl(amount: number): string | null {
   const giftCards: Array<{ amount: number; url: string }> = [
@@ -137,16 +140,88 @@ export function getGiftCardUrl(amount: number): string | null {
   return card ? card.url : null;
 }
 
+export async function setupWoltCookies(
+  driver: WebDriver,
+  wrToken: string,
+  wToken: string
+): Promise<void> {
+  try {
+    // Cookies Setup
+    await driver.get("https://wolt.com/he/discovery");
+
+    let expirationDate = Date.now() / 1000 + 1800; // Default 30 min
+    // Build cookies for browser
+    const cookiesToSet = [];
+
+    if (wrToken) {
+      cookiesToSet.push({
+        domain: "wolt.com",
+        expirationDate: expirationDate,
+        hostOnly: true,
+        httpOnly: false,
+        name: "__wrtoken",
+        path: "/",
+        sameSite: "unspecified",
+        secure: true,
+        session: false,
+        storeId: "0",
+        value: encodeURIComponent(`"${wrToken}"`),
+      });
+    }
+
+    if (wToken) {
+      const accessTokenObject = {
+        accessToken: wToken,
+        expirationTime: expirationDate,
+      };
+      cookiesToSet.push({
+        domain: "wolt.com",
+        expirationDate: expirationDate,
+        hostOnly: true,
+        httpOnly: false,
+        name: "__wtoken",
+        path: "/",
+        sameSite: "unspecified",
+        secure: true,
+        session: false,
+        storeId: "0",
+        value: encodeURIComponent(JSON.stringify(accessTokenObject)),
+      });
+    }
+
+    await driver.manage().deleteAllCookies();
+    await driver.get("https://wolt.com");
+
+    // Set cookies
+    for (const cookie of cookiesToSet) {
+      try {
+        await driver.manage().addCookie(sanitize(cookie));
+      } catch (e) {
+        console.log("error setting cookie", e, "cookie", cookie);
+      }
+    }
+    await driver.get("https://wolt.com");
+    await sleep(10000);
+  } catch (error) {
+    console.error("Error setting up Wolt cookies:", error);
+    throw error;
+  }
+}
+
 export function safeClick(
   driver: WebDriver,
   element: WebElement,
-  timeout = 10000
+  timeout = 3000
 ) {
   // wait until clickable, then click
   return driver
     .wait(until.elementIsVisible(element), timeout)
     .then(() => driver.wait(until.elementIsEnabled(element), timeout))
-    .then(() => element.click());
+    .then(() => element.click())
+    .catch((err) => {
+      console.log("error", err);
+      return null;
+    });
 }
 
 /**
@@ -160,15 +235,91 @@ export function safeClick(
 export async function waitForElement(
   driver: WebDriver,
   locator: By,
-  timeoutMs = 1000
+  timeoutMs = 3000
 ): Promise<WebElement | null> {
   try {
-    return await driver.wait(until.elementLocated(locator), timeoutMs);
+    const element = await driver.wait(until.elementLocated(locator), timeoutMs);
+    return element;
   } catch (err: any) {
-    console.log(`not found: ${locator}`);
-    // if (err instanceof TimeoutError) {
-    return null;
-    // }
+    console.log(`Element not found within ${timeoutMs}ms: ${locator}`);
+
+    const base64 = await driver.takeScreenshot();
+    const dir = path.resolve(process.cwd(), "screenshots");
+    fs.mkdirSync(dir, { recursive: true });
+    const filename = path.join(dir, `timeout_${Date.now()}.png`);
+    fs.writeFileSync(filename, base64, "base64");
+    console.log(`Saved timeout screenshot: ${filename}`);
+    if (
+      locator.toString() ===
+        "By(xpath, //*[normalize-space(text())='אשמח להמשיך'])" ||
+      locator.toString() === "By(xpath, //button[@aria-label='מחיקה'])"
+    ) {
+      return null;
+    }
+    console.log("locator", locator.toString());
     throw err;
   }
 }
+
+export interface TokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  token_type: string;
+  decoded_exp?: number;
+}
+
+export async function refreshTokens(
+  refreshToken: string
+): Promise<TokenResponse> {
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+  const urlencoded = new URLSearchParams();
+  urlencoded.append("grant_type", "refresh_token");
+  urlencoded.append("refresh_token", refreshToken);
+
+  const requestOptions: RequestInit = {
+    method: "POST",
+    headers: myHeaders,
+    body: urlencoded,
+    redirect: "follow",
+  };
+
+  try {
+    const response = await fetch(
+      "https://authentication.wolt.com/v1/wauth2/access_token",
+      requestOptions
+    );
+    const result = await response.text();
+    console.log("result", result);
+    const tokenResponse = JSON.parse(result) as TokenResponse;
+
+    // Decode JWT to get expiration
+    try {
+      const [, payload] = tokenResponse.access_token.split(".");
+      const decodedPayload = JSON.parse(atob(payload));
+      tokenResponse.decoded_exp = decodedPayload.exp;
+    } catch (decodeError) {
+      console.error("Failed to decode JWT:", decodeError);
+    }
+    if (response.status === 401) {
+      throw new Error("Unauthorized");
+    }
+    return tokenResponse;
+  } catch (error) {
+    console.error("Token refresh error:", error);
+    throw error;
+  }
+}
+
+export const sanitize = (cookie: any) => {
+  const c = { ...cookie };
+  if (!["Lax", "Strict", "None"].includes(c.sameSite)) {
+    c.sameSite = "None";
+  }
+  if (c.sameSite === "None") {
+    c.secure = true;
+  }
+  return c;
+};

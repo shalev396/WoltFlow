@@ -1,4 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { Lambda } from "aws-sdk";
 import { google } from "googleapis";
 import pdf from "pdf-parse";
 import dotenv from "dotenv";
@@ -7,6 +8,7 @@ import User from "../../models/User";
 import Code from "../../models/Code";
 
 dotenv.config();
+const lambda = new Lambda();
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -119,21 +121,73 @@ export const handler = async (
     }
     const codeValue = match[1];
 
-    // 12. Save into Codes table and return it
-    //const newCode =
+    // Save into Codes table
     await Code.create({
       userId: uid,
       code: codeValue,
       isUsed: false,
     });
 
-    // 13. Return the code and the newly created record
+    console.log(
+      "Gift card code extracted successfully, triggering woltApplyGift function"
+    );
+
+    // Fire-and-forget trigger woltApplyGift function
+    const isOffline = process.env.IS_OFFLINE === "true";
+
+    if (isOffline) {
+      // For serverless offline, make HTTP request without waiting
+      console.log(
+        "Running in offline mode, triggering woltApplyGift (fire-and-forget)"
+      );
+
+      // Fire and forget - don't await the response
+      fetch(`http://localhost:3000/api/wolt/applyGift?userId=${uid}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).catch((error) => {
+        console.error(
+          "HTTP request to woltApplyGift failed (but continuing):",
+          error
+        );
+      });
+
+      console.log(
+        "woltApplyGift HTTP request triggered (not waiting for completion)"
+      );
+    } else {
+      // For production, use Lambda invoke with fire-and-forget
+      const functionName = process.env.WOLT_APPLY_GIFT_FUNCTION_NAME!;
+      const invokeParams = {
+        FunctionName: functionName,
+        InvocationType: "Event" as const, // Fire and forget
+        Payload: JSON.stringify({
+          queryStringParameters: { userId: uid },
+        }),
+      };
+
+      // Fire and forget - don't await the response
+      lambda
+        .invoke(invokeParams)
+        .promise()
+        .catch((error) => {
+          console.error(
+            "Lambda invoke to woltApplyGift failed (but continuing):",
+            error
+          );
+        });
+
+      console.log(
+        "woltApplyGift Lambda invocation triggered (not waiting for completion)"
+      );
+    }
+
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        // code: codeValue,
-        // record: newCode,
       }),
     };
   } catch (err: any) {

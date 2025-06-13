@@ -25,7 +25,9 @@ export interface UserSettings {
   settingsId: number;
   userId: string;
   isNotification: boolean;
-  cookies: string | null;
+  cookies: string | null; // deprecated
+  wrtoken: string | null;
+  wtoken: string | null;
   cibusName: string | null;
   cibusPassword: string | null;
   cibusCompany: string | null;
@@ -40,7 +42,8 @@ export type UserSettingsUpdate = Partial<
 
 export type FormSettings = {
   isNotification: boolean;
-  cookies: string;
+  wrtoken: string;
+  wtoken: string;
   cibusName: string;
   cibusPassword: string;
   cibusCompany: string;

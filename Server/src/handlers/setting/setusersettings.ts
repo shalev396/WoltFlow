@@ -8,6 +8,8 @@ interface UpdateBody {
   isNotification?: boolean;
   woltAccessToken?: string;
   woltRefreshToken?: string;
+  wrtoken?: string;
+  wtoken?: string;
   cibusName?: string;
   cibusPassword?: string;
   cibusCompany?: string;

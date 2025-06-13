@@ -16,7 +16,7 @@ const sequelize = new Sequelize(databaseUrl, {
     //   rejectUnauthorized: false,
     // },
   },
-  logging: process.env.ENV === "Development" ? console.log : false,
+  logging: process.env.ENV === "Development1" ? console.log : false,
 });
 
 // Sync database in development mode

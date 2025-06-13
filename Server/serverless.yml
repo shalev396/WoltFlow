@@ -1,3 +1,7 @@
+org: shalev396
+
+app: woltflow
+
 service: woltflow-server
 
 provider:
@@ -13,6 +17,18 @@ provider:
     OAUTH_REDIRECT_URI: ${env:OAUTH_REDIRECT_URI}
     JWT_SECRET: ${env:JWT_SECRET}
     IS_OFFLINE: ${env:IS_OFFLINE, "false"}
+    WOLT_BUY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltBuyGift
+    GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-getDailyCode
+    WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltApplyGift
+  iam:
+    roleStatements:
+      - Effect: Allow
+        Action:
+          - lambda:InvokeFunction
+        Resource:
+          - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-woltBuyGift
+          - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-getDailyCode
+          - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-woltApplyGift
 
 plugins:
   - serverless-offline
@@ -142,16 +158,61 @@ functions:
             allowMethods:
               - POST
               - OPTIONS
+  refreshTokens:
+    handler: src/handlers/automation/refreshTokens.handler
+    events:
+      - http:
+          path: /api/wolt/refreshTokens
+          method: get
+          cors:
+            origin: "http://localhost:5173"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cookie
+            allowCredentials: true
+            allowMethods:
+              - GET
+              - OPTIONS
   woltBuyGift:
     handler: src/handlers/automation/woltBuyGift.handler
     layers:
       - { Ref: HeadlessChromiumLambdaLayer }
       - { Ref: ChromedriverLambdaLayer }
     memorySize: 1024
-    timeout: 30
+    timeout: 60
     events:
       - http:
           path: /api/wolt/buyGift
+          method: get
+          cors:
+            origin: "http://localhost:5173"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cookie
+            allowCredentials: true
+            allowMethods:
+              - GET
+              - OPTIONS
+  woltApplyGift:
+    handler: src/handlers/automation/woltApplyGift.handler
+    layers:
+      - { Ref: HeadlessChromiumLambdaLayer }
+      - { Ref: ChromedriverLambdaLayer }
+    memorySize: 1024
+    timeout: 60
+    events:
+      - http:
+          path: /api/wolt/applyGift
           method: get
           cors:
             origin: "http://localhost:5173"
@@ -176,7 +237,7 @@ custom:
     noPrependStageInUrl: true
     reloadHandler: true
     disableCookieValidation: true # ← Disables strictHeader cookie validation in Hapi
-    enforceSecureCookies: false # ← Ensures Hapi won’t require HTTPS for cookies
+    enforceSecureCookies: false # ← Ensures Hapi won't require HTTPS for cookies
     printOutput: true
 
   serverless-plugin-typescript:
