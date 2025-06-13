@@ -1,10 +1,9 @@
-import { By, Builder, WebElement } from "selenium-webdriver";
+import { By, Builder } from "selenium-webdriver";
 import chrome from "selenium-webdriver/chrome";
-import path from "path";
-import fs from "fs";
 import sequelize from "../../config/database";
 import Setting from "../../models/Setting";
 import Code from "../../models/Code";
+import Run from "../../models/Run";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
 import {
   safeClick,
@@ -12,62 +11,82 @@ import {
   setupWoltCookies,
 } from "../../utils/automation";
 import { sleep } from "../../utils/general";
+import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util";
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
-  const userId = event.queryStringParameters?.userId;
-  if (!userId) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "Missing userId" }),
-    };
-  }
-
-  await sequelize.authenticate();
-
-  // Get user settings
-  const settings = await Setting.findOne({ where: { userId } });
-  if (!settings) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ error: "Settings not found" }),
-    };
-  }
-
-  // Get the most recent unused code for the user
-  const code = await Code.findOne({
-    where: { userId, isUsed: false },
-    order: [["createdAt", "DESC"]],
-  });
-
-  if (!code) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ error: "No unused gift card code found" }),
-    };
-  }
-
-  // Browser setup
-  const chromeBinary =
-    process.env.IS_OFFLINE === "true"
-      ? "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
-      : "/opt/bin/headless-chromium";
-
-  const options = new chrome.Options()
-    .setChromeBinaryPath(chromeBinary)
-    .addArguments(
-      // "--headless",
-      // "--disable-gpu",
-      "--window-size=1920,1080",
-      "--incognito"
-    );
-
-  const driver = await new Builder()
-    .forBrowser("chrome")
-    .setChromeOptions(options as any)
-    .build();
+  let run: Run | null = null;
+  let driver: any = null;
 
   try {
+    const runId = event.queryStringParameters?.runId;
+    if (!runId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing runId" }),
+      };
+    }
+
+    await sequelize.authenticate();
+
+    // Get the run and associated user
+    run = await Run.findByPk(runId);
+    if (!run) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Run not found" }),
+      };
+    }
+
+    const userId = run.user_id;
+
+    // Update run stage
+    await run.update({ stage: "applying gift" });
+
+    // Get user settings
+    const settings = await Setting.findOne({ where: { userId } });
+    if (!settings) {
+      await run.update({ status: "failed" });
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Settings not found" }),
+      };
+    }
+
+    // Get the most recent unused code for the user
+    const code = await Code.findOne({
+      where: { userId, isUsed: false },
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (!code) {
+      await run.update({ status: "failed" });
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "No unused gift card code found" }),
+      };
+    }
+
+    // Browser setup
+    const chromeBinary =
+      process.env.IS_OFFLINE === "true"
+        ? "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+        : "/opt/bin/headless-chromium";
+
+    const options = new chrome.Options()
+      .setChromeBinaryPath(chromeBinary)
+      .addArguments("--window-size=1920,1080", "--incognito");
+
+    // Add headless and disable-gpu only in production (not development)
+    if (process.env.ENV !== "Development") {
+      options.addArguments("--headless", "--disable-gpu");
+    }
+
+    driver = await new Builder()
+      .forBrowser("chrome")
+      .setChromeOptions(options as any)
+      .build();
+
     // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
       driver,
@@ -120,32 +139,76 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     await code.update({ isUsed: true });
     success = true;
     console.log("Gift card code redeemed successfully");
+
+    // Take success screenshot and upload to S3
+    if (driver && run) {
+      try {
+        const screenshotBase64 = await driver.takeScreenshot();
+        const base64WithPrefix = `data:image/png;base64,${screenshotBase64}`;
+        await uploadImageToS3AndSaveToDb(base64WithPrefix, run.id, false);
+        console.log("Success screenshot uploaded to S3 and saved to database");
+      } catch (screenshotError) {
+        console.error("Failed to upload success screenshot:", screenshotError);
+      }
+    }
   } catch (err) {
     console.error("Error redeeming gift card:", err);
     success = false;
+
+    // Take error screenshot and upload to S3
+    if (driver && run) {
+      try {
+        const screenshotBase64 = await driver.takeScreenshot();
+        const base64WithPrefix = `data:image/png;base64,${screenshotBase64}`;
+        await uploadImageToS3AndSaveToDb(base64WithPrefix, run.id, true);
+        console.log("Error screenshot uploaded to S3 and saved to database");
+      } catch (screenshotError) {
+        console.error("Failed to upload error screenshot:", screenshotError);
+      }
+    }
   } finally {
-    console.log("Current URL:", await driver.getCurrentUrl());
-    console.log("Gift card redemption success:", success);
+    if (driver) {
+      console.log("Current URL:", await driver.getCurrentUrl());
+      console.log("Gift card redemption success:", success);
+    }
 
-    // Take screenshot and save to screenshots folder
-    const screenshotBase64 = await driver.takeScreenshot();
-    const screenshotsDir = path.resolve(process.cwd(), "screenshots");
-    fs.mkdirSync(screenshotsDir, { recursive: true });
-    const filename = path.join(
-      screenshotsDir,
-      `gift_redemption_${Date.now()}.png`
-    );
-    fs.writeFileSync(filename, screenshotBase64, "base64");
-    console.log(`Saved gift redemption screenshot: ${filename}`);
+    // Update run status and stage based on success
+    if (run) {
+      if (success) {
+        await run.update({ status: "success", stage: "done" });
+      } else {
+        await run.update({ status: "failed" });
+      }
+    }
 
-    await sleep(1000);
-    await driver.quit();
-
+    // Take final screenshot and return it only in development mode
+    if (process.env.ENV === "Development" && driver) {
+      try {
+        const screenshotBase64 = await driver.takeScreenshot();
+        return {
+          statusCode: 200,
+          headers: { "Content-Type": "image/png" },
+          body: screenshotBase64,
+          isBase64Encoded: true,
+        };
+      } catch (screenshotError) {
+        console.error("Failed to take final screenshot:", screenshotError);
+      }
+    }
+    if (driver) {
+      await sleep(1000);
+      await driver.quit();
+      console.log("driver quit");
+    }
+    // await sleep(2000);
     return {
-      statusCode: 200,
-      headers: { "Content-Type": "image/png" },
-      body: screenshotBase64,
-      isBase64Encoded: true,
+      statusCode: success ? 200 : 500,
+      body: JSON.stringify({
+        success,
+        message: success
+          ? "Gift card redemption completed"
+          : "Gift card redemption failed",
+      }),
     };
   }
 };

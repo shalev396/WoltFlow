@@ -3,6 +3,7 @@ import chrome from "selenium-webdriver/chrome";
 import { Lambda } from "aws-sdk";
 import sequelize from "../../config/database";
 import Setting from "../../models/Setting";
+import Run from "../../models/Run";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
 import {
   safeClick,
@@ -11,48 +12,69 @@ import {
   setupWoltCookies,
 } from "../../utils/automation";
 import { sleep } from "../../utils/general";
+import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util";
 
 const lambda = new Lambda();
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
-  const userId = event.queryStringParameters?.userId;
-  if (!userId) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "Missing userId" }),
-    };
-  }
-
-  await sequelize.authenticate();
-  const settings = await Setting.findOne({ where: { userId } });
-  if (!settings) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ error: "Settings not found" }),
-    };
-  }
-  // Browser setup
-  const chromeBinary =
-    process.env.IS_OFFLINE === "true"
-      ? "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
-      : "/opt/bin/headless-chromium";
-
-  const options = new chrome.Options()
-    .setChromeBinaryPath(chromeBinary)
-    .addArguments(
-      // "--headless",
-      // "--disable-gpu",
-      "--window-size=1920,1080",
-      "--incognito"
-    );
-
-  const driver = await new Builder()
-    .forBrowser("chrome")
-    .setChromeOptions(options as any)
-    .build();
+  let run: Run | null = null;
+  let driver: any = null;
 
   try {
+    const runId = event.queryStringParameters?.runId;
+    if (!runId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing runId" }),
+      };
+    }
+
+    await sequelize.authenticate();
+
+    // Get the run and associated user
+    run = await Run.findByPk(runId);
+    if (!run) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Run not found" }),
+      };
+    }
+
+    const userId = run.user_id;
+
+    // Update run stage
+    await run.update({ stage: "buying gift" });
+
+    const settings = await Setting.findOne({ where: { userId } });
+    if (!settings) {
+      await run.update({ status: "failed" });
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Settings not found" }),
+      };
+    }
+
+    // Browser setup
+    const chromeBinary =
+      process.env.IS_OFFLINE === "true"
+        ? "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+        : "/opt/bin/headless-chromium";
+
+    const options = new chrome.Options()
+      .setChromeBinaryPath(chromeBinary)
+      .addArguments("--window-size=1920,1080", "--incognito");
+
+    // Add headless and disable-gpu only in production (not development)
+    if (process.env.ENV !== "Development") {
+      options.addArguments("--headless", "--disable-gpu");
+    }
+
+    driver = await new Builder()
+      .forBrowser("chrome")
+      .setChromeOptions(options as any)
+      .build();
+
     // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
       driver,
@@ -240,15 +262,33 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   } catch (err) {
     console.error("error", err);
     success = false;
+
+    // Take error screenshot and upload to S3
+    if (driver && run) {
+      try {
+        const screenshotBase64 = await driver.takeScreenshot();
+        const base64WithPrefix = `data:image/png;base64,${screenshotBase64}`;
+        await uploadImageToS3AndSaveToDb(base64WithPrefix, run.id, true);
+        console.log("Error screenshot uploaded to S3 and saved to database");
+      } catch (screenshotError) {
+        console.error("Failed to upload error screenshot:", screenshotError);
+      }
+    }
   } finally {
-    console.log("url", await driver.getCurrentUrl());
-    const screenshotBase64 = await driver.takeScreenshot();
-    console.log("success", success);
-    await sleep(1000);
-    await driver.quit();
+    if (driver) {
+      console.log("url", await driver.getCurrentUrl());
+      console.log("success", success);
+    }
+
+    // Update run status based on success
+    if (run) {
+      if (!success) {
+        await run.update({ status: "failed" });
+      }
+    }
 
     // Fire-and-forget trigger getDailyCode function if purchase was successful
-    if (success || process.env.ENV === "Development") {
+    if ((success || process.env.ENV === "Development") && run) {
       console.log("Gift purchase successful, triggering getDailyCode function");
 
       const isOffline = process.env.IS_OFFLINE === "true";
@@ -260,7 +300,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         );
 
         // Fire and forget - don't await the response
-        fetch(`http://localhost:3000/api/gmail/daily-code?uid=${userId}`, {
+        fetch(`http://localhost:3000/api/gmail/daily-code?runId=${run.id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -282,7 +322,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
           FunctionName: functionName,
           InvocationType: "Event" as const, // Fire and forget
           Payload: JSON.stringify({
-            queryStringParameters: { uid: userId },
+            queryStringParameters: { runId: run.id },
           }),
         };
 
@@ -303,13 +343,37 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       }
     } else {
       console.log("Gift purchase failed, skipping getDailyCode trigger");
+      if (run && !success) {
+        await run.update({ status: "failed" });
+      }
     }
 
+    // Take final screenshot and return it only in development mode
+    if (process.env.ENV === "Development" && driver) {
+      try {
+        const screenshotBase64 = await driver.takeScreenshot();
+        return {
+          statusCode: 200,
+          headers: { "Content-Type": "image/png" },
+          body: screenshotBase64,
+          isBase64Encoded: true,
+        };
+      } catch (screenshotError) {
+        console.error("Failed to take final screenshot:", screenshotError);
+      }
+    }
+    if (driver) {
+      await sleep(1000);
+      await driver.quit();
+      console.log("driver quit");
+    }
+    // await sleep(2000);
     return {
-      statusCode: 200,
-      headers: { "Content-Type": "image/png" },
-      body: screenshotBase64,
-      isBase64Encoded: true,
+      statusCode: success ? 200 : 500,
+      body: JSON.stringify({
+        success,
+        message: success ? "Gift purchase completed" : "Gift purchase failed",
+      }),
     };
   }
 };

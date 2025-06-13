@@ -17,6 +17,12 @@ provider:
     OAUTH_REDIRECT_URI: ${env:OAUTH_REDIRECT_URI}
     JWT_SECRET: ${env:JWT_SECRET}
     IS_OFFLINE: ${env:IS_OFFLINE, "false"}
+    DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE, ""}
+    AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
+    AWS_REGION: ${env:AWS_REGION}
+    BUCKET_NAME: ${env:BUCKET_NAME}
+    REFRESH_TOKENS_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-refreshTokens
     WOLT_BUY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltBuyGift
     GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-getDailyCode
     WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltApplyGift
@@ -26,6 +32,7 @@ provider:
         Action:
           - lambda:InvokeFunction
         Resource:
+          - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-refreshTokens
           - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-woltBuyGift
           - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-getDailyCode
           - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-woltApplyGift
@@ -158,6 +165,26 @@ functions:
             allowMethods:
               - POST
               - OPTIONS
+  startAllRuns:
+    handler: src/handlers/automation/startAllRuns.handler
+    events:
+      - http:
+          path: /api/automation/start-all-runs
+          method: get
+          cors:
+            origin: "http://localhost:5173"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cookie
+            allowCredentials: true
+            allowMethods:
+              - GET
+              - OPTIONS
   refreshTokens:
     handler: src/handlers/automation/refreshTokens.handler
     events:
@@ -184,7 +211,7 @@ functions:
       - { Ref: HeadlessChromiumLambdaLayer }
       - { Ref: ChromedriverLambdaLayer }
     memorySize: 1024
-    timeout: 60
+    timeout: 70
     events:
       - http:
           path: /api/wolt/buyGift

@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import sequelize from "../../config/database";
 import User from "../../models/User";
 import Code from "../../models/Code";
+import Run from "../../models/Run";
 
 dotenv.config();
 const lambda = new Lambda();
@@ -13,6 +14,8 @@ const lambda = new Lambda();
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  let run: Run | null = null;
+
   try {
     await sequelize.authenticate();
     // ensure Codes table exists (dev only)
@@ -20,21 +23,41 @@ export const handler = async (
       await Code.sync({ alter: true });
     }
 
-    const uid = event.queryStringParameters?.uid;
-    if (!uid) {
+    const runId = event.queryStringParameters?.runId;
+    if (!runId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Missing uid" }),
+        body: JSON.stringify({ error: "Missing runId" }),
       };
     }
 
+    // Get the run and associated user
+    run = await Run.findByPk(runId);
+    if (!run) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Run not found" }),
+      };
+    }
+
+    const uid = run.user_id;
+
+    // Update run stage
+    await run.update({ stage: "getting code from mail" });
+
     let targetDate = new Date();
-    if (
-      process.env.ENV === "Development" &&
-      event.queryStringParameters?.date
-    ) {
-      const d = new Date(event.queryStringParameters.date);
-      if (!isNaN(d.getTime())) targetDate = d;
+    if (process.env.ENV === "Development") {
+      // First check if date parameter is provided
+      // if (event.queryStringParameters?.date) {
+      //   const d = new Date(event.queryStringParameters.date);
+      //   if (!isNaN(d.getTime())) targetDate = d;
+      // }
+      // If no date parameter, use development default date from env var
+      //else
+      if (process.env.DEVELOPMENT_DATE) {
+        const d = new Date(process.env.DEVELOPMENT_DATE);
+        if (!isNaN(d.getTime())) targetDate = d;
+      }
     }
     const pad = (n: number) => String(n).padStart(2, "0");
     const y = targetDate.getFullYear();
@@ -47,8 +70,14 @@ export const handler = async (
       tomorrow.getDate()
     )}`;
 
+    console.log(
+      `Searching for emails from ${after} to ${by} (target date: ${targetDate.toISOString()})`
+    );
+
     const user = await User.findByPk(uid);
     if (!user) {
+      console.error(`User not found for uid: ${uid}`);
+      await run.update({ status: "failed" });
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "User not found" }),
@@ -65,6 +94,7 @@ export const handler = async (
 
     const subject = '"הגיפט קארד של Wolt הגיע ומחכה לשליחה :)"';
     const q = `from:info@wolt.com subject:${subject} after:${after} before:${by}`;
+    console.log(`Gmail search query: ${q}`);
     const listRes = await gmail.users.messages.list({
       userId: "me",
       q,
@@ -72,7 +102,10 @@ export const handler = async (
     });
 
     const msgs = listRes.data.messages;
+    console.log(`Gmail search returned ${msgs?.length || 0} messages`);
     if (!msgs || msgs.length === 0) {
+      console.error(`No matching Wolt email found for query: ${q}`);
+      await run.update({ status: "failed" });
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "No matching Wolt email found" }),
@@ -97,6 +130,7 @@ export const handler = async (
       }
     }
     if (!attachmentId) {
+      await run.update({ status: "failed" });
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "PDF attachment not found" }),
@@ -114,6 +148,7 @@ export const handler = async (
     const pdfData = await pdf(buffer);
     const match = pdfData.text.match(/CODE:\s*([A-Z0-9]+)/);
     if (!match) {
+      await run.update({ status: "failed" });
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Code not found in PDF" }),
@@ -142,7 +177,7 @@ export const handler = async (
       );
 
       // Fire and forget - don't await the response
-      fetch(`http://localhost:3000/api/wolt/applyGift?userId=${uid}`, {
+      fetch(`http://localhost:3000/api/wolt/applyGift?runId=${runId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -164,7 +199,7 @@ export const handler = async (
         FunctionName: functionName,
         InvocationType: "Event" as const, // Fire and forget
         Payload: JSON.stringify({
-          queryStringParameters: { userId: uid },
+          queryStringParameters: { runId },
         }),
       };
 
@@ -192,6 +227,9 @@ export const handler = async (
     };
   } catch (err: any) {
     console.error("getDailyCode error:", err);
+    if (run) {
+      await run.update({ status: "failed" });
+    }
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message || "Internal error" }),

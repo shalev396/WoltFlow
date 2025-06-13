@@ -1,7 +1,6 @@
 import path from "path";
 import fs from "fs";
 import { By, until, WebDriver, WebElement } from "selenium-webdriver";
-import { TimeoutError } from "sequelize";
 import { sleep } from "./general";
 
 export function getGiftCardUrl(amount: number): string | null {
@@ -243,12 +242,16 @@ export async function waitForElement(
   } catch (err: any) {
     console.log(`Element not found within ${timeoutMs}ms: ${locator}`);
 
-    const base64 = await driver.takeScreenshot();
-    const dir = path.resolve(process.cwd(), "screenshots");
-    fs.mkdirSync(dir, { recursive: true });
-    const filename = path.join(dir, `timeout_${Date.now()}.png`);
-    fs.writeFileSync(filename, base64, "base64");
-    console.log(`Saved timeout screenshot: ${filename}`);
+    // Only save screenshot to filesystem in development mode
+    if (process.env.ENV === "Development") {
+      const base64 = await driver.takeScreenshot();
+      const dir = path.resolve(process.cwd(), "screenshots");
+      fs.mkdirSync(dir, { recursive: true });
+      const filename = path.join(dir, `timeout_${Date.now()}.png`);
+      fs.writeFileSync(filename, base64, "base64");
+      console.log(`Saved timeout screenshot: ${filename}`);
+    }
+
     if (
       locator.toString() ===
         "By(xpath, //*[normalize-space(text())='אשמח להמשיך'])" ||

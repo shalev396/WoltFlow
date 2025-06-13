@@ -5,10 +5,17 @@ import User from "./User";
 
 class Run extends Model<RunType> implements RunType {
   public id!: number;
-  public user_id!: number;
-  public created_at!: Date;
-  public updated_at!: Date;
+  public user_id!: string;
+  public created_at?: Date;
+  public updated_at?: Date;
   public status!: "failed" | "in progress" | "success";
+  public stage!:
+    | "triggered"
+    | "refreshing tokens"
+    | "buying gift"
+    | "getting code from mail"
+    | "applying gift"
+    | "done";
   public amount!: number;
   public is_notify!: boolean;
 }
@@ -21,27 +28,29 @@ Run.init(
       primaryKey: true,
     },
     user_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: User,
-        key: "id",
+        key: "userId",
       },
-    },
-    created_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
     },
     status: {
       type: DataTypes.ENUM("failed", "in progress", "success"),
       allowNull: false,
       defaultValue: "in progress",
+    },
+    stage: {
+      type: DataTypes.ENUM(
+        "triggered",
+        "refreshing tokens",
+        "buying gift",
+        "getting code from mail",
+        "applying gift",
+        "done"
+      ),
+      allowNull: false,
+      defaultValue: "triggered",
     },
     amount: {
       type: DataTypes.FLOAT,
@@ -55,8 +64,10 @@ Run.init(
   },
   {
     sequelize,
-    tableName: "runs",
-    timestamps: false,
+    tableName: "Runs",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 

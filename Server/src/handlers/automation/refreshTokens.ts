@@ -1,26 +1,44 @@
 import { Lambda } from "aws-sdk";
 import sequelize from "../../config/database";
 import Setting from "../../models/Setting";
+import Run from "../../models/Run";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
 import { refreshTokens } from "../../utils/automation";
 
 const lambda = new Lambda();
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
+  let run: Run | null = null;
+
   try {
-    const uid = event.queryStringParameters?.userId;
-    if (!uid) {
+    const runId = event.queryStringParameters?.runId;
+    if (!runId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Missing userId parameter" }),
+        body: JSON.stringify({ error: "Missing runId parameter" }),
       };
     }
 
     await sequelize.authenticate();
 
+    // Get the run and associated user
+    run = await Run.findByPk(runId);
+    if (!run) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: "Run not found" }),
+      };
+    }
+
+    const userId = run.user_id;
+
+    // Update run stage
+    await run.update({ stage: "refreshing tokens" });
+
     // Get user settings
-    const settings = await Setting.findOne({ where: { userId: uid } });
+    const settings = await Setting.findOne({ where: { userId } });
     if (!settings) {
+      await run.update({ status: "failed" });
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "Settings not found for user" }),
@@ -54,7 +72,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         wtoken: newWtoken,
       });
 
-      console.log("Tokens refreshed successfully for user:", uid);
+      console.log("Tokens refreshed successfully for run:", runId);
 
       // Fire-and-forget invoke woltBuyGift function
       const isOffline = process.env.IS_OFFLINE === "true";
@@ -66,7 +84,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         );
 
         // Fire and forget - don't await the response
-        fetch(`http://localhost:3000/api/wolt/buyGift?userId=${uid}`, {
+        fetch(`http://localhost:3000/api/wolt/buyGift?runId=${runId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -88,7 +106,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
           FunctionName: functionName,
           InvocationType: "Event" as const, // Fire and forget
           Payload: JSON.stringify({
-            queryStringParameters: { userId: uid },
+            queryStringParameters: { runId },
           }),
         };
 
@@ -113,11 +131,14 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         body: JSON.stringify({
           message:
             "Tokens refreshed successfully and woltBuyGift function triggered",
-          userId: uid,
+          runId,
         }),
       };
     } catch (refreshError: any) {
       console.error("Token refresh failed:", refreshError);
+      if (run) {
+        await run.update({ status: "failed" });
+      }
       return {
         statusCode: 500,
         body: JSON.stringify({
@@ -128,6 +149,9 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
   } catch (error: any) {
     console.error("RefreshTokens handler error:", error);
+    if (run) {
+      await run.update({ status: "failed" });
+    }
     return {
       statusCode: 500,
       body: JSON.stringify({
