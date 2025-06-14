@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import {
   Loader2,
@@ -35,30 +34,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { runsService, type RunWithScreenshots } from "@/services/runs";
+import { type RunWithScreenshots } from "@/services/runs";
+import { useRecentRunsQuery } from "@/queries/runs";
 
 export default function RecentActivity() {
-  const [runs, setRuns] = useState<RunWithScreenshots[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchRecentRuns = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const recentRuns = await runsService.getRecentRuns(5);
-        setRuns(recentRuns);
-      } catch (err: any) {
-        console.error("Failed to fetch recent runs:", err);
-        setError("Failed to load recent activity");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRecentRuns();
-  }, []);
+  const { data: runs = [], isLoading, error } = useRecentRunsQuery(5);
 
   const getStatusBadge = (status: string) => {
     const baseClasses =
@@ -373,7 +353,11 @@ export default function RecentActivity() {
         {error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <AlertCircle className="size-12 text-red-500 mb-4" />
-            <p className="text-lg font-medium text-foreground">{error}</p>
+            <p className="text-lg font-medium text-foreground">
+              {error instanceof Error
+                ? error.message
+                : "Failed to load recent activity"}
+            </p>
             <Button
               variant="outline"
               size="sm"

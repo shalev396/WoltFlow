@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +25,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { settingsService } from "@/services/settings";
+import {
+  useSettingsQuery,
+  useUpdateSettingsMutation,
+} from "@/queries/settings";
 
 // Define available gift card amounts
 const GIFT_CARD_AMOUNTS = [
@@ -47,7 +49,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function SettingsTab() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: settings, isLoading: isLoadingSettings } = useSettingsQuery();
+  const updateSettingsMutation = useUpdateSettingsMutation();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -63,56 +66,31 @@ export function SettingsTab() {
   });
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const settings = await settingsService.getSettings();
-        form.reset({
-          isNotification: settings.isNotification,
-          wrtoken: settings.wrtoken || "",
-          wtoken: settings.wtoken || "",
-          cibusName: settings.cibusName || "",
-          cibusPassword: settings.cibusPassword || "",
-          cibusCompany: settings.cibusCompany || "",
-          giftAmount: settings.giftAmount
-            ? parseInt(settings.giftAmount.toString(), 10)
-            : 50,
-        });
-      } catch (error) {
-        toast.error("Failed to load settings", {
-          description: "Please try again later",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSettings();
-  }, [form]);
+    if (settings) {
+      form.reset({
+        isNotification: settings.isNotification,
+        wrtoken: settings.wrtoken || "",
+        wtoken: settings.wtoken || "",
+        cibusName: settings.cibusName || "",
+        cibusPassword: settings.cibusPassword || "",
+        cibusCompany: settings.cibusCompany || "",
+        giftAmount: settings.giftAmount
+          ? parseInt(settings.giftAmount.toString(), 10)
+          : 50,
+      });
+    }
+  }, [settings, form]);
 
   async function onSubmit(values: FormData) {
-    try {
-      setIsLoading(true);
-
-      // Validate tokens
-      if (!values.wrtoken.trim() || !values.wtoken.trim()) {
-        toast.error("Invalid tokens", {
-          description: "Both tokens are required",
-        });
-        return;
-      }
-
-      await settingsService.updateSettings(values);
-      toast.success("Settings updated successfully", {
-        description: "Your changes have been saved",
-      });
-    } catch (error) {
-      toast.error("Failed to update settings", {
-        description: "Please try again later",
-      });
-    } finally {
-      setIsLoading(false);
+    // Validate tokens
+    if (!values.wrtoken.trim() || !values.wtoken.trim()) {
+      return;
     }
+
+    updateSettingsMutation.mutate(values);
   }
+
+  const isLoading = isLoadingSettings || updateSettingsMutation.isPending;
 
   if (isLoading) {
     return (

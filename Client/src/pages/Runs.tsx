@@ -42,22 +42,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import {
-  runsService,
-  type RunWithScreenshots,
-  type RunFilters,
-} from "@/services/runs";
+import { type RunWithScreenshots, type RunFilters } from "@/services/runs";
+import { useRunsQuery } from "@/queries/runs";
 
 export default function Runs() {
-  const [runs, setRuns] = useState<RunWithScreenshots[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
   // Filter state
@@ -71,6 +63,20 @@ export default function Runs() {
 
   // Countdown state
   const [timeUntilNextRun, setTimeUntilNextRun] = useState<string>("");
+
+  // TanStack Query for runs data with optimized pagination
+  const {
+    data: runsData,
+    isLoading,
+    error,
+    isPlaceholderData,
+    isFetching,
+  } = useRunsQuery(currentPage, pageSize, filters);
+
+  // Extract data from query response
+  const runs = runsData?.runs || [];
+  const totalPages = runsData?.pagination.totalPages || 1;
+  const totalCount = runsData?.pagination.totalCount || 0;
 
   // Check for run ID in URL params
   useEffect(() => {
@@ -143,29 +149,7 @@ export default function Runs() {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchRuns = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await runsService.getRuns(
-        currentPage,
-        pageSize,
-        filters
-      );
-      setRuns(response.runs);
-      setTotalPages(response.pagination.totalPages);
-      setTotalCount(response.pagination.totalCount);
-    } catch (err: any) {
-      console.error("Failed to fetch runs:", err);
-      setError("Failed to load runs");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRuns();
-  }, [currentPage, pageSize, filters]);
+  // No need for fetchRuns function - TanStack Query handles this automatically
 
   const handleFilterChange = (key: keyof RunFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -369,8 +353,15 @@ export default function Runs() {
           <CardContent>
             {error ? (
               <div className="text-center py-8">
-                <p className="text-red-500">{error}</p>
-                <Button onClick={fetchRuns} className="mt-4">
+                <p className="text-red-500">
+                  {error instanceof Error
+                    ? error.message
+                    : "Failed to load runs"}
+                </p>
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="mt-4"
+                >
                   Try Again
                 </Button>
               </div>
@@ -392,7 +383,7 @@ export default function Runs() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {isLoading ? (
+                      {isLoading && !isPlaceholderData ? (
                         [...Array(pageSize)].map((_, i) => (
                           <TableRow key={i}>
                             {[...Array(7)].map((_, j) => (
@@ -491,6 +482,12 @@ export default function Runs() {
                       {Math.min(currentPage * pageSize, totalCount)} of{" "}
                       {totalCount} results
                     </p>
+                    {isFetching && (
+                      <div className="flex items-center space-x-1 text-blue-600">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600" />
+                        <span className="text-xs">Updating...</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -529,10 +526,12 @@ export default function Runs() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                      }
-                      disabled={currentPage === totalPages}
+                      onClick={() => {
+                        if (!isPlaceholderData && currentPage < totalPages) {
+                          setCurrentPage((prev) => prev + 1);
+                        }
+                      }}
+                      disabled={isPlaceholderData || currentPage >= totalPages}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>

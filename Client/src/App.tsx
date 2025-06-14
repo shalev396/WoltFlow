@@ -2,8 +2,11 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/sonner";
+import { queryClient } from "./lib/queryClient";
 
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
@@ -32,45 +35,50 @@ export default function App() {
   // Show loading screen while initializing
   if (!isInitialized || isLoading) {
     return (
-      <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
-        <LoadingScreen message="Starting WoltFlow..." />
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
+          <LoadingScreen message="Starting WoltFlow..." />
+        </ThemeProvider>
+      </QueryClientProvider>
     );
   }
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
-      <Router>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/runs"
-            element={
-              <ProtectedRoute>
-                <Runs />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-      <Toaster />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
+        <Router>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/runs"
+              element={
+                <ProtectedRoute>
+                  <Runs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+        <Toaster />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

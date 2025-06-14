@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 
@@ -10,33 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { runsService } from "@/services/runs";
-
 export default function AccountOverview() {
   const { user } = useSelector((state: RootState) => state.user);
-  const [totalSaved, setTotalSaved] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const calculateTotalSaved = async () => {
-      try {
-        setIsLoading(true);
-        // Get all successful runs to calculate total saved
-        const response = await runsService.getRuns(1, 50, {
-          status: "success",
-        });
-        const total = response.runs.reduce((sum, run) => sum + run.amount, 0);
-        setTotalSaved(total);
-      } catch (error) {
-        console.error("Failed to calculate total saved:", error);
-        setTotalSaved(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    calculateTotalSaved();
-  }, []);
+  const totalSaved = 100;
+  const isLoading = false;
 
   return (
     <Card className="bg-card border-border shadow-sm">
