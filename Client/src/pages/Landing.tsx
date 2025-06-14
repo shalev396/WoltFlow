@@ -1,47 +1,26 @@
-import { Link } from "react-router-dom";
-import { ModeToggle } from "@/components/mode-toggle";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
-import type {
-  //AppDispatch
-  RootState,
-} from "@/store/store";
+import type { RootState } from "@/store/store";
 
 import { useRef } from "react";
 import { ArrowRight, Bot, Gift, Shield } from "lucide-react";
 
-// import { useDispatch } from "react-redux";
-
+import Navbar from "@/components/Navbar";
 import LoginButton from "@/components/LoginButton";
 
 export default function Landing() {
-  const googleUser = useSelector((state: RootState) => state.googleUser);
-  console.log(googleUser);
+  const { isAuthenticated } = useSelector((state: RootState) => state.user);
+  const navigate = useNavigate();
 
-  const headerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const automationRef = useRef<HTMLDivElement>(null);
   const creditsRef = useRef<HTMLDivElement>(null);
 
-  // const dispatch = useDispatch<AppDispatch>();
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header
-        ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b bg-background/80"
-      >
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            WoltFlow
-          </h1>
-          <div className="flex items-center gap-4">
-            <ModeToggle />
-            <LoginButton />
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Hero Section */}
       <main className="pt-24">
@@ -58,12 +37,21 @@ export default function Landing() {
               purchases Wolt gift cards from Cibus daily, saving you time and
               ensuring maximum benefits.
             </p>
-            <Button size="lg" asChild className="group">
-              <Link to="/register">
+            {isAuthenticated ? (
+              <Button
+                size="lg"
+                onClick={() => navigate("/dashboard")}
+                className="group"
+              >
+                View Dashboard
+                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            ) : (
+              <LoginButton variant="default" size="lg" className="group">
                 Get Started
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
+              </LoginButton>
+            )}
           </div>
         </section>
 

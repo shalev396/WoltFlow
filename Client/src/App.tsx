@@ -1,30 +1,42 @@
 // src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Landing from "@/pages/Landing";
-import Dashboard from "@/pages/Dashboard";
-import NotFound from "@/pages/NotFound";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { setUser, clearUser } from "./store/slices/googleUserSlice";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/sonner";
-import { authService } from "./services/auth";
+
+import Landing from "@/pages/Landing";
+import Dashboard from "@/pages/Dashboard";
+import Runs from "@/pages/Runs";
+import Settings from "@/pages/Settings";
+import NotFound from "@/pages/NotFound";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import LoadingScreen from "@/components/LoadingScreen";
+
+import { checkAuth } from "./store/slices/userSlice";
+import type { RootState, AppDispatch } from "./store/store";
 
 export default function App() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isInitialized, isLoading } = useSelector(
+    (state: RootState) => state.user
+  );
 
   useEffect(() => {
-    // 1. On app load, check authentication
-    (async () => {
-      try {
-        const userInfo = await authService.getMe();
-        dispatch(setUser(userInfo));
-      } catch (error) {
-        dispatch(clearUser());
-      }
-    })();
-  }, [dispatch]);
+    // Check authentication status on app initialization
+    if (!isInitialized) {
+      dispatch(checkAuth());
+    }
+  }, [dispatch, isInitialized]);
+
+  // Show loading screen while initializing
+  if (!isInitialized || isLoading) {
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
+        <LoadingScreen message="Starting WoltFlow..." />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
@@ -36,6 +48,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/runs"
+            element={
+              <ProtectedRoute>
+                <Runs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             }
           />

@@ -198,7 +198,7 @@ export function SettingsTab() {
           <h3 className="text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Cibus Credentials
           </h3>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <FormField
               control={form.control}
               name="cibusName"
@@ -231,7 +231,7 @@ export function SettingsTab() {
               control={form.control}
               name="cibusCompany"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="md:col-span-2 lg:col-span-1">
                   <FormLabel>Company</FormLabel>
                   <FormControl>
                     <Input {...field} className="bg-card" />

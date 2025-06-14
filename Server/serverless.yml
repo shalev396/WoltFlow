@@ -105,6 +105,26 @@ functions:
             allowMethods:
               - GET
               - OPTIONS
+  logout:
+    handler: src/handlers/auth/logout.handler
+    events:
+      - http:
+          path: /api/auth/logout
+          method: post
+          cors:
+            origin: "http://localhost:5173"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cookie
+            allowCredentials: true
+            allowMethods:
+              - POST
+              - OPTIONS
   getDailyCode:
     handler: src/handlers/gmail/getDailyCode.handler
     events:
@@ -240,6 +260,26 @@ functions:
     events:
       - http:
           path: /api/wolt/applyGift
+          method: get
+          cors:
+            origin: "http://localhost:5173"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cookie
+            allowCredentials: true
+            allowMethods:
+              - GET
+              - OPTIONS
+  getUserRuns:
+    handler: src/handlers/runs/getUserRuns.handler
+    events:
+      - http:
+          path: /api/runs
           method: get
           cors:
             origin: "http://localhost:5173"

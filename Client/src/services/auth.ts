@@ -8,8 +8,7 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    // Clear cookies and local storage if needed
-    document.cookie =
-      "sessionToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    // Call the logout endpoint to clear the HttpOnly session cookie
+    await api.post("/auth/logout");
   },
 };

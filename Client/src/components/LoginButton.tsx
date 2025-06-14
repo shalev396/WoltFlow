@@ -1,20 +1,45 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
-export default function LoginButton() {
+interface LoginButtonProps {
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export default function LoginButton({
+  variant = "default",
+  size = "default",
+  className = "",
+  children = "Sign in with Google",
+}: LoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = () => {
     // Remove any 'g_state' cookie that has invalid JSON value
     document.cookie = `g_state=; Path=/; Max-Age=0; domain=localhost`;
 
-    // Now redirect the browser to your OAuth start
+    // Redirect to OAuth start
     setIsLoading(true);
     window.location.href = "http://localhost:3000/api/oauth2/start";
   };
 
   return (
-    <button onClick={handleLogin} disabled={isLoading}>
-      {isLoading ? "Redirecting..." : "Sign in with Google"}
-    </button>
+    <Button
+      onClick={handleLogin}
+      disabled={isLoading}
+      variant={variant}
+      size={size}
+      className={className}
+    >
+      {isLoading ? "Redirecting..." : children}
+    </Button>
   );
 }
