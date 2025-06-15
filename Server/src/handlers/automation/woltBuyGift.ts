@@ -20,7 +20,10 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
   let run: Run | null = null;
   let driver: any = null;
-
+  const isDev = process.env.ENV === "Development";
+  const baseURL = isDev
+    ? "http://localhost:3000/api"
+    : `https://woltflow.shalev396.com/api`;
   try {
     const runId = event.queryStringParameters?.runId;
     if (!runId) {
@@ -300,7 +303,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         );
 
         // Fire and forget - don't await the response
-        fetch(`http://localhost:3000/api/gmail/daily-code?runId=${run.id}`, {
+        fetch(`${baseURL}/gmail/daily-code?runId=${run.id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

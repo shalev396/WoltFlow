@@ -17,6 +17,10 @@ export const handler = async (
   let run: Run | null = null;
 
   try {
+    const isDev = process.env.ENV === "Development";
+    const baseURL = isDev
+      ? "http://localhost:3000/api"
+      : `https://woltflow.shalev396.com/api`;
     await sequelize.authenticate();
     // ensure Codes table exists (dev only)
     if (process.env.ENV === "Development") {
@@ -177,7 +181,7 @@ export const handler = async (
       );
 
       // Fire and forget - don't await the response
-      fetch(`http://localhost:3000/api/wolt/applyGift?runId=${runId}`, {
+      fetch(`${baseURL}/wolt/applyGift?runId=${runId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

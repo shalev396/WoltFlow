@@ -9,6 +9,10 @@ const lambda = new Lambda();
 
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
+    const isDev = process.env.ENV === "Development";
+    const baseURL = isDev
+      ? "http://localhost:3000/api"
+      : `https://woltflow.shalev396.com/api`;
     await sequelize.authenticate();
 
     // Ensure Run table exists (dev only)
@@ -64,15 +68,12 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
             `Triggering refreshTokens for run ${newRun.id} (offline mode)`
           );
 
-          fetch(
-            `http://localhost:3000/api/wolt/refreshTokens?runId=${newRun.id}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          ).catch((error) => {
+          fetch(`${baseURL}/wolt/refreshTokens?runId=${newRun.id}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }).catch((error) => {
             console.error(
               `HTTP request to refreshTokens failed for run ${newRun.id}:`,
               error

@@ -9,6 +9,10 @@ const lambda = new Lambda();
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let run: Run | null = null;
+  const isDev = process.env.ENV === "Development";
+  const baseURL = isDev
+    ? "http://localhost:3000/api"
+    : `https://woltflow.shalev396.com/api`;
 
   try {
     const runId = event.queryStringParameters?.runId;
@@ -84,7 +88,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         );
 
         // Fire and forget - don't await the response
-        fetch(`http://localhost:3000/api/wolt/buyGift?runId=${runId}`, {
+        fetch(`${baseURL}/wolt/buyGift?runId=${runId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

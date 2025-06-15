@@ -13,7 +13,10 @@ interface LoginButtonProps {
   className?: string;
   children?: React.ReactNode;
 }
-
+const isDev = import.meta.env.VITE_ENV === "Development";
+const baseURL = isDev
+  ? "http://localhost:3000/api"
+  : `${window.location.origin}/api`;
 export default function LoginButton({
   variant = "default",
   size = "default",
@@ -28,7 +31,7 @@ export default function LoginButton({
 
     // Redirect to OAuth start
     setIsLoading(true);
-    window.location.href = "http://localhost:3000/api/oauth2/start";
+    window.location.href = `${baseURL}/oauth2/start`;
   };
 
   return (
