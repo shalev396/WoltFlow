@@ -37,7 +37,10 @@ export const handler: APIGatewayProxyHandler = async () => {
     statusCode: 302,
     headers: {
       Location: consentUrl,
-      "Access-Control-Allow-Origin": "http://localhost:5173",
+      "Access-Control-Allow-Origin":
+        process.env.ENV === "Development"
+          ? "http://localhost:5173"
+          : "https://woltflow.shalev396.com",
       "Access-Control-Allow-Credentials": "true",
     },
     body: "",

@@ -6,27 +6,27 @@ import Screenshot from "../models/Screenshot";
 dotenv.config();
 
 // AWS Configuration
-const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-const AWS_REGION = process.env.AWS_REGION;
-const BUCKET_NAME = process.env.BUCKET_NAME;
+const AWS_ACCESS_CONNECT_KEY = process.env.AWS_ACCESS_CONNECT_KEY;
+const AWS_ACCESS_SECRET = process.env.AWS_ACCESS_SECRET;
+const AWS_REGION = process.env.AWS_REGIONS;
+const ASSETS_BUCKET_NAME = process.env.ASSETS_BUCKET_NAME;
 
 if (
-  !AWS_ACCESS_KEY_ID ||
-  !AWS_SECRET_ACCESS_KEY ||
+  !AWS_ACCESS_CONNECT_KEY ||
+  !AWS_ACCESS_SECRET ||
   !AWS_REGION ||
-  !BUCKET_NAME
+  !ASSETS_BUCKET_NAME
 ) {
   throw new Error(
     "Missing one or more environment variables: " +
-      "AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME"
+      "AWS_ACCESS_CONNECT_KEY, AWS_ACCESS_SECRET, AWS_REGION, S3_BUCKET_NAME"
   );
 }
 
 // Initialize S3 client with explicit credentials
 const s3 = new AWS.S3({
-  accessKeyId: AWS_ACCESS_KEY_ID,
-  secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  accessKeyId: AWS_ACCESS_CONNECT_KEY,
+  secretAccessKey: AWS_ACCESS_SECRET,
   region: AWS_REGION,
 });
 
@@ -98,14 +98,14 @@ export async function uploadImageToS3(
   // 3. Upload to S3
   try {
     const uploadParams: AWS.S3.PutObjectRequest = {
-      Bucket: BUCKET_NAME!,
+      Bucket: ASSETS_BUCKET_NAME!,
       Key: key,
       Body: imgBuffer,
       ContentType: contentType,
     };
 
     await s3.upload(uploadParams).promise();
-    console.log(`Image uploaded successfully to ${BUCKET_NAME}/${key}`);
+    console.log(`Image uploaded successfully to ${ASSETS_BUCKET_NAME}/${key}`);
   } catch (error) {
     console.error("Error uploading image to S3:", error);
     throw error;

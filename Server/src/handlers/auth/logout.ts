@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 export const handler = async (
-  event: APIGatewayProxyEvent
+  _event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
     // Clear the session cookie by setting Max-Age to 0
@@ -18,7 +18,7 @@ export const handler = async (
         "Access-Control-Allow-Origin":
           process.env.ENV === "Development"
             ? "http://localhost:5173"
-            : "https://your-production-domain.com",
+            : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({ message: "Logged out successfully" }),
@@ -32,7 +32,7 @@ export const handler = async (
         "Access-Control-Allow-Origin":
           process.env.ENV === "Development"
             ? "http://localhost:5173"
-            : "https://your-production-domain.com",
+            : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({ error: "Failed to logout" }),

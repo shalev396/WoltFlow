@@ -11,10 +11,13 @@ const databaseUrl =
 const sequelize = new Sequelize(databaseUrl, {
   dialect: "postgres",
   dialectOptions: {
-    // ssl: {
-    //   require: true,
-    //   rejectUnauthorized: false,
-    // },
+    ssl:
+      process.env.ENV === "Production"
+        ? {
+            require: true,
+            rejectUnauthorized: false,
+          }
+        : undefined,
   },
   logging: process.env.ENV === "Development1" ? console.log : false,
 });

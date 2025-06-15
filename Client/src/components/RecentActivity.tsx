@@ -420,7 +420,7 @@ export default function RecentActivity() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {runs.map((run) => (
+                {runs.map((run: RunWithScreenshots) => (
                   <TableRow
                     key={run.id}
                     className="hover:bg-muted/50 transition-colors"

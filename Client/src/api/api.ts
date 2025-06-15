@@ -1,7 +1,7 @@
 import axios from "axios";
 import { responseInterceptor, errorInterceptor } from "@/utils/authInterceptor";
 
-const isDev = import.meta.env.MODE === "development";
+const isDev = import.meta.env.VITE_ENV === "Development";
 const baseURL = isDev
   ? "http://localhost:3000/api"
   : `${window.location.origin}/api`;

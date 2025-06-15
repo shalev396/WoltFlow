@@ -82,7 +82,9 @@ export default function Runs() {
   useEffect(() => {
     const runId = searchParams.get("run");
     if (runId && runs.length > 0) {
-      const run = runs.find((r) => r.id.toString() === runId);
+      const run = runs.find(
+        (r: RunWithScreenshots) => r.id.toString() === runId
+      );
       if (run) {
         setSelectedRun(run);
         setIsDialogOpen(true);
@@ -400,7 +402,7 @@ export default function Runs() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        runs.map((run) => (
+                        runs.map((run: RunWithScreenshots) => (
                           <TableRow
                             key={run.id}
                             className="hover:bg-muted/50 transition-colors"

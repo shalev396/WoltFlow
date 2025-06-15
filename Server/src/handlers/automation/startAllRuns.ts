@@ -7,7 +7,7 @@ import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
 
 const lambda = new Lambda();
 
-export const handler: CustomAPIGatewayProxyHandler = async () => {
+export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
     await sequelize.authenticate();
 

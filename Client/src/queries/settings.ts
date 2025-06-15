@@ -38,7 +38,7 @@ export function useUpdateSettingsMutation() {
       // Return context with snapshot for rollback in onError
       return { previousSettings };
     },
-    onError: (error, newSettings, context) => {
+    onError: (_error, _newSettings, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousSettings) {
         queryClient.setQueryData(SETTINGS_QUERY_KEY, context.previousSettings);

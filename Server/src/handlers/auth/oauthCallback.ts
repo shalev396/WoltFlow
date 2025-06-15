@@ -67,8 +67,14 @@ export const handler = async (
       "Set-Cookie": `sessionToken=${sessionToken}; HttpOnly; Path=/; Max-Age=${
         7 * 24 * 60 * 60
       }`,
-      Location: "http://localhost:5173/dashboard",
-      "Access-Control-Allow-Origin": "http://localhost:5173",
+      Location:
+        process.env.ENV === "Development"
+          ? "http://localhost:5173/dashboard"
+          : "https://woltflow.shalev396.com/dashboard",
+      "Access-Control-Allow-Origin":
+        process.env.ENV === "Development"
+          ? "http://localhost:5173"
+          : "https://woltflow.shalev396.com",
       "Access-Control-Allow-Credentials": "true",
     },
     body: "",
