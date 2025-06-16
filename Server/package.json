@@ -9,35 +9,29 @@
     "deploy": "serverless deploy"
   },
   "dependencies": {
-    "@types/node": "^18.x",
-    "aws-sdk": "^2.1692.0",
-    "base64url": "^3.0.1",
-    "bcryptjs": "^2.4.3",
-    "crypto": "^1.0.1",
-    "dotenv": "^16.x",
-    "googleapis": "^150.0.1",
-    "jsonwebtoken": "^9.x",
+    "@googleapis/gmail": "^13.0.1",
+    "@googleapis/oauth2": "^2.0.1",
+    "aws-lambda": "^1.0.7",
+    "dotenv": "^16.5.0",
+    "google-auth-library": "^10.1.0",
+    "jsonwebtoken": "^9.0.2",
     "pdf-parse": "^1.1.1",
-    "pg": "^8.x",
-    "pg-hstore": "^2.x",
+    "pg": "^8.16.0",
     "selenium-webdriver": "^4.33.0",
-    "sequelize": "^6.x",
-    "uuid": "^11.1.0"
-  },
-  "devDependencies": {
-    "@types/aws-lambda": "^8.10.126",
-    "@types/bcryptjs": "^2.4.x",
-    "@types/jsonwebtoken": "^9.x",
-    "@types/pdf-parse": "^1.1.5",
-    "@types/selenium-webdriver": "^4.1.28",
-    "@types/uuid": "^10.0.0",
-    "serverless": "^3.x",
-    "serverless-dotenv-plugin": "^4.x",
-    "serverless-offline": "^13.3.2",
-    "serverless-plugin-typescript": "^2.x",
-    "typescript": "^5.2.2"
+    "sequelize": "^6.37.7",
+    "serverless-offline": "^14.4.0"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.150",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.0.3",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/selenium-webdriver": "^4.1.28",
+    "@types/uuid": "^10.0.0",
+    "aws-sdk": "^2.1692.0",
+    "typescript": "^5.8.3"
   }
 }

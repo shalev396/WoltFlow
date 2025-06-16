@@ -1,6 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Lambda } from "aws-sdk";
-import { google } from "googleapis";
+import { gmail_v1 } from "@googleapis/gmail"; // Scoped Gmail client
+import { OAuth2Client } from "google-auth-library"; // Standalone auth library
+
+// import { google } from "googleapis";
 import pdf from "pdf-parse";
 import dotenv from "dotenv";
 import sequelize from "../../config/database";
@@ -21,6 +24,11 @@ export const handler = async (
     const baseURL = isDev
       ? "http://localhost:3000/api"
       : `https://woltflow.shalev396.com/api`;
+
+    const oauthRedirectUri = isDev
+      ? process.env.OAUTH_REDIRECT_URI_DEV!
+      : process.env.OAUTH_REDIRECT_URI!;
+
     await sequelize.authenticate();
     // ensure Codes table exists (dev only)
     if (process.env.ENV === "Development") {
@@ -88,13 +96,17 @@ export const handler = async (
       };
     }
 
-    const oauth2Client = new google.auth.OAuth2(
+    const oauth2Client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID!,
       process.env.GOOGLE_CLIENT_SECRET!,
-      process.env.OAUTH_REDIRECT_URI!
+      oauthRedirectUri!
     );
+
     oauth2Client.setCredentials({ refresh_token: user.refreshToken });
-    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+    const gmail = new gmail_v1.Gmail({
+      auth: oauth2Client,
+      // version: "v1",
+    });
 
     const subject = '"הגיפט קארד של Wolt הגיע ומחכה לשליחה :)"';
     const q = `from:info@wolt.com subject:${subject} after:${after} before:${by}`;

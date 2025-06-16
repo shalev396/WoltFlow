@@ -16,11 +16,15 @@ export const authMiddleware = (
     callback: (error?: Error | null | string, result?: any) => void
   ): Promise<APIGatewayProxyResult> => {
     try {
-      const cookieHeader = event.headers.Cookie || event.headers.cookie || "";
+      const cookieHeader =
+        (event.cookies && event.cookies.join("; ")) ||
+        event.headers["cookie"] ||
+        "";
       const cookies = Object.fromEntries(
-        cookieHeader.split("; ").map((pair: string) => pair.split("="))
+        cookieHeader.split("; ").map((p) => p.split("="))
       );
       const token = cookies["sessionToken"];
+
       if (!token) {
         return {
           statusCode: 401,

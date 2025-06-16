@@ -36,7 +36,7 @@ Screenshot.init(
   },
   {
     sequelize,
-    tableName: "screenshots",
+    tableName: "Screenshots",
     timestamps: false,
   }
 );

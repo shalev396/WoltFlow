@@ -4,13 +4,18 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import sequelize from "../../config/database";
 import User from "../../models/User";
-import { google } from "googleapis";
+// import { google } from "googleapis";
+import { oauth2_v2 } from "@googleapis/oauth2";
 
 dotenv.config();
 
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  const isDev = process.env.ENV === "Development";
+  const oauthRedirectUri = isDev
+    ? process.env.OAUTH_REDIRECT_URI_DEV!
+    : process.env.OAUTH_REDIRECT_URI!;
   // 1. Ensure DB connection
   await sequelize.authenticate();
   await sequelize.sync({ alter: true });
@@ -34,12 +39,12 @@ export const handler = async (
   const oauth2Client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.OAUTH_REDIRECT_URI
+    oauthRedirectUri
   );
   const { tokens } = await oauth2Client.getToken({
     code,
     codeVerifier, // correct key name :contentReference[oaicite:3]{index=3}
-    redirectUri: process.env.OAUTH_REDIRECT_URI,
+    redirectUri: oauthRedirectUri,
   } as any);
   const { access_token, refresh_token } = tokens;
   if (!refresh_token) {
@@ -48,7 +53,10 @@ export const handler = async (
 
   // 5. Fetch user info
   oauth2Client.setCredentials({ access_token });
-  const oauth2 = google.oauth2({ auth: oauth2Client, version: "v2" });
+  const oauth2 = new oauth2_v2.Oauth2({
+    auth: oauth2Client,
+    // version: "v2"
+  });
   const userInfo = await oauth2.userinfo.get();
   const userId = userInfo.data.id!;
 

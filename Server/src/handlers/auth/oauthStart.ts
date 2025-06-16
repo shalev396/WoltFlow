@@ -4,11 +4,15 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const handler: APIGatewayProxyHandler = async () => {
+  const isDev = process.env.ENV === "Development";
+  const oauthRedirectUri = isDev
+    ? process.env.OAUTH_REDIRECT_URI_DEV!
+    : process.env.OAUTH_REDIRECT_URI!;
   // 1. Create OAuth2 client
   const oauth2Client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.OAUTH_REDIRECT_URI
+    oauthRedirectUri
   );
 
   // 2. Generate PKCE verifier & challenge

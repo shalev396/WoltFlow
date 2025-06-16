@@ -69,7 +69,7 @@ Setting.init(
     },
   },
   {
-    tableName: "Setting",
+    tableName: "Settings",
     sequelize,
   }
 );
