@@ -1,5 +1,5 @@
 import { By, Builder, WebElement } from "selenium-webdriver";
-import chrome from "selenium-webdriver/chrome";
+import chrome, { ServiceBuilder } from "selenium-webdriver/chrome";
 import { Lambda } from "aws-sdk";
 import sequelize from "../../config/database";
 import Setting from "../../models/Setting";
@@ -15,7 +15,7 @@ import { sleep } from "../../utils/general";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util";
 
 const lambda = new Lambda();
-
+process.env.SELENIUM_MANAGER_DISABLED = "true";
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
   let run: Run | null = null;
@@ -66,29 +66,40 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
 
     const options = new chrome.Options()
       .setChromeBinaryPath(chromeBinary)
-      .addArguments("--window-size=1920,1080", "--incognito");
+      .addArguments(
+        "--window-size=1920,1080",
+        "--incognito",
+        // only headless in non-development
+        process.env.ENV !== "Development" ? "--headless" : "",
+        process.env.ENV !== "Development" ? "--disable-gpu" : ""
+      )
+      .setUserPreferences({
+        "profile.default_content_setting_values.notifications": 2,
+      });
 
-    // Add headless and disable-gpu only in production (not development)
-    if (process.env.ENV !== "Development") {
-      options.addArguments("--headless", "--disable-gpu");
-    }
-
-    driver = await new Builder()
+    const service = new ServiceBuilder(
+      process.env.IS_OFFLINE === "true"
+        ? undefined // Selenium Manager will find the local driver
+        : "/opt/bin/chromedriver"
+    );
+    // 4) Wire everything into the Builder _before_ calling .build()
+    const driver = await new Builder()
       .forBrowser("chrome")
       .setChromeOptions(options as any)
+      .setChromeService(service)
       .build();
-
+    console.log("driver built");
     // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
       driver,
       settings.wrtoken || "",
       settings.wtoken || ""
     );
-
+    console.log("cookies set");
     // script start
     // Clear cart
     await driver.get("https://wolt.com/he/isr/tel-aviv/venue/woltilgiftcards");
-
+    console.log("got to woltilgiftcards", await driver.getCurrentUrl());
     const continueDialogs = await waitForElement(
       driver,
       By.xpath("//*[normalize-space(text())='אשמח להמשיך']"),

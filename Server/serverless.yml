@@ -4,6 +4,8 @@ app: woltflow
 
 service: woltflow-server
 
+frameworkVersion: "4"
+
 provider:
   name: aws
   runtime: nodejs20.x
@@ -52,7 +54,8 @@ provider:
           Resource: "arn:aws:s3:::${env:ASSETS_BUCKET_NAME}/*"
 
 package:
-  excludeDevDependencies: true
+  individually: true
+  excludeDevDependencies: true # true
   patterns:
     - "!src/**"
     # - "!node_modules/**"
@@ -67,8 +70,13 @@ package:
     - "dist/**"
     - "package.json"
 
+build:
+  esbuild:
+    false
+    # Disable built-in ESBuild support
 plugins:
   - serverless-offline
+  - serverless-webpack
   # - serverless-dotenv-plugin
 
 useDotenv: true
@@ -89,6 +97,13 @@ custom:
     package:initialize: npm run build
   dotenv:
     path: ./.env
+  webpack:
+    webpackConfig: "./webpack.config.js"
+    includeModules:
+      forceInclude:
+        - pg
+        - pg-hstore
+        - aws-sdk
 
 layers:
   chromedriver:
@@ -178,9 +193,9 @@ functions:
 
   woltBuyGift:
     handler: ./dist/handlers/automation/woltBuyGift.handler
-    # layers:
-    #   - !Ref ChromedriverLambdaLayer
-    #   - !Ref ChromeLambdaLayer
+    layers:
+      - !Ref ChromedriverLambdaLayer
+      - !Ref ChromeLambdaLayer
     memorySize: 1024
     timeout: 70
     events:
@@ -190,9 +205,9 @@ functions:
 
   woltApplyGift:
     handler: ./dist/handlers/automation/woltApplyGift.handler
-    # layers:
-    #   - !Ref ChromedriverLambdaLayer
-    #   - !Ref ChromeLambdaLayer
+    layers:
+      - !Ref ChromedriverLambdaLayer
+      - !Ref ChromeLambdaLayer
     memorySize: 1024
     timeout: 60
     events:
