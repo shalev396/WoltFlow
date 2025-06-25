@@ -12,19 +12,24 @@ dotenv.config();
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const isDev = process.env.ENV === "Development";
+  console.log("Incoming event:", JSON.stringify(event));
+  const isDev = process.env["ENV"] === "Development";
   const oauthRedirectUri = isDev
-    ? process.env.OAUTH_REDIRECT_URI_DEV!
-    : process.env.OAUTH_REDIRECT_URI!;
+    ? process.env["OAUTH_REDIRECT_URI_DEV"]!
+    : process.env["OAUTH_REDIRECT_URI"]!;
   // 1. Ensure DB connection
   await sequelize.authenticate();
-  await sequelize.sync({ alter: true });
 
   // 2. Extract 'code' + 'state'
-  const code = event.queryStringParameters?.code;
-  const rawState = event.queryStringParameters?.state;
+  const code = event.queryStringParameters?.["code"];
+  const rawState = event.queryStringParameters?.["state"];
   if (!code || !rawState) {
-    return { statusCode: 400, body: "Missing code or state" };
+    return {
+      statusCode: 400,
+      body: JSON.stringify({
+        message: "Missing code or state",
+      }),
+    };
   }
 
   // 3. Parse our JSON-packed verifier out of state
@@ -37,13 +42,13 @@ export const handler = async (
 
   // 4. Exchange code + PKCE verifier for tokens
   const oauth2Client = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
+    process.env["GOOGLE_CLIENT_ID"],
+    process.env["GOOGLE_CLIENT_SECRET"],
     oauthRedirectUri
   );
   const { tokens } = await oauth2Client.getToken({
     code,
-    codeVerifier, // correct key name :contentReference[oaicite:3]{index=3}
+    codeVerifier,
     redirectUri: oauthRedirectUri,
   } as any);
   const { access_token, refresh_token } = tokens;
@@ -52,7 +57,7 @@ export const handler = async (
   }
 
   // 5. Fetch user info
-  oauth2Client.setCredentials({ access_token });
+  oauth2Client.setCredentials({ access_token: access_token! });
   const oauth2 = new oauth2_v2.Oauth2({
     auth: oauth2Client,
     // version: "v2"
@@ -64,7 +69,7 @@ export const handler = async (
   await User.upsert({ userId, refreshToken: refresh_token });
 
   // 7. Create 7-day session JWT
-  const sessionToken = jwt.sign({ userId }, process.env.JWT_SECRET!, {
+  const sessionToken = jwt.sign({ userId }, process.env["JWT_SECRET"]!, {
     expiresIn: "7d",
   });
 
@@ -76,11 +81,11 @@ export const handler = async (
         7 * 24 * 60 * 60
       }`,
       Location:
-        process.env.ENV === "Development"
+        process.env["ENV"] === "Development"
           ? "http://localhost:5173/dashboard"
           : "https://woltflow.shalev396.com/dashboard",
       "Access-Control-Allow-Origin":
-        process.env.ENV === "Development"
+        process.env["ENV"] === "Development"
           ? "http://localhost:5173"
           : "https://woltflow.shalev396.com",
       "Access-Control-Allow-Credentials": "true",

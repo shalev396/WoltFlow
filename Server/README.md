@@ -253,3 +253,83 @@ Response (200):
 - CORS configured for local development (`http://localhost:5173`)
 - Database connection pooling with Sequelize
 - Automatic table creation/updates in development mode
+
+## Build Process
+
+This project uses a dual-build system with TypeScript compilation and Webpack bundling:
+
+### 1. TypeScript Compilation
+
+```bash
+npm run build:ts
+```
+
+Compiles TypeScript files to JavaScript in the `dist/` directory with type definitions.
+
+### 2. Webpack Bundling
+
+```bash
+npm run build:webpack
+```
+
+Creates optimized, minified bundles for each handler with all dependencies included:
+
+- Automatically discovers all handlers in `src/handlers/`
+- Bundles each handler with its dependencies
+- Minifies and optimizes for production
+- Outputs to `dist/handlers/` maintaining directory structure
+
+### 3. Complete Build
+
+```bash
+npm run build
+```
+
+Runs both TypeScript compilation and webpack bundling in sequence.
+
+## Deployment Targets
+
+The build system supports both deployment targets:
+
+### Lambda Functions
+
+- Uses webpack bundles for optimized cold start performance
+- Each handler is self-contained with minimal dependencies
+- Configured via `serverless.yml` to reference `dist/handlers/`
+
+### Docker Container
+
+- Uses the same webpack bundles from `dist/handlers/`
+- All handlers available in consistent directory structure
+- Optimized bundle sizes reduce container size
+
+## Development
+
+```bash
+npm run start        # Start serverless offline
+npm run deploy       # Deploy to AWS
+```
+
+## Handler Structure
+
+All handlers are automatically discovered from:
+
+```
+src/handlers/
+├── auth/
+├── automation/
+├── gmail/
+├── runs/
+└── setting/
+```
+
+Each handler is compiled to:
+
+```
+dist/handlers/
+├── auth/
+├── automation/
+├── gmail/
+├── runs/
+└── setting/
+```

@@ -6,10 +6,10 @@ import Screenshot from "../models/Screenshot";
 dotenv.config();
 
 // AWS Configuration
-const AWS_ACCESS_CONNECT_KEY = process.env.AWS_ACCESS_CONNECT_KEY;
-const AWS_ACCESS_SECRET = process.env.AWS_ACCESS_SECRET;
-const AWS_REGION = process.env.AWS_REGIONS;
-const ASSETS_BUCKET_NAME = process.env.ASSETS_BUCKET_NAME;
+const AWS_ACCESS_CONNECT_KEY = process.env["AWS_ACCESS_CONNECT_KEY"];
+const AWS_ACCESS_SECRET = process.env["AWS_ACCESS_SECRET"];
+const AWS_REGION = process.env["AWS_REGIONS"];
+const ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME"];
 
 if (
   !AWS_ACCESS_CONNECT_KEY ||
@@ -79,19 +79,19 @@ export async function uploadImageToS3(
     throw new Error("Invalid base64 image format");
   }
 
-  const contentType = match.groups.type; // e.g., "image/jpeg"
-  const base64Data = match.groups.data; // the raw Base64 data
+  const contentType = match.groups["type"]; // e.g., "image/jpeg"
+  const base64Data = match.groups["data"]; // the raw Base64 data
 
   let imgBuffer: Buffer;
   try {
-    imgBuffer = Buffer.from(base64Data, "base64");
+    imgBuffer = Buffer.from(base64Data!, "base64");
   } catch (error) {
     console.error("Base64 decoding failed:", error);
     throw new Error("Base64 decoding failed");
   }
 
   // 2. Determine file extension (e.g., "jpeg" from "image/jpeg")
-  const extension = contentType.split("/")[1] || "jpg";
+  const extension = contentType?.split("/")[1] || "jpg";
   const filename = `${uuidv4()}.${extension}`;
   const key = `${folder}/${filename}`;
 
@@ -101,7 +101,7 @@ export async function uploadImageToS3(
       Bucket: ASSETS_BUCKET_NAME!,
       Key: key,
       Body: imgBuffer,
-      ContentType: contentType,
+      ContentType: contentType!,
     };
 
     await s3.upload(uploadParams).promise();

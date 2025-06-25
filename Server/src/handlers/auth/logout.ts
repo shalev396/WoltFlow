@@ -6,7 +6,7 @@ export const handler = async (
   try {
     // Clear the session cookie by setting Max-Age to 0
     const cookieSettings =
-      process.env.ENV === "Development"
+      process.env["ENV"] === "Development"
         ? "HttpOnly; SameSite=Lax; Path=/"
         : "HttpOnly; Secure; SameSite=Strict; Path=/";
 
@@ -16,7 +16,7 @@ export const handler = async (
         "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin":
-          process.env.ENV === "Development"
+          process.env["ENV"] === "Development"
             ? "http://localhost:5173"
             : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",
@@ -30,7 +30,7 @@ export const handler = async (
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin":
-          process.env.ENV === "Development"
+          process.env["ENV"] === "Development"
             ? "http://localhost:5173"
             : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",

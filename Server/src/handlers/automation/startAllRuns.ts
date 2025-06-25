@@ -9,14 +9,14 @@ const lambda = new Lambda();
 
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
-    const isDev = process.env.ENV === "Development";
+    const isDev = process.env["ENV"] === "Development";
     const baseURL = isDev
       ? "http://localhost:3000/api"
       : `https://woltflow.shalev396.com/api`;
     await sequelize.authenticate();
 
     // Ensure Run table exists (dev only)
-    if (process.env.ENV === "Development") {
+    if (process.env["ENV"] === "Development") {
       await Run.sync({ alter: true });
     }
 
@@ -40,53 +40,62 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
       try {
         // Check if user has settings (required for automation)
         const userSettings = await Setting.findOne({
-          where: { userId: user.userId },
+          where: { userId: user.get("userId") },
         });
 
         if (!userSettings) {
-          console.log(`Skipping user ${user.userId} - no settings found`);
+          console.log(
+            `Skipping user ${user.get("userId")} - no settings found`
+          );
           continue;
         }
 
         // Create a new run for this user
         const newRun = await Run.create({
-          user_id: user.userId,
+          user_id: user.get("userId"),
           status: "in progress",
           stage: "triggered",
-          amount: Number(userSettings.giftAmount) || 0,
-          is_notify: userSettings.isNotification || false,
+          amount: Number(userSettings.get("giftAmount")) || 0,
+          is_notify: userSettings.get("isNotification") || false,
         });
 
-        console.log(`Created run ${newRun.id} for user ${user.userId}`);
+        console.log(
+          `Created run ${newRun.get("id")} for user ${user.get("userId")}`
+        );
 
         // Fire-and-forget trigger refreshTokens function with runId
-        const isOffline = process.env.IS_OFFLINE === "true";
 
-        if (isOffline) {
+        if (isDev) {
           // For serverless offline, make HTTP request without waiting
           console.log(
-            `Triggering refreshTokens for run ${newRun.id} (offline mode)`
+            `Triggering refreshTokens for run ${newRun.get(
+              "id"
+            )} (offline mode)`
           );
 
-          fetch(`${baseURL}/wolt/refreshTokens?runId=${newRun.id}`, {
+          fetch(`${baseURL}/wolt/refreshTokens?runId=${newRun.get("id")}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
           }).catch((error) => {
             console.error(
-              `HTTP request to refreshTokens failed for run ${newRun.id}:`,
+              `HTTP request to refreshTokens failed for run ${newRun.get(
+                "id"
+              )}:`,
               error
             );
           });
         } else {
           // For production, use Lambda invoke with fire-and-forget
-          const functionName = process.env.REFRESH_TOKENS_FUNCTION_NAME!;
+          const functionName = process.env["REFRESH_TOKENS_FUNCTION_NAME"]!;
           const invokeParams = {
             FunctionName: functionName,
             InvocationType: "Event" as const,
             Payload: JSON.stringify({
-              queryStringParameters: { runId: newRun.id.toString() },
+              queryStringParameters: {
+                runId: newRun.get("id").toString(),
+              },
             }),
           };
 
@@ -95,21 +104,26 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
             .promise()
             .catch((error) => {
               console.error(
-                `Lambda invoke to refreshTokens failed for run ${newRun.id}:`,
+                `Lambda invoke to refreshTokens failed for run ${newRun.get(
+                  "id"
+                )}:`,
                 error
               );
             });
         }
 
         runsStarted.push({
-          runId: newRun.id,
-          userId: user.userId,
+          runId: newRun.get("id"),
+          userId: user.get("userId"),
           status: "triggered",
         });
       } catch (userError: any) {
-        console.error(`Error starting run for user ${user.userId}:`, userError);
+        console.error(
+          `Error starting run for user ${user.get("userId")}:`,
+          userError
+        );
         errors.push({
-          userId: user.userId,
+          userId: user.get("userId"),
           error: userError.message,
         });
       }

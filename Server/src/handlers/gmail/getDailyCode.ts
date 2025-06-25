@@ -20,22 +20,22 @@ export const handler = async (
   let run: Run | null = null;
 
   try {
-    const isDev = process.env.ENV === "Development";
+    const isDev = process.env["ENV"] === "Development";
     const baseURL = isDev
       ? "http://localhost:3000/api"
       : `https://woltflow.shalev396.com/api`;
 
     const oauthRedirectUri = isDev
-      ? process.env.OAUTH_REDIRECT_URI_DEV!
-      : process.env.OAUTH_REDIRECT_URI!;
+      ? process.env["OAUTH_REDIRECT_URI_DEV"]!
+      : process.env["OAUTH_REDIRECT_URI"]!;
 
     await sequelize.authenticate();
     // ensure Codes table exists (dev only)
-    if (process.env.ENV === "Development") {
+    if (process.env["ENV"] === "Development") {
       await Code.sync({ alter: true });
     }
 
-    const runId = event.queryStringParameters?.runId;
+    const runId = event.queryStringParameters?.["runId"];
     if (!runId) {
       return {
         statusCode: 400,
@@ -52,13 +52,13 @@ export const handler = async (
       };
     }
 
-    const uid = run.user_id;
+    const uid = run.get("user_id");
 
     // Update run stage
     await run.update({ stage: "getting code from mail" });
 
     let targetDate = new Date();
-    if (process.env.ENV === "Development") {
+    if (process.env["ENV"] === "Development") {
       // First check if date parameter is provided
       // if (event.queryStringParameters?.date) {
       //   const d = new Date(event.queryStringParameters.date);
@@ -66,8 +66,8 @@ export const handler = async (
       // }
       // If no date parameter, use development default date from env var
       //else
-      if (process.env.DEVELOPMENT_DATE) {
-        const d = new Date(process.env.DEVELOPMENT_DATE);
+      if (process.env["DEVELOPMENT_DATE"]) {
+        const d = new Date(process.env["DEVELOPMENT_DATE"]);
         if (!isNaN(d.getTime())) targetDate = d;
       }
     }
@@ -97,12 +97,12 @@ export const handler = async (
     }
 
     const oauth2Client = new OAuth2Client(
-      process.env.GOOGLE_CLIENT_ID!,
-      process.env.GOOGLE_CLIENT_SECRET!,
+      process.env["GOOGLE_CLIENT_ID"]!,
+      process.env["GOOGLE_CLIENT_SECRET"]!,
       oauthRedirectUri!
     );
 
-    oauth2Client.setCredentials({ refresh_token: user.refreshToken });
+    oauth2Client.setCredentials({ refresh_token: user.get("refreshToken") });
     const gmail = new gmail_v1.Gmail({
       auth: oauth2Client,
       // version: "v1",
@@ -130,7 +130,7 @@ export const handler = async (
 
     const msg = await gmail.users.messages.get({
       userId: "me",
-      id: msgs[0].id!,
+      id: msgs[0]!.id!,
       format: "full",
     });
 
@@ -155,7 +155,7 @@ export const handler = async (
 
     const attach = await gmail.users.messages.attachments.get({
       userId: "me",
-      messageId: msgs[0].id!,
+      messageId: msgs[0]!.id!,
       id: attachmentId,
     });
     const data = attach.data.data!;
@@ -184,9 +184,8 @@ export const handler = async (
     );
 
     // Fire-and-forget trigger woltApplyGift function
-    const isOffline = process.env.IS_OFFLINE === "true";
 
-    if (isOffline) {
+    if (isDev) {
       // For serverless offline, make HTTP request without waiting
       console.log(
         "Running in offline mode, triggering woltApplyGift (fire-and-forget)"
@@ -210,7 +209,7 @@ export const handler = async (
       );
     } else {
       // For production, use Lambda invoke with fire-and-forget
-      const functionName = process.env.WOLT_APPLY_GIFT_FUNCTION_NAME!;
+      const functionName = process.env["WOLT_APPLY_GIFT_FUNCTION_NAME"]!;
       const invokeParams = {
         FunctionName: functionName,
         InvocationType: "Event" as const, // Fire and forget

@@ -6,7 +6,7 @@ import {
   ICustomContext,
 } from "../typescript/interfaces/aws";
 import { APIGatewayProxyResult } from "aws-lambda";
-
+console.log("authMiddleware");
 export const authMiddleware = (
   handler: CustomAPIGatewayProxyHandler
 ): CustomAPIGatewayProxyHandler => {
@@ -31,7 +31,7 @@ export const authMiddleware = (
           body: JSON.stringify({ error: "Not authenticated" }),
         };
       }
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
+      const payload = jwt.verify(token, process.env["JWT_SECRET"]!) as {
         userId: string;
       };
 

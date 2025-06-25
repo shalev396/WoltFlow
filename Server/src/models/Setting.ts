@@ -3,18 +3,18 @@ import sequelize from "../config/database";
 import User from "./User";
 
 export default class Setting extends Model {
-  public settingsId!: number;
-  public userId!: string;
-  public isNotification!: boolean;
-  public cookies!: string | null; // <-- deprecated field (keep for now)
-  public wrtoken!: string | null; // <-- new field
-  public wtoken!: string | null; // <-- new field
-  public cibusName!: string | null;
-  public cibusPassword!: string | null;
-  public cibusCompany!: string | null;
-  public giftAmount!: number | null;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare settingsId: number;
+  declare userId: string;
+  declare isNotification: boolean;
+  declare cookies: string | null; // deprecated field (keep for now)
+  declare wrtoken: string | null; // new field
+  declare wtoken: string | null; // new field
+  declare cibusName: string | null;
+  declare cibusPassword: string | null;
+  declare cibusCompany: string | null;
+  declare giftAmount: number | null;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Setting.init(

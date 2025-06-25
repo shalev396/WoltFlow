@@ -4,20 +4,20 @@ import { Run as RunType } from "../typescript/types";
 import User from "./User";
 
 class Run extends Model<RunType> implements RunType {
-  public id!: number;
-  public user_id!: string;
-  public created_at?: Date;
-  public updated_at?: Date;
-  public status!: "failed" | "in progress" | "success";
-  public stage!:
+  declare id: number;
+  declare user_id: string;
+  declare created_at?: Date;
+  declare updated_at?: Date;
+  declare status: "failed" | "in progress" | "success";
+  declare stage:
     | "triggered"
     | "refreshing tokens"
     | "buying gift"
     | "getting code from mail"
     | "applying gift"
     | "done";
-  public amount!: number;
-  public is_notify!: boolean;
+  declare amount: number;
+  declare is_notify: boolean;
 }
 
 Run.init(

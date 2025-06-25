@@ -9,13 +9,13 @@ const lambda = new Lambda();
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let run: Run | null = null;
-  const isDev = process.env.ENV === "Development";
+  const isDev = process.env["ENV"] === "Development";
   const baseURL = isDev
     ? "http://localhost:3000/api"
     : `https://woltflow.shalev396.com/api`;
 
   try {
-    const runId = event.queryStringParameters?.runId;
+    const runId = event.queryStringParameters?.["runId"];
     if (!runId) {
       return {
         statusCode: 400,
@@ -34,7 +34,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       };
     }
 
-    const userId = run.user_id;
+    const userId = run.get("user_id");
 
     // Update run stage
     await run.update({ stage: "refreshing tokens" });
@@ -50,7 +50,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Check if we have a refresh token to work with
-    if (!settings.wrtoken) {
+    if (!settings.get("wrtoken")) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "No refresh token found in settings" }),
@@ -59,7 +59,9 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
 
     try {
       // Refresh the tokens using the existing refresh token
-      const tokenResponse = await refreshTokens(settings.wrtoken);
+      const tokenResponse = await refreshTokens(
+        settings.get("wrtoken") as string
+      );
 
       // Format the tokens as specified
       const newWrtoken = tokenResponse.refresh_token;
@@ -79,9 +81,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       console.log("Tokens refreshed successfully for run:", runId);
 
       // Fire-and-forget invoke woltBuyGift function
-      const isOffline = process.env.IS_OFFLINE === "true";
-
-      if (isOffline) {
+      if (isDev) {
         // For serverless offline, make HTTP request without waiting
         console.log(
           "Running in offline mode, triggering woltBuyGift (fire-and-forget)"
@@ -105,7 +105,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         );
       } else {
         // For production, use Lambda invoke with fire-and-forget
-        const functionName = process.env.WOLT_BUY_GIFT_FUNCTION_NAME!;
+        const functionName = process.env["WOLT_BUY_GIFT_FUNCTION_NAME"]!;
         const invokeParams = {
           FunctionName: functionName,
           InvocationType: "Event" as const, // Fire and forget

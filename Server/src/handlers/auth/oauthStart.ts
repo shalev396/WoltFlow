@@ -4,14 +4,15 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const handler: APIGatewayProxyHandler = async () => {
-  const isDev = process.env.ENV === "Development";
+  const isDev = process.env["ENV"] === "Development";
   const oauthRedirectUri = isDev
-    ? process.env.OAUTH_REDIRECT_URI_DEV!
-    : process.env.OAUTH_REDIRECT_URI!;
+    ? process.env["OAUTH_REDIRECT_URI_DEV"]!
+    : process.env["OAUTH_REDIRECT_URI"]!;
+  console.log("oauthRedirectUri", oauthRedirectUri);
   // 1. Create OAuth2 client
   const oauth2Client = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
+    process.env["GOOGLE_CLIENT_ID"],
+    process.env["GOOGLE_CLIENT_SECRET"],
     oauthRedirectUri
   );
 
@@ -32,7 +33,7 @@ export const handler: APIGatewayProxyHandler = async () => {
       "https://www.googleapis.com/auth/userinfo.email",
     ],
     code_challenge_method: "S256" as any,
-    code_challenge: codeChallenge,
+    code_challenge: codeChallenge!,
     state, // will be URL-encoded by the library
   });
 
@@ -42,7 +43,7 @@ export const handler: APIGatewayProxyHandler = async () => {
     headers: {
       Location: consentUrl,
       "Access-Control-Allow-Origin":
-        process.env.ENV === "Development"
+        process.env["ENV"] === "Development"
           ? "http://localhost:5173"
           : "https://woltflow.shalev396.com",
       "Access-Control-Allow-Credentials": "true",

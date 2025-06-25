@@ -8,10 +8,10 @@ import { oauth2_v2 } from "@googleapis/oauth2";
 
 export const handler = async (event: APIGatewayProxyEventV2) => {
   try {
-    const isDev = process.env.ENV === "Development";
+    const isDev = process.env["ENV"] === "Development";
     const oauthRedirectUri = isDev
-      ? process.env.OAUTH_REDIRECT_URI_DEV!
-      : process.env.OAUTH_REDIRECT_URI!;
+      ? process.env["OAUTH_REDIRECT_URI_DEV"]!
+      : process.env["OAUTH_REDIRECT_URI"]!;
     // 1. Ensure DB connection
     await sequelize.authenticate();
 
@@ -33,31 +33,34 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     if (!token) throw new Error("No session token");
 
     // 3. Verify JWT and extract userId
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
+    const payload = jwt.verify(token, process.env["JWT_SECRET"]!) as {
       userId: string;
     };
     const userId = payload.userId;
 
     // 4. Fetch refresh_token from PostgreSQL
     const user = await User.findByPk(userId);
+    console.log("user", user);
     if (!user) throw new Error("User not found");
 
     // 5. Refresh access token using OAuth2 client
     const oauth2Client = new OAuth2Client(
-      process.env.GOOGLE_CLIENT_ID!,
-      process.env.GOOGLE_CLIENT_SECRET!,
+      process.env["GOOGLE_CLIENT_ID"]!,
+      process.env["GOOGLE_CLIENT_SECRET"]!,
       oauthRedirectUri!
     );
 
-    oauth2Client.setCredentials({ refresh_token: user.refreshToken });
+    oauth2Client.setCredentials({
+      refresh_token: user.get("refreshToken"),
+    });
     const newTokenResponse = await oauth2Client.getAccessToken();
     const newAccessToken = newTokenResponse.token;
     if (!newAccessToken) throw new Error("Failed to refresh access token");
-
+    console.log("newAccessToken", newAccessToken);
     // 6. If Google rotated the refresh_token, update it
     if (newTokenResponse.res?.data?.refresh_token) {
       const rotatedRT = newTokenResponse.res.data.refresh_token;
-      user.refreshToken = rotatedRT;
+      user.set("refreshToken", rotatedRT);
       await user.save();
     }
 
@@ -75,7 +78,7 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin":
-          process.env.ENV === "Development"
+          process.env["ENV"] === "Development"
             ? "http://localhost:5173"
             : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",
@@ -91,7 +94,7 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     // 9. Clear session cookie on failure
 
     const cookieSettings =
-      process.env.ENV === "Development"
+      process.env["ENV"] === "Development"
         ? "HttpOnly; SameSite=Lax"
         : "HttpOnly; Secure; SameSite=Strict";
 
@@ -101,7 +104,7 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
         "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin":
-          process.env.ENV === "Development"
+          process.env["ENV"] === "Development"
             ? "http://localhost:5173"
             : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",

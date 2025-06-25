@@ -1,5 +1,5 @@
-import { By, Builder } from "selenium-webdriver";
-import chrome from "selenium-webdriver/chrome";
+import { By, Builder, WebDriver } from "selenium-webdriver";
+
 import sequelize from "../../config/database";
 import Setting from "../../models/Setting";
 import Code from "../../models/Code";
@@ -12,14 +12,21 @@ import {
 } from "../../utils/automation";
 import { sleep } from "../../utils/general";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util";
-
+import {
+  Options as ChromeOptions,
+  ServiceBuilder as ChromeServiceBuilder,
+} from "selenium-webdriver/chrome";
+import { mkdtempSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
   let run: Run | null = null;
   let driver: any = null;
 
   try {
-    const runId = event.queryStringParameters?.runId;
+    const isDev = process.env["ENV"] === "Development";
+    const runId = event.queryStringParameters?.["runId"];
     if (!runId) {
       return {
         statusCode: 400,
@@ -38,7 +45,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       };
     }
 
-    const userId = run.user_id;
+    const userId = run.get("user_id");
 
     // Update run stage
     await run.update({ stage: "applying gift" });
@@ -68,30 +75,51 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Browser setup
-    const chromeBinary =
-      process.env.IS_OFFLINE === "true"
-        ? "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
-        : "/opt/bin/headless-chromium";
-
-    const options = new chrome.Options()
-      .setChromeBinaryPath(chromeBinary)
-      .addArguments("--window-size=1920,1080", "--incognito");
-
-    // Add headless and disable-gpu only in production (not development)
-    if (process.env.ENV !== "Development") {
-      options.addArguments("--headless", "--disable-gpu");
+    const options = new ChromeOptions();
+    let service: ChromeServiceBuilder | undefined;
+    if (!isDev) {
+      service = new ChromeServiceBuilder("/opt/chromedriver");
+    } else {
+      service = new ChromeServiceBuilder();
     }
+    options
+      .addArguments(
+        "--window-size=1920,1080",
+        "--incognito",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--single-process",
+        "--disable-dev-tools",
+        "--no-zygote",
+        `--user-data-dir=${mkdtempSync(join(tmpdir(), "chrome-"))}`,
+        `--data-path=${mkdtempSync(join(tmpdir(), "chrome-"))}`,
+        `--disk-cache-dir=${mkdtempSync(join(tmpdir(), "chrome-"))}`,
+        "--remote-debugging-port=9222",
+        // only headless in non-development
+        process.env["ENV"] === "Development" ? "" : "--headless=new",
+        // process.env["ENV"] !== "Development" ? "--headless" : "",
+        process.env["ENV"] !== "Development" ? "--disable-gpu" : ""
+      )
+      .setUserPreferences({
+        "profile.default_content_setting_values.notifications": 2,
+      });
 
-    driver = await new Builder()
+    // 4) Wire everything into the Builder _before_ calling .build()
+    const driver: WebDriver = await new Builder()
       .forBrowser("chrome")
       .setChromeOptions(options as any)
+      .setChromeService(service)
       .build();
+    console.log("driver built");
 
     // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
       driver,
-      settings.wrtoken || "",
-      settings.wtoken || ""
+      settings.get("wrtoken") || "",
+      settings.get("wtoken") || ""
     );
 
     // Navigate to code redemption page
@@ -109,7 +137,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
 
     if (codeInput) {
       await codeInput.clear();
-      await codeInput.sendKeys(code.code);
+      await codeInput.sendKeys(code.get("code"));
       await sleep(1000);
     } else {
       throw new Error("Could not find code input field");
@@ -182,7 +210,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Take final screenshot and return it only in development mode
-    if (process.env.ENV === "Development" && driver) {
+    if (process.env["ENV"] === "Development" && driver) {
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         return {

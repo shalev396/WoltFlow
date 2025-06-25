@@ -4,12 +4,12 @@ import sequelize from "../config/database";
 import User from "./User";
 
 export default class Code extends Model {
-  public codeId!: number;
-  public userId!: string;
-  public code!: string;
-  public isUsed!: boolean;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare codeId: number;
+  declare userId: string;
+  declare code: string;
+  declare isUsed: boolean;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Code.init(

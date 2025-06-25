@@ -4,14 +4,13 @@ app: woltflow
 
 service: woltflow-server
 
-frameworkVersion: "4"
-
 provider:
   name: aws
+  stage: ${opt:stage, 'dev'}
   runtime: nodejs20.x
   timeout: 30
   memorySize: 1024
-  region: eu-central-1
+  region: il-central-1
   apiGateway:
     shouldStartNameWithService: true
   logs:
@@ -19,13 +18,12 @@ provider:
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
     DATABASE_URL_DEV: ${env:DATABASE_URL_DEV}
-    ENV: ${env:ENV}
+    ENV: Production
     GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
     GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
     OAUTH_REDIRECT_URI: ${env:OAUTH_REDIRECT_URI}
     OAUTH_REDIRECT_URI_DEV: ${env:OAUTH_REDIRECT_URI_DEV}
     JWT_SECRET: ${env:JWT_SECRET}
-    IS_OFFLINE: ${env:IS_OFFLINE, "false"}
     DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE, ""}
     AWS_ACCESS_CONNECT_KEY: ${env:AWS_ACCESS_CONNECT_KEY}
     AWS_ACCESS_SECRET: ${env:AWS_ACCESS_SECRET}
@@ -35,7 +33,12 @@ provider:
     WOLT_BUY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltBuyGift
     GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-getDailyCode
     WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltApplyGift
-    PATH: "/opt/bin:${env:PATH, ''}"
+
+  ecr:
+    images:
+      woltflow-selenium-image:
+        path: ./
+        file: Dockerfile
   iam:
     role:
       statements:
@@ -52,14 +55,28 @@ provider:
             - s3:PutObject
             - s3:GetObject
           Resource: "arn:aws:s3:::${env:ASSETS_BUCKET_NAME}/*"
-
+        - Effect: Allow
+          Action: ecr:GetAuthorizationToken
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - ecr:BatchCheckLayerAvailability
+            - ecr:GetDownloadUrlForLayer
+            - ecr:BatchGetImage
+            - ecr:InitiateLayerUpload
+            - ecr:UploadLayerPart
+            - ecr:CompleteLayerUpload
+            - ecr:PutImage
+          Resource: "*"
 package:
-  individually: true
-  excludeDevDependencies: true # true
+  # individually: true
+  excludeDevDependencies: true
   patterns:
     - "!src/**"
     # - "!node_modules/**"
+    # - "node_modules/pg/**"
     - "!.serverless/**"
+    - "!.webpack/**"
     - "!.build/**"
     - "!tsconfig.json"
     - "!*.md"
@@ -67,19 +84,15 @@ package:
     - "!layers/**"
     - "!undefined/**"
     - "!*.zip"
+    - "!webpack.config.js"
     - "dist/**"
     - "package.json"
+    - "node_modules/**"
 
 build:
-  esbuild:
-    false
-    # Disable built-in ESBuild support
+  esbuild: false # Disable built-in ESBuild support
 plugins:
   - serverless-offline
-  - serverless-webpack
-  # - serverless-dotenv-plugin
-
-useDotenv: true
 
 custom:
   serverless-offline:
@@ -91,54 +104,11 @@ custom:
     disableCookieValidation: true # ← Disables strictHeader cookie validation in Hapi
     enforceSecureCookies: false # ← Ensures Hapi won't require HTTPS for cookies
     printOutput: true
-  hooks:
-    before:offline:start: npm run build
-    before:deploy:deploy: npm run build
-    package:initialize: npm run build
   dotenv:
     path: ./.env
-  webpack:
-    webpackConfig: "./webpack.config.js"
-    includeModules:
-      forceInclude:
-        - pg
-        - pg-hstore
-        - aws-sdk
-
-layers:
-  chromedriver:
-    path: layers/chromedriver-layer
-    name: ${sls:stage}-chromedriver-layer
-    description: ChromeDriver layer for Selenium automation
-    compatibleRuntimes:
-      - nodejs20.x
-    compatibleArchitectures:
-      - x86_64
-
-  chrome:
-    path: layers/chrome-layer
-    name: ${sls:stage}-chrome-layer
-    description: Headless Chrome layer for Selenium automation
-    compatibleRuntimes:
-      - nodejs20.x
-    compatibleArchitectures:
-      - x86_64
 
 functions:
-  oauthStart:
-    handler: ./dist/handlers/auth/oauthStart.handler
-    events:
-      - httpApi:
-          path: /api/oauth2/start
-          method: get
-
-  oauthCallback:
-    handler: ./dist/handlers/auth/oauthCallback.handler
-    events:
-      - httpApi:
-          path: /api/oauth2/callback
-          method: get
-
+  #auth
   authMe:
     handler: ./dist/handlers/auth/authMeHandler.handler
     events:
@@ -153,13 +123,54 @@ functions:
           path: /api/auth/logout
           method: post
 
+  oauthCallback:
+    handler: ./dist/handlers/auth/oauthCallback.handler
+    events:
+      - httpApi:
+          path: /api/oauth2/callback
+          method: get
+
+  oauthStart:
+    handler: ./dist/handlers/auth/oauthStart.handler
+    events:
+      - httpApi:
+          path: /api/oauth2/start
+          method: get
+
+  # automation no selenium
+  refreshTokens:
+    handler: ./dist/handlers/automation/refreshTokens.handler
+    events:
+      - httpApi:
+          path: /api/wolt/refreshTokens
+          method: get
+
+  startAllRuns:
+    handler: ./dist/handlers/automation/startAllRuns.handler
+    events:
+      - httpApi:
+          path: /api/automation/start-all-runs
+          method: get
+      - schedule:
+          rate: cron(0 10 ? * SUN,MON,TUE,WED,THU *)
+          description: "Trigger startAllRuns on weekdays at 10:00 UTC (12:00 Israel time)"
+
+  # gmail
+
   getDailyCode:
     handler: ./dist/handlers/gmail/getDailyCode.handler
     events:
       - httpApi:
           path: /api/gmail/daily-code
           method: get
-
+  #runs
+  getUserRuns:
+    handler: ./dist/handlers/runs/getUserRuns.handler
+    events:
+      - httpApi:
+          path: /api/runs
+          method: get
+  #setting
   getUserSettings:
     handler: ./dist/handlers/setting/getusersettings.handler
     events:
@@ -174,50 +185,27 @@ functions:
           path: /api/setting
           method: post
 
-  startAllRuns:
-    handler: ./dist/handlers/automation/startAllRuns.handler
-    events:
-      - httpApi:
-          path: /api/automation/start-all-runs
-          method: get
-      - schedule:
-          rate: cron(0 10 ? * SUN,MON,TUE,WED,THU *)
-          description: "Trigger startAllRuns on weekdays at 10:00 UTC (12:00 Israel time)"
-
-  refreshTokens:
-    handler: ./dist/handlers/automation/refreshTokens.handler
-    events:
-      - httpApi:
-          path: /api/wolt/refreshTokens
-          method: get
-
+  #automation with selenium
   woltBuyGift:
-    handler: ./dist/handlers/automation/woltBuyGift.handler
-    layers:
-      - !Ref ChromedriverLambdaLayer
-      - !Ref ChromeLambdaLayer
-    memorySize: 1024
-    timeout: 70
-    events:
-      - httpApi:
-          path: /api/wolt/buyGift
-          method: get
+    image:
+      name: woltflow-selenium-image
+      command: ["dist/handlers/automation/woltBuyGift.handler"]
+    memorySize: 1536
+    ephemeralStorageSize: 1536
+    timeout: 200
+    # events:
+    #   - httpApi:
+    #       path: /api/wolt/buyGift
+    #       method: get
 
   woltApplyGift:
-    handler: ./dist/handlers/automation/woltApplyGift.handler
-    layers:
-      - !Ref ChromedriverLambdaLayer
-      - !Ref ChromeLambdaLayer
-    memorySize: 1024
+    image:
+      name: woltflow-selenium-image
+      command: ["dist/handlers/automation/woltApplyGift.handler"]
+    memorySize: 1536
+    ephemeralStorageSize: 1536
     timeout: 60
     events:
       - httpApi:
           path: /api/wolt/applyGift
-          method: get
-
-  getUserRuns:
-    handler: ./dist/handlers/runs/getUserRuns.handler
-    events:
-      - httpApi:
-          path: /api/runs
           method: get

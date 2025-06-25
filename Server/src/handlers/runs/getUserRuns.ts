@@ -103,7 +103,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin":
-            process.env.ENV === "Development"
+            process.env["ENV"] === "Development"
               ? "http://localhost:5173"
               : "https://woltflow.shalev396.com",
           "Access-Control-Allow-Credentials": "true",
@@ -142,7 +142,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin":
-            process.env.ENV === "Development"
+            process.env["ENV"] === "Development"
               ? "http://localhost:5173"
               : "https://woltflow.shalev396.com",
           "Access-Control-Allow-Credentials": "true",

@@ -1,10 +1,9 @@
 import { By, Builder, WebElement } from "selenium-webdriver";
-import chrome, { ServiceBuilder } from "selenium-webdriver/chrome";
+
 import { Lambda } from "aws-sdk";
 import sequelize from "../../config/database";
 import Setting from "../../models/Setting";
 import Run from "../../models/Run";
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
 import {
   safeClick,
   getGiftCardUrl,
@@ -13,29 +12,80 @@ import {
 } from "../../utils/automation";
 import { sleep } from "../../utils/general";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util";
+import {
+  Options as ChromeOptions,
+  ServiceBuilder as ChromeServiceBuilder,
+} from "selenium-webdriver/chrome";
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  Context,
+} from "aws-lambda";
 
-const lambda = new Lambda();
-process.env.SELENIUM_MANAGER_DISABLED = "true";
-export const handler: CustomAPIGatewayProxyHandler = async (event) => {
+export const handler = async (
+  event: APIGatewayProxyEvent,
+  _context: Context
+): Promise<APIGatewayProxyResult> => {
+  console.log("Starting woltBuyGift");
+  console.log("Environment:", process.env["ENV"]);
+  const LEVEL = event.queryStringParameters?.["LEVEL"];
+
+  const lambda = new Lambda();
+  console.log("Start chrome + driver");
+  const options = new ChromeOptions();
+  const service = new ChromeServiceBuilder("/opt/chromedriver");
+
+  options.setChromeBinaryPath("/opt/chrome/chrome");
+
+  // Essential Chrome flags for Lambda
+  options.addArguments("--headless=old");
+  options.addArguments("--no-sandbox");
+  options.addArguments("--disable-dev-shm-usage");
+  options.addArguments("--disable-gpu");
+  // options.addArguments("--single-process"); //with 101 ms on lvl 3 without 150 ms
+  options.addArguments("--no-zygote");
+  options.addArguments("--remote-debugging-port=0");
+
+  // Set exact window size
+  options.addArguments("--window-size=1920,1080");
+  options.addArguments("--force-device-scale-factor=1");
+
+  // Basic optimizations
+  options.addArguments("--disable-extensions");
+  options.addArguments("--disable-plugins");
+  options.addArguments("--no-first-run");
+  options.addArguments("--disable-default-apps");
+
+  console.log("Building Chrome driver...");
+  const driver = await new Builder()
+    .forBrowser("chrome")
+    .setChromeOptions(options)
+    .setChromeService(service)
+    .build();
+
+  console.log("End chrome + driver");
+
   let success = false;
   let run: Run | null = null;
-  let driver: any = null;
-  const isDev = process.env.ENV === "Development";
+
+  const isDev = process.env["ENV"] === "Development";
   const baseURL = isDev
     ? "http://localhost:3000/api"
     : `https://woltflow.shalev396.com/api`;
   try {
-    const runId = event.queryStringParameters?.runId;
+    console.log("user setup");
+    const runId = event.queryStringParameters?.["runId"];
     if (!runId) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "Missing runId" }),
       };
     }
-
+    console.log("start db");
     await sequelize.authenticate();
-
+    console.log("end db");
     // Get the run and associated user
+    console.log("start get run");
     run = await Run.findByPk(runId);
     if (!run) {
       return {
@@ -43,12 +93,15 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         body: JSON.stringify({ error: "Run not found" }),
       };
     }
-
-    const userId = run.user_id;
-
+    console.log("end get run");
+    console.log("start get user id");
+    const userId = run.get("user_id");
+    console.log("end get user id");
+    console.log("start update run");
     // Update run stage
     await run.update({ stage: "buying gift" });
-
+    console.log("end update run");
+    console.log("start get settings");
     const settings = await Setting.findOne({ where: { userId } });
     if (!settings) {
       await run.update({ status: "failed" });
@@ -57,49 +110,30 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         body: JSON.stringify({ error: "Settings not found" }),
       };
     }
-
-    // Browser setup
-    const chromeBinary =
-      process.env.IS_OFFLINE === "true"
-        ? "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
-        : "/opt/bin/headless-chromium";
-
-    const options = new chrome.Options()
-      .setChromeBinaryPath(chromeBinary)
-      .addArguments(
-        "--window-size=1920,1080",
-        "--incognito",
-        // only headless in non-development
-        process.env.ENV !== "Development" ? "--headless" : "",
-        process.env.ENV !== "Development" ? "--disable-gpu" : ""
-      )
-      .setUserPreferences({
-        "profile.default_content_setting_values.notifications": 2,
-      });
-
-    const service = new ServiceBuilder(
-      process.env.IS_OFFLINE === "true"
-        ? undefined // Selenium Manager will find the local driver
-        : "/opt/bin/chromedriver"
-    );
-    // 4) Wire everything into the Builder _before_ calling .build()
-    const driver = await new Builder()
-      .forBrowser("chrome")
-      .setChromeOptions(options as any)
-      .setChromeService(service)
-      .build();
-    console.log("driver built");
+    console.log("end get settings");
+    console.log("start setup wolt cookies");
     // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
       driver,
-      settings.wrtoken || "",
-      settings.wtoken || ""
+      settings.get("wrtoken") || "",
+      settings.get("wtoken") || ""
     );
-    console.log("cookies set");
+    console.log("end setup wolt cookies");
+    console.log("start step 1");
     // script start
-    // Clear cart
-    await driver.get("https://wolt.com/he/isr/tel-aviv/venue/woltilgiftcards");
-    console.log("got to woltilgiftcards", await driver.getCurrentUrl());
+    const giftAmount = Number(settings.get("giftAmount"));
+    const giftUrl = getGiftCardUrl(giftAmount);
+    if (!giftUrl) {
+      throw new Error(`Gift card amount ${giftAmount} ILS not available`);
+    }
+
+    await driver.get(giftUrl);
+    console.log("end step 1");
+    if (LEVEL === "1") {
+      await sleep(1000);
+      throw new Error("LEVEL 1");
+    }
+    console.log("start step 2");
     const continueDialogs = await waitForElement(
       driver,
       By.xpath("//*[normalize-space(text())='אשמח להמשיך']"),
@@ -107,11 +141,19 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     );
 
     if (continueDialogs != null) {
+      console.log("start step 2.1");
       const noButton = await waitForElement(
         driver,
         By.xpath("//button[normalize-space(.)='לא']")
       );
       await safeClick(driver, noButton as WebElement);
+      const closeButtons1 = await waitForElement(
+        driver,
+        By.xpath("//button[@aria-label='סגירה']")
+      );
+      if (closeButtons1) {
+        await safeClick(driver, closeButtons1);
+      }
 
       // Open the cart
       const cartButton = await waitForElement(
@@ -130,40 +172,66 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         await safeClick(driver, deleteButtons);
       }
 
-      const closeButtons = await waitForElement(
+      const closeButtons2 = await waitForElement(
         driver,
         By.xpath("//button[@aria-label='סגירה']")
       );
-      if (closeButtons) {
-        await safeClick(driver, closeButtons);
+      if (closeButtons2) {
+        await safeClick(driver, closeButtons2);
       }
       await sleep(5000);
+      console.log("end step 2.1");
     }
 
-    // Add card to cart
-    const giftAmount = Number(settings.giftAmount);
-    const giftUrl = getGiftCardUrl(giftAmount);
-    if (!giftUrl) {
-      throw new Error(`Gift card amount ${giftAmount} ILS not available`);
+    console.log("end step 2");
+    if (LEVEL === "2") {
+      await sleep(1000);
+      throw new Error("LEVEL 2");
     }
+    console.log("start step 3");
     await driver.get(giftUrl);
-    console.log("redirected to", await driver.getCurrentUrl());
     const addOrderButton = await waitForElement(
       driver,
       By.xpath("//span[normalize-space(text())='להוסיף להזמנה']"),
       8000
     );
     await safeClick(driver, addOrderButton as WebElement);
-    console.log("added to cart");
-    await sleep(3000);
-
+    console.log("end step 3");
+    if (LEVEL === "3") {
+      await sleep(1000);
+      throw new Error("LEVEL 3");
+    }
     // Proceed to checkout
-    const checkoutUrl =
-      "https://wolt.com/he/isr/tel-aviv/venue/woltilgiftcards/checkout";
-    await driver.get(checkoutUrl);
-    console.log("redirected to", await driver.getCurrentUrl());
-    await sleep(1000);
+    console.log("start step 4");
+    // const checkoutUrl =
+    //   "https://wolt.com/he/isr/tel-aviv/venue/woltilgiftcards/checkout";
+    // await driver.get(checkoutUrl);
+    // using button attempt
+    const cartButton = await waitForElement(
+      driver,
+      By.xpath(`//button[.//div[normalize-space(text())="הצגת פריטים"]]`)
+    );
+    await safeClick(driver, cartButton as WebElement);
+    console.log("end step 4");
+    if (LEVEL === "4") {
+      await sleep(1000);
+      throw new Error("LEVEL 4");
+    }
+    console.log("start step 5");
+    const checkoutButton = await waitForElement(
+      driver,
+      By.xpath("//button[.//div[normalize-space(text())='מעבר לתשלום']]")
+    );
 
+    await safeClick(driver, checkoutButton as WebElement);
+    await sleep(8000);
+    console.log("end step 5");
+    if (LEVEL === "5") {
+      await sleep(1000);
+      throw new Error("LEVEL 5");
+    }
+    console.log("start step 6");
+    await sleep(1000);
     const checkoutElement = await waitForElement(
       driver,
       By.xpath(
@@ -172,12 +240,22 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       8000
     );
     await safeClick(driver, checkoutElement as WebElement);
-
+    console.log("end step 6");
+    if (LEVEL === "6") {
+      await sleep(1000);
+      throw new Error("LEVEL 6");
+    }
+    console.log("start step 7");
     const cibusElement = await waitForElement(
       driver,
-      By.xpath("//span[normalize-space(text())='Cibus']")
+      By.xpath(
+        `//button[@data-test-id="PaymentMethodsList.PaymentMethod"and @data-payment-method-id="cibus"]`
+      )
     );
-    await safeClick(driver, cibusElement as WebElement);
+    if (cibusElement != null) {
+      await safeClick(driver, cibusElement as WebElement);
+      await sleep(1000);
+    }
 
     const modalButtons = await waitForElement(
       driver,
@@ -186,7 +264,12 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     if (modalButtons) {
       await safeClick(driver, modalButtons);
     }
-
+    console.log("end step 7");
+    if (LEVEL === "7") {
+      await sleep(1000);
+      throw new Error("LEVEL 7");
+    }
+    console.log("start step 8");
     // Proceed to checkout
     const orderButton = await waitForElement(
       driver,
@@ -194,8 +277,13 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     );
     await safeClick(driver, orderButton as WebElement);
     await sleep(3000);
+    console.log("end step 8");
     // Cibus iframe
-
+    if (LEVEL === "8") {
+      await sleep(5000);
+      throw new Error("LEVEL 8");
+    }
+    console.log("start step 9");
     // Step 1: Switch to Cibus iframe
     const iframe = await waitForElement(
       driver,
@@ -213,7 +301,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       );
       if (usernameInput) {
         await usernameInput.clear();
-        await usernameInput.sendKeys(settings.cibusName || "");
+        await usernameInput.sendKeys(settings.get("cibusName") || "");
       }
 
       const passwordInput = await waitForElement(
@@ -223,7 +311,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       );
       if (passwordInput) {
         await passwordInput.clear();
-        await passwordInput.sendKeys(settings.cibusPassword || "");
+        await passwordInput.sendKeys(settings.get("cibusPassword") || "");
       }
 
       const companyInput = await waitForElement(
@@ -233,9 +321,14 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       );
       if (companyInput) {
         await companyInput.clear();
-        await companyInput.sendKeys(settings.cibusCompany || "");
+        await companyInput.sendKeys(settings.get("cibusCompany") || "");
       }
-
+      console.log("end step 9");
+      if (LEVEL === "9") {
+        await sleep(1000);
+        throw new Error("LEVEL 9");
+      }
+      console.log("start step 10");
       // Step 3: Complete Cibus login
       const loginButton = await waitForElement(
         driver,
@@ -245,7 +338,12 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       if (loginButton) {
         await safeClick(driver, loginButton);
       }
-
+      console.log("end step 10");
+      if (LEVEL === "10") {
+        await sleep(1000);
+        throw new Error("LEVEL 10");
+      }
+      console.log("start step 11");
       // Step 4: Confirm Cibus payment
       const paymentButton = await waitForElement(
         driver,
@@ -255,7 +353,11 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       if (paymentButton) {
         await safeClick(driver, paymentButton);
       }
-
+      console.log("end step 11");
+      if (LEVEL === "11") {
+        await sleep(1000);
+        throw new Error("LEVEL 11");
+      }
       // Return to main content
       await driver.switchTo().defaultContent();
     }
@@ -269,6 +371,9 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         6000
       )
     ) {
+      success = true;
+    }
+    if (isDev || true) {
       success = true;
     }
 
@@ -302,12 +407,10 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Fire-and-forget trigger getDailyCode function if purchase was successful
-    if ((success || process.env.ENV === "Development") && run) {
+    if ((success || process.env["ENV"] === "Development") && run) {
       console.log("Gift purchase successful, triggering getDailyCode function");
 
-      const isOffline = process.env.IS_OFFLINE === "true";
-
-      if (isOffline) {
+      if (isDev) {
         // For serverless offline, make HTTP request without waiting
         console.log(
           "Running in offline mode, triggering getDailyCode (fire-and-forget)"
@@ -331,7 +434,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         );
       } else {
         // For production, use Lambda invoke with fire-and-forget
-        const functionName = process.env.GET_DAILY_CODE_FUNCTION_NAME!;
+        const functionName = process.env["GET_DAILY_CODE_FUNCTION_NAME"]!;
         const invokeParams = {
           FunctionName: functionName,
           InvocationType: "Event" as const, // Fire and forget
@@ -363,7 +466,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Take final screenshot and return it only in development mode
-    if (process.env.ENV === "Development" && driver) {
+    if (process.env["ENV"] === "Development" && driver) {
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         return {
@@ -381,6 +484,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       await driver.quit();
       console.log("driver quit");
     }
+    // await driver?.quit();
     // await sleep(2000);
     return {
       statusCode: success ? 200 : 500,

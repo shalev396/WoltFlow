@@ -4,10 +4,10 @@ import { Screenshot as ScreenshotType } from "../typescript/types";
 import Run from "./Run";
 
 class Screenshot extends Model<ScreenshotType> implements ScreenshotType {
-  public id!: number;
-  public run_id!: number;
-  public url!: string;
-  public is_error!: boolean;
+  declare id: number;
+  declare run_id: number;
+  declare url: string;
+  declare is_error: boolean;
 }
 
 Screenshot.init(

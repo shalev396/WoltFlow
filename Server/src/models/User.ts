@@ -3,11 +3,11 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
 
 export default class User extends Model {
-  public userId!: string; // Google sub (unique ID)
-  public refreshToken!: string; // Google refresh token
+  declare userId: string; // Google sub (unique ID)
+  declare refreshToken: string; // Google refresh token
   // Timestamps
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 User.init(

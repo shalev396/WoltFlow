@@ -1,0 +1,29 @@
+# Dependencies
+#node_modules/
+#package-lock.json
+
+# Source code (build happens outside container)
+src/
+
+# Environment
+.env
+
+# Serverless
+.serverless/
+
+# Git
+.git/
+.gitignore
+
+# Build tools (not needed in container)
+webpack.config.js
+tsconfig.json
+#package.json
+
+# Documentation
+README.md
+LICENSE
+
+# Test files
+test.json
+

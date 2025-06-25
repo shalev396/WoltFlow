@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { By, until, WebDriver, WebElement } from "selenium-webdriver";
-import { sleep } from "./general";
+import { PAGE_LOAD_TIME, sleep } from "./general";
 
 export function getGiftCardUrl(amount: number): string | null {
   const giftCards: Array<{ amount: number; url: string }> = [
@@ -200,7 +200,7 @@ export async function setupWoltCookies(
       }
     }
     await driver.get("https://wolt.com");
-    await sleep(10000);
+    await sleep(PAGE_LOAD_TIME);
   } catch (error) {
     console.error("Error setting up Wolt cookies:", error);
     throw error;
@@ -219,7 +219,8 @@ export function safeClick(
     .then(() => element.click())
     .catch((err) => {
       console.log("error", err);
-      return null;
+      throw err;
+      // return null;
     });
 }
 
@@ -237,13 +238,14 @@ export async function waitForElement(
   timeoutMs = 3000
 ): Promise<WebElement | null> {
   try {
+    console.log("waiting for element", timeoutMs, "ms");
     const element = await driver.wait(until.elementLocated(locator), timeoutMs);
     return element;
   } catch (err: any) {
     console.log(`Element not found within ${timeoutMs}ms: ${locator}`);
 
     // Only save screenshot to filesystem in development mode
-    if (process.env.ENV === "Development") {
+    if (process.env["ENV"] === "Development") {
       const base64 = await driver.takeScreenshot();
       const dir = path.resolve(process.cwd(), "screenshots");
       fs.mkdirSync(dir, { recursive: true });
@@ -255,7 +257,9 @@ export async function waitForElement(
     if (
       locator.toString() ===
         "By(xpath, //*[normalize-space(text())='אשמח להמשיך'])" ||
-      locator.toString() === "By(xpath, //button[@aria-label='מחיקה'])"
+      locator.toString() === "By(xpath, //button[@aria-label='מחיקה'])" ||
+      locator.toString() ===
+        `//button[@data-test-id="PaymentMethodsList.PaymentMethod"and @data-payment-method-id="cibus"]`
     ) {
       return null;
     }
@@ -301,7 +305,7 @@ export async function refreshTokens(
     // Decode JWT to get expiration
     try {
       const [, payload] = tokenResponse.access_token.split(".");
-      const decodedPayload = JSON.parse(atob(payload));
+      const decodedPayload = JSON.parse(atob(payload!));
       tokenResponse.decoded_exp = decodedPayload.exp;
     } catch (decodeError) {
       console.error("Failed to decode JWT:", decodeError);
