@@ -42,7 +42,7 @@ export const handler = async (
   options.addArguments("--no-sandbox");
   options.addArguments("--disable-dev-shm-usage");
   options.addArguments("--disable-gpu");
-  // options.addArguments("--single-process"); //with 101 ms on lvl 3 without 150 ms
+  options.addArguments("--single-process"); //with isWorking="true", ms="163767"||without(//) isWorking="true", ms="168950"
   options.addArguments("--no-zygote");
   options.addArguments("--remote-debugging-port=0");
 
@@ -368,7 +368,7 @@ export const handler = async (
         By.xpath(
           "//span[@data-localization-key='order.gift-card-tracking-title']"
         ),
-        6000
+        15000
       )
     ) {
       success = true;

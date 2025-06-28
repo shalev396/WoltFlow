@@ -210,18 +210,43 @@ export async function setupWoltCookies(
 export function safeClick(
   driver: WebDriver,
   element: WebElement,
-  timeout = 3000
+  timeout = 3000,
+  retries = 3
 ) {
-  // wait until clickable, then click
-  return driver
-    .wait(until.elementIsVisible(element), timeout)
-    .then(() => driver.wait(until.elementIsEnabled(element), timeout))
-    .then(() => element.click())
-    .catch((err) => {
-      console.log("error", err);
-      throw err;
-      // return null;
-    });
+  // wait until clickable, then click with retries and JS fallback for overlays
+  return (async () => {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        await driver.wait(until.elementIsVisible(element), timeout);
+        await driver.wait(until.elementIsEnabled(element), timeout);
+        await element.click();
+        return;
+      } catch (err: any) {
+        // If the element is not clickable due to an overlay/backdrop, fall back to JS click
+        const intercepted =
+          err?.name === "ElementClickInterceptedError" ||
+          /intercepted/i.test(err?.message ?? "");
+
+        if (intercepted) {
+          try {
+            await driver.executeScript("arguments[0].click();", element);
+            return;
+          } catch (jsErr) {
+            // Continue to retry below
+          }
+        }
+
+        // If this was the last retry, rethrow
+        if (attempt === retries - 1) {
+          console.log("safeClick failed after retries", err);
+          throw err;
+        }
+
+        // Small back-off before retrying
+        await sleep(500);
+      }
+    }
+  })();
 }
 
 /**
@@ -240,6 +265,8 @@ export async function waitForElement(
   try {
     console.log("waiting for element", timeoutMs, "ms");
     const element = await driver.wait(until.elementLocated(locator), timeoutMs);
+    // Ensure element is visible before returning
+    await driver.wait(until.elementIsVisible(element), timeoutMs);
     return element;
   } catch (err: any) {
     console.log(`Element not found within ${timeoutMs}ms: ${locator}`);
