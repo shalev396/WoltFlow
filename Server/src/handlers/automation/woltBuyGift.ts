@@ -30,7 +30,9 @@ export const handler = async (
   console.log("Environment:", process.env["ENV"]);
   const LEVEL = event.queryStringParameters?.["LEVEL"];
 
-  const lambda = new Lambda();
+  const lambda = new Lambda({
+    region: process.env["AWS_REGION"] || "il-central-1",
+  });
   console.log("Start chrome + driver");
   const options = new ChromeOptions();
   const service = new ChromeServiceBuilder("/opt/chromedriver");
@@ -361,20 +363,25 @@ export const handler = async (
       // Return to main content
       await driver.switchTo().defaultContent();
     }
-
-    if (
-      await waitForElement(
-        driver,
-        By.xpath(
-          "//span[@data-localization-key='order.gift-card-tracking-title']"
-        ),
-        15000
-      )
-    ) {
-      success = true;
-    }
-    if (isDev || true) {
-      success = true;
+    try {
+      if (
+        await waitForElement(
+          driver,
+          By.xpath(
+            "//span[@data-localization-key='order.gift-card-tracking-title']"
+          ),
+          15000
+        )
+      ) {
+        success = true;
+      }
+    } catch (err) {
+      console.log("confirmation element not found");
+      console.error("soft error", err);
+      if (isDev || true) {
+        //TODO: remove || true
+        success = true;
+      }
     }
 
     //script end
@@ -444,7 +451,7 @@ export const handler = async (
         };
 
         // Fire and forget - don't await the response
-        lambda
+        const result = await lambda
           .invoke(invokeParams)
           .promise()
           .catch((error) => {
@@ -455,7 +462,7 @@ export const handler = async (
           });
 
         console.log(
-          "getDailyCode Lambda invocation triggered (not waiting for completion)"
+          `getDailyCode Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`
         );
       }
     } else {

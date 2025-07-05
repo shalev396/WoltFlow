@@ -10,6 +10,7 @@
     "test:woltBuyGift": "serverless invoke -f woltBuyGift --path woltBuyGift.json"
   },
   "dependencies": {
+    "@aws-sdk/client-lambda": "^3.840.0",
     "@googleapis/gmail": "^13.0.1",
     "@googleapis/oauth2": "^2.0.1",
     "aws-lambda": "^1.0.7",

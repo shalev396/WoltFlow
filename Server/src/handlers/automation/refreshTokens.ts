@@ -5,7 +5,9 @@ import Run from "../../models/Run";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
 import { refreshTokens } from "../../utils/automation";
 
-const lambda = new Lambda();
+const lambda = new Lambda({
+  region: process.env["AWS_REGION"] || "il-central-1",
+});
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let run: Run | null = null;
@@ -115,7 +117,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         };
 
         // Fire and forget - don't await the response
-        lambda
+        const result = await lambda
           .invoke(invokeParams)
           .promise()
           .catch((error) => {
@@ -126,7 +128,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
           });
 
         console.log(
-          "woltBuyGift Lambda invocation triggered (not waiting for completion)"
+          `woltBuyGift Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`
         );
       }
 

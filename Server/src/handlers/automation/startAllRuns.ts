@@ -5,7 +5,9 @@ import Run from "../../models/Run";
 import Setting from "../../models/Setting";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
 
-const lambda = new Lambda();
+const lambda = new Lambda({
+  region: process.env["AWS_REGION"] || "il-central-1",
+});
 
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
@@ -64,7 +66,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
         );
 
         // Fire-and-forget trigger refreshTokens function with runId
-
+        console.log("isDev", isDev);
         if (isDev) {
           // For serverless offline, make HTTP request without waiting
           console.log(
@@ -99,17 +101,28 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
             }),
           };
 
-          lambda
-            .invoke(invokeParams)
-            .promise()
-            .catch((error) => {
-              console.error(
-                `Lambda invoke to refreshTokens failed for run ${newRun.get(
-                  "id"
-                )}:`,
-                error
-              );
-            });
+          console.log(
+            `Attempting to invoke Lambda function: ${functionName} with runId: ${newRun.get(
+              "id"
+            )}`
+          );
+
+          try {
+            // Synchronous invoke to ensure we see the result
+            const result = await lambda.invoke(invokeParams).promise();
+            console.log(
+              `Successfully invoked refreshTokens Lambda for run ${newRun.get(
+                "id"
+              )}. Status: ${result.StatusCode}`
+            );
+          } catch (error) {
+            console.error(
+              `Lambda invoke to refreshTokens failed for run ${newRun.get(
+                "id"
+              )}:`,
+              error
+            );
+          }
         }
 
         runsStarted.push({

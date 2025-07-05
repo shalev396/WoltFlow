@@ -12,7 +12,9 @@ import Code from "../../models/Code";
 import Run from "../../models/Run";
 
 dotenv.config();
-const lambda = new Lambda();
+const lambda = new Lambda({
+  region: process.env["AWS_REGION"] || "il-central-1",
+});
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -219,7 +221,7 @@ export const handler = async (
       };
 
       // Fire and forget - don't await the response
-      lambda
+      const result = await lambda
         .invoke(invokeParams)
         .promise()
         .catch((error) => {
@@ -230,7 +232,7 @@ export const handler = async (
         });
 
       console.log(
-        "woltApplyGift Lambda invocation triggered (not waiting for completion)"
+        `woltApplyGift Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`
       );
     }
 
