@@ -8,46 +8,74 @@ A serverless Node.js backend for WoltFlow using AWS Lambda, Sequelize, PostgreSQ
 Server/
 ├── src/
 │   ├── config/
-│   │   └── database.ts
+│   │   └── database.ts              # Sequelize/Postgres setup
 │   ├── handlers/
-│   │   ├── auth/
+│   │   ├── auth/                         # OAuth and session endpoints
 │   │   │   ├── oauthStart.ts
 │   │   │   ├── oauthCallback.ts
-│   │   │   └── authMeHandler.ts
-│   │   ├── gmail/
+│   │   │   ├── authMeHandler.ts
+│   │   │   └── logout.ts
+│   │   ├── automation/               # Core automation Lambdas
+│   │   │   ├── refreshTokens.ts
+│   │   │   ├── startAllRuns.ts
+│   │   │   ├── woltApplyGift.ts
+│   │   │   └── woltBuyGift.ts
+│   │   ├── gmail/                    # Email code retrieval
 │   │   │   └── getDailyCode.ts
-│   │   └── setting/
+│   │   ├── runs/                     # User runs API
+│   │   │   └── getUserRuns.ts
+│   │   └── setting/                  # User settings API
 │   │       ├── getusersettings.ts
 │   │       └── setusersettings.ts
 │   ├── middlewares/
-│   │   └── auth.ts
-│   ├── models/
+│   │   └── auth.ts                   # JWT cookie authentication
+│   ├── models/                       # Sequelize models
 │   │   ├── User.ts
 │   │   ├── Setting.ts
 │   │   ├── Code.ts
 │   │   ├── Run.ts
 │   │   └── Screenshot.ts
-│   └── typescript/
+│   └── typescript/                   # TS interfaces and types
 │       ├── interfaces/
 │       └── types/
-├── .env
-├── package.json
-├── serverless.yml
-└── tsconfig.json
+├── .env                             # Env vars placeholder
+├── package.json                     # Scripts: build, dev, deploy, 
+├── serverless.yml                   # Serverless Framework config
+└── tsconfig.json                    # TypeScript config
 ```
 
 ## Environment Variables
 
-Create a `.env` file with the following variables:
+Create a `.env` file with:
 
 ```
-DATABASE_URL=your_database_url
-DATABASE_URL_DEV=your_development_database_url
-ENV=Development
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-OAUTH_REDIRECT_URI=your_oauth_redirect_uri
-JWT_SECRET=your_jwt_secret
+AWS_ACCESS_CONNECT_KEY=""
+AWS_ACCESS_SECRET=""
+S3_BUCKET_NAME=""
+CLOUDFRONT_DISTRIBUTION_ID=""
+
+SLS_ACCESS_KEY=""
+
+# ENV="Development" # defaults to prod
+
+DATABASE_URL=""
+DATABASE_URL_DEV=""
+JWT_SECRET=""
+
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+OAUTH_REDIRECT_URI_DEV=""
+OAUTH_REDIRECT_URI=""
+
+REFRESH_TOKENS_FUNCTION_NAME=""
+WOLT_BUY_GIFT_FUNCTION_NAME=""
+GET_DAILY_CODE_FUNCTION_NAME=""
+WOLT_APPLY_GIFT_FUNCTION_NAME=""
+
+AWS_REGIONS=""
+ASSETS_BUCKET_NAME=""
+
+DEVELOPMENT_DATE="" # for testing 
 ```
 
 ## Setup
@@ -58,15 +86,13 @@ JWT_SECRET=your_jwt_secret
 npm install
 ```
 
-2. Create `.env` file with required variables.
-
-3. Run locally:
+2. Run locally (Serverless Offline):
 
 ```bash
-npm start
+npm run dev
 ```
 
-4. Deploy:
+3. Deploy to AWS:
 
 ```bash
 npm run deploy
@@ -80,54 +106,41 @@ The application uses Google OAuth2 for authentication. All authenticated endpoin
 
 #### GET `/api/oauth2/start`
 
-Start the OAuth2 flow by redirecting to Google's consent screen.
-
-Response: Redirects to Google OAuth consent screen
+Initiates OAuth2 flow; redirects to Google's consent screen.
 
 #### GET `/api/oauth2/callback`
 
-OAuth2 callback endpoint that handles the response from Google.
-
-Response: Sets session cookie and redirects to dashboard
+Handles OAuth2 callback; sets session cookie; redirects to frontend/dashboard.
 
 #### GET `/api/auth/me`
 
-Get the current authenticated user's information.
+Returns authenticated user info.
 
 Response (200):
 
 ```json
-{
-  "email": "user@example.com",
-  "name": "User Name",
-  "picture": "https://..."
-}
+{ "email": "user@example.com", "name": "User Name", "picture": "https://..." }
 ```
+
+#### POST `/api/auth/logout`
+
+Clears session cookie.
+
+Response (200): `{ "message": "Logged out successfully" }`
 
 ### Gmail Integration
 
-#### GET `/api/gmail/daily-code`
+#### GET `/api/gmail/daily-code?runId=<number>`
 
-Get the Wolt gift card code from the user's Gmail.
+Triggers code extraction for a specific run.
 
-Query Parameters:
-
-- `uid`: User ID (required)
-- `date`: Target date (optional, Development only)
-
-Response (200):
-
-```json
-{
-  "success": true
-}
-```
+Response (200): `{ "success": true }`
 
 ### User Settings
 
 #### GET `/api/setting`
 
-Get user settings. Requires authentication.
+Retrieves current user's settings.
 
 Response (200):
 
@@ -147,10 +160,9 @@ Response (200):
 
 #### POST `/api/setting`
 
-Update user settings. Requires authentication.
+Updates settings (body fields optional).
 
 Request Body:
-
 ```json
 {
   "isNotification": true,
@@ -162,17 +174,13 @@ Request Body:
   "giftAmount": 50.0
 }
 ```
+### Runs
 
-Response (200):
+#### GET `/api/runs` (requires auth cookie)
 
-```json
-{
-  "settingsId": 1,
-  "userId": "google-user-id",
-  "isNotification": true
-  // ... updated fields
-}
-```
+Query params: `page`, `limit`, `status`, `stage`, `minAmount`, `maxAmount`, `isNotify`.
+
+Response (200): runs list with pagination and optional screenshot data.
 
 ## Database Models
 
@@ -261,7 +269,7 @@ This project uses a dual-build system with TypeScript compilation and Webpack bu
 ### 1. TypeScript Compilation
 
 ```bash
-npm run build:ts
+npm run build      # runs tsc
 ```
 
 Compiles TypeScript files to JavaScript in the `dist/` directory with type definitions.
@@ -306,8 +314,8 @@ The build system supports both deployment targets:
 ## Development
 
 ```bash
-npm run start        # Start serverless offline
-npm run deploy       # Deploy to AWS
+npm run dev        # Start serverless offline
+npm run deploy     # Deploy to AWS
 ```
 
 ## Handler Structure

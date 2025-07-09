@@ -1,18 +1,14 @@
 import jwt from "jsonwebtoken";
 import { CustomAPIGatewayProxyHandler } from "../typescript/types/aws";
-import { IAuthenticatedEvent } from "../typescript/interfaces/auth";
-import {
-  ICustomAPIGatewayProxyEvent,
-  ICustomContext,
-} from "../typescript/interfaces/aws";
-import { APIGatewayProxyResult } from "aws-lambda";
+import { ICustomAPIGatewayProxyEvent } from "../typescript/interfaces/aws";
+import { APIGatewayProxyResult, Context } from "aws-lambda";
 console.log("authMiddleware");
 export const authMiddleware = (
   handler: CustomAPIGatewayProxyHandler
 ): CustomAPIGatewayProxyHandler => {
   return async (
     event: ICustomAPIGatewayProxyEvent,
-    context: ICustomContext,
+    context: Context,
     callback: (error?: Error | null | string, result?: any) => void
   ): Promise<APIGatewayProxyResult> => {
     try {
@@ -37,9 +33,8 @@ export const authMiddleware = (
 
       // Add userId to both event and context
       event.userId = payload.userId;
-      context.userId = payload.userId;
 
-      return await handler(event as IAuthenticatedEvent, context, callback);
+      return await handler(event, context, callback);
     } catch (err: any) {
       return {
         statusCode: 401,

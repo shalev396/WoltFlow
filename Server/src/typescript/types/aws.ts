@@ -3,7 +3,7 @@ import {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { ICustomAPIGatewayProxyEvent, ICustomContext } from "../interfaces/aws";
+import { ICustomAPIGatewayProxyEvent } from "../interfaces/aws";
 
 export interface CustomAPIGatewayProxyEvent extends APIGatewayProxyEvent {
   userId?: string;
@@ -15,7 +15,7 @@ export interface CustomContext extends Context {
 
 export type CustomAPIGatewayProxyHandler = (
   event: ICustomAPIGatewayProxyEvent,
-  context: ICustomContext,
+  context: Context,
   callback: (
     error?: Error | null | string,
     result?: APIGatewayProxyResult

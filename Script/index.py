@@ -5,22 +5,15 @@ import json
 import argparse
 from datetime import datetime
 
-# Third-party imports
-from dotenv import load_dotenv
-from sqlalchemy.exc import SQLAlchemyError
+
 
 # Local application imports
 from wolt_login import login_to_wolt
 from utils.chrome_util import cleanup_temp_profiles, launch_fresh_chrome, connect_to_chrome
 from utils.system_util import setup_logging
-from utils.db_util import create_database_connection, update_run_status, create_screenshot
-from models.base import Base
-from models.user import User
-from models.run import Run
-from models.screenshot import Screenshot
 
-# Load environment configuration
-load_dotenv()
+
+
 
 # Configure application logging
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -41,7 +34,7 @@ def load_user_data():
         logger.error(f"Error parsing db.json: {str(e)}")
         return []
 
-def process_user(user_data, session):
+def process_user(user_data):
     """Process a single user's Wolt gift card purchase workflow."""
     logger.info(f"Starting process for user Email: {user_data['gmail_email']}")
     chrome_process = None
@@ -50,22 +43,11 @@ def process_user(user_data, session):
     run = None
     
     try:
-        # Create a new run record
-        run = Run(
-            user_id=user_data['id'],
-            amount=0.0,  # Initialize with 0
-            status='in progress'
-        )
-        session.add(run)
-        session.commit()
-        logger.info(f"Created new run record: {run.id}")
-        
         # Initialize Chrome browser
         chrome_process = launch_fresh_chrome(debugging_port)
         if not chrome_process:
             error_msg = "Failed to launch Chrome browser"
             logger.error(error_msg)
-            update_run_status(session, run, 'failed', error_msg, logger)
             return False
             
         # Connect to Chrome instance
@@ -74,7 +56,6 @@ def process_user(user_data, session):
         if not driver:
             error_msg = "Failed to connect to Chrome browser"
             logger.error(error_msg)
-            update_run_status(session, run, 'failed', error_msg, logger)
             return False
             
         # Execute Wolt login and purchase workflow
@@ -88,27 +69,12 @@ def process_user(user_data, session):
             user_data['cibus_password'],
             user_data['cibus_company'],
             user_data['gift_amount'],
-            run.id,
-            session
+
         )
-        
-        # Update run status and amount
-        status = 'success' if success else 'failed'
-        update_run_status(session, run, status, logger=logger)
-        
-        if success:
-            run.amount = float(user_data['gift_amount'])
-            session.commit()
-            logger.info(f"Workflow completed successfully for user {user_data['gmail_email']}")
-        else:
-            logger.error(f"Workflow failed for user {user_data['gmail_email']}")
-            
         return success
         
     except Exception as e:
         logger.exception(f"Error processing user {user_data['gmail_email']}: {str(e)}")
-        if run:
-            update_run_status(session, run, 'failed', str(e), logger)
         return False
         
     finally:
@@ -130,23 +96,6 @@ def process_user(user_data, session):
         # Final cleanup of temporary files
         cleanup_temp_profiles()
 
-def ensure_user_exists(session, user_data):
-    """Ensure user exists in database, create if not."""
-    try:
-        user = session.query(User).filter_by(id=user_data['id']).first()
-        if not user:
-            user = User(
-                id=user_data['id'],
-                email=user_data['gmail_email'],
-                password='hashed_password'  # You should implement proper password hashing
-            )
-            session.add(user)
-            session.commit()
-            logger.info(f"Created new user record for {user_data['gmail_email']}")
-        return True
-    except SQLAlchemyError as e:
-        logger.error(f"Database error while ensuring user exists: {str(e)}")
-        return False
 
 def main():
     """Main entry point for the WoltFlow batch processor."""
@@ -157,11 +106,7 @@ def main():
     
     logger.info("Starting WoltFlow batch processor")
     start_time = datetime.now()
-    
     try:
-        # Initialize database connection
-        session = create_database_connection(None, logger)
-        
         # Load user data from JSON
         users_data = load_user_data()
         if not users_data:
@@ -184,12 +129,7 @@ def main():
         for index, user_data in enumerate(users_data):
             logger.info(f"Processing user {index+1} of {len(users_data)} - Email: {user_data['gmail_email']}")
             
-            # Ensure user exists in database
-            if not ensure_user_exists(session, user_data):
-                logger.error(f"Failed to ensure user exists in database: {user_data['gmail_email']}")
-                continue
-                
-            result = process_user(user_data, session)
+            result = process_user(user_data)
             if result:
                 successful_logins += 1
             else:

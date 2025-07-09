@@ -1,9 +1,8 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/database";
-import { Screenshot as ScreenshotType } from "../typescript/types";
 import Run from "./Run";
 
-class Screenshot extends Model<ScreenshotType> implements ScreenshotType {
+class Screenshot extends Model {
   declare id: number;
   declare run_id: number;
   declare url: string;
