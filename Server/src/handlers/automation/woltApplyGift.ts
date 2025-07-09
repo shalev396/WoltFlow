@@ -1,4 +1,4 @@
-import { By, Builder, WebDriver } from "selenium-webdriver";
+import { By, Builder } from "selenium-webdriver";
 
 import sequelize from "../../config/database";
 import Setting from "../../models/Setting";
@@ -16,16 +16,13 @@ import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome";
-import { mkdtempSync } from "fs";
-import { tmpdir } from "os";
-import { join } from "path";
+
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
   let run: Run | null = null;
   let driver: any = null;
-
+  const isDev = process.env["ENV"] === "Development";
   try {
-    const isDev = process.env["ENV"] === "Development";
     const runId = event.queryStringParameters?.["runId"];
     if (!runId) {
       return {
@@ -75,45 +72,39 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Browser setup
+    console.log("Start chrome + driver");
     const options = new ChromeOptions();
-    let service: ChromeServiceBuilder | undefined;
-    if (!isDev) {
-      service = new ChromeServiceBuilder("/opt/chromedriver");
-    } else {
-      service = new ChromeServiceBuilder();
-    }
-    options
-      .addArguments(
-        "--window-size=1920,1080",
-        "--incognito",
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-background-timer-throttling",
-        "--disable-backgrounding-occluded-windows",
-        "--disable-renderer-backgrounding",
-        "--single-process",
-        "--disable-dev-tools",
-        "--no-zygote",
-        `--user-data-dir=${mkdtempSync(join(tmpdir(), "chrome-"))}`,
-        `--data-path=${mkdtempSync(join(tmpdir(), "chrome-"))}`,
-        `--disk-cache-dir=${mkdtempSync(join(tmpdir(), "chrome-"))}`,
-        "--remote-debugging-port=9222",
-        // only headless in non-development
-        process.env["ENV"] === "Development" ? "" : "--headless=new",
-        // process.env["ENV"] !== "Development" ? "--headless" : "",
-        process.env["ENV"] !== "Development" ? "--disable-gpu" : ""
-      )
-      .setUserPreferences({
-        "profile.default_content_setting_values.notifications": 2,
-      });
+    const service = new ChromeServiceBuilder("/opt/chromedriver");
 
-    // 4) Wire everything into the Builder _before_ calling .build()
-    const driver: WebDriver = await new Builder()
+    options.setChromeBinaryPath("/opt/chrome/chrome");
+
+    // Essential Chrome flags for Lambda
+    options.addArguments("--headless=old");
+    options.addArguments("--no-sandbox");
+    options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--disable-gpu");
+    options.addArguments("--single-process"); //with isWorking="true", ms="163767"||without(//) isWorking="true", ms="168950"
+    options.addArguments("--no-zygote");
+    options.addArguments("--remote-debugging-port=0");
+
+    // Set exact window size
+    options.addArguments("--window-size=1920,1080");
+    options.addArguments("--force-device-scale-factor=1");
+
+    // Basic optimizations
+    options.addArguments("--disable-extensions");
+    options.addArguments("--disable-plugins");
+    options.addArguments("--no-first-run");
+    options.addArguments("--disable-default-apps");
+
+    console.log("Building Chrome driver...");
+    const driver = await new Builder()
       .forBrowser("chrome")
-      .setChromeOptions(options as any)
+      .setChromeOptions(options)
       .setChromeService(service)
       .build();
-    console.log("driver built");
+
+    console.log("End chrome + driver");
 
     // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
@@ -210,7 +201,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Take final screenshot and return it only in development mode
-    if (process.env["ENV"] === "Development" && driver) {
+    if (isDev && driver) {
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         return {

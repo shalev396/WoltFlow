@@ -6,6 +6,7 @@ service: woltflow-server
 
 provider:
   name: aws
+  # versionFunctions: false
   stage: ${opt:stage, 'dev'}
   runtime: nodejs20.x
   timeout: 30
@@ -93,6 +94,7 @@ build:
   esbuild: false # Disable built-in ESBuild support
 plugins:
   - serverless-offline
+  - serverless-prune-plugin
 
 custom:
   serverless-offline:
@@ -104,6 +106,10 @@ custom:
     disableCookieValidation: true # ← Disables strictHeader cookie validation in Hapi
     enforceSecureCookies: false # ← Ensures Hapi won't require HTTPS for cookies
     printOutput: true
+  prune:
+    automatic: true # run after each deploy
+    number: 5 # keep the 5 most recent versions
+    includeLayers: true
   dotenv:
     path: ./.env
 
@@ -204,8 +210,8 @@ functions:
       command: ["dist/handlers/automation/woltApplyGift.handler"]
     memorySize: 1536
     ephemeralStorageSize: 1536
-    timeout: 60
-    events:
-      - httpApi:
-          path: /api/wolt/applyGift
-          method: get
+    timeout: 120
+    # events:
+    #   - httpApi:
+    #       path: /api/wolt/applyGift
+    #       method: get
