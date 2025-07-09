@@ -1,123 +1,91 @@
 # WoltFlow
 
-An automated solution for Wolt.com login automation using Selenium, Chrome, and PostgreSQL.
+WoltFlow is a full-stack solution for automating Wolt gift card purchases and managing user workflows. It comprises:
 
-## Overview
+- **Client**: React + TypeScript frontend with Vite, Tailwind CSS, and shadcn/ui components.
+- **Server**: Serverless Node.js backend powered by AWS Lambda, PostgreSQL, and Google OAuth2.
+- **Script**: Python-based local runner for on-prem workflows and scheduled tasks.
 
-WoltFlow automates the process of logging into Wolt.com using Google authentication with two-factor authentication (2FA) support. The script uses Chrome's remote debugging protocol to launch a browser that Selenium can control, providing a reliable experience than traditional WebDriver approaches. User credentials are stored in a PostgreSQL database for multi-user support.
+## Tech Stack
 
-## Features
+- Frontend: React, TypeScript, Vite, Redux Toolkit, React Query, Axios, Shadcn/UI, Tailwind CSS
+- Backend: Node.js, TypeScript, Serverless Framework, AWS Lambda, AWS S3, CloudFront, PostgreSQL (Sequelize), Google OAuth2
+- Local Runner: Python 3, Selenium, Chrome, JSON local DB
 
-- Launches a fresh Chrome instance with a temporary profile for clean sessions
-- Handles the complete Wolt login flow via Google authentication
-- Supports two-factor authentication (TOTP)
-- Human-like interaction (random delays, natural typing)
-- Multi-language support (handles both English and Hebrew UI elements)
-- PostgreSQL database integration for user credential storage
-- AWS Lambda deployment with Serverless Framework
-- Docker containerization for consistent execution environment
+## Repository Structure
 
-## Requirements
+```
+.
+├── Client/    # Frontend application (React + TS)
+├── Server/    # Serverless backend (Node.js + AWS Lambda)
+└── Script/    # Local Python automation runner
+```
 
-- Python 3.9+
-- Google Chrome browser installed
-- PostgreSQL database
-- AWS account (for Lambda deployment)
-- Python packages (see requirements.txt)
+## Client (Frontend)
 
-## Setup
+The Client is a Vite-powered React application with TypeScript. It uses Redux Toolkit for authentication state, React Query for data fetching, and shadcn/ui for reusable UI components.
 
-1. Clone the repository:
+- **Key Features**:
+  - Google OAuth2 authentication
+  - Protected routes and loading states
+  - Dashboard, Runs, and Settings pages
+  - Theme toggling (dark/light)
+  - Responsive design
 
-   ```
+Link to detailed docs: [Client README](Client/README.md)
+
+## Server (Backend)
+
+The Server hosts AWS Lambda functions orchestrated by the Serverless Framework. It provides REST API endpoints for authentication, run management, settings, and automation tasks.
+
+- **Key Features**:
+  - OAuth2 flow (start & callback) and session cookies
+  - JWT cookie-based authentication middleware
+  - Sequelize models: User, Setting, Run, Code, Screenshot
+  - Automation Lambdas: refreshTokens, woltBuyGift, woltApplyGift, startAllRuns
+  - Gmail integration for daily code retrieval
+
+Link to detailed docs: [Server README](Server/README.md)
+
+## Script (Local Runner)
+
+The Script folder contains a Python-based runner for local execution, suitable for development or on-premise automation. It uses Selenium and stealth utilities to automate Wolt interactions.
+
+- **Key Features**:
+  - JSON-based user configuration
+  - Selenium-based Chrome automation with stealth utilities
+  - Screenshots and logging
+  - Windows Task Scheduler integration via provided XML
+
+Link to detailed docs: [Script README](Script/README.md)
+
+## Getting Started
+
+1. **Clone the repository**:
+   ```bash
    git clone https://github.com/yourusername/WoltFlow.git
-   cd WoltFlow
+   ```
+2. **Client Setup**:
+   ```bash
+   cd Client
+   npm install
+   npm run dev
+   ```
+3. **Server Setup**:
+   ```bash
+   cd Server
+   npm install
+   npm run dev
+   ```
+4. **Script Setup**:
+   ```bash
+   cd Script
+   python -m venv .env
+   .env\Scripts\Activate.ps1   # PowerShell
+   pip install -r requirements.txt
+   python index.py --help
    ```
 
-2. Install dependencies:
+## Contributing
 
-   ```
-   pip install -r Server/WoltFlow/requirements.txt
-   ```
-
-3. Set up the PostgreSQL database:
-
-   ```
-   cd Server/WoltFlow
-   python test_local.py
-   ```
-
-   This will:
-
-   - Create a `.env` file (edit this with your actual configuration)
-   - Test your database connection
-   - Verify the required schema exists
-
-4. Test the Wolt login process:
-
-   ```
-   # The test_local.py script will prompt to test Wolt login if the database test succeeds
-   python test_local.py
-   ```
-
-## Deployment to AWS
-
-### Docker-based AWS Lambda Deployment (Recommended)
-
-The recommended approach for deploying to AWS Lambda uses Docker to package Chrome and all dependencies:
-
-```bash
-# Windows PowerShell
-cd Server/WoltFlow
-./deploy.ps1
-
-# Linux/macOS
-cd Server/WoltFlow
-chmod +x deploy.sh
-./deploy.sh
-```
-
-This deployment creates two Lambda functions:
-
-1. `initializeAutomation`: Scheduled to run daily at 13:00 Israel time
-2. `processUser`: Processes a specific user from the database
-
-See the [Deployment Documentation](Server/WoltFlow/docs/deployment.md) for detailed instructions.
-
-### Manual Deployment
-
-Alternatively, you can use the Serverless Framework directly:
-
-```bash
-cd Server/WoltFlow
-serverless deploy
-```
-
-## Database Schema
-
-The PostgreSQL database stores user credentials with the following fields:
-
-- `id` - Primary key
-- `gmail_email` - Google account email
-- `gmail_password` - Google account password
-- `totp_secret` - TOTP secret key for two-factor authentication
-- `last_login` - Timestamp of last login attempt
-- `login_status` - Status of last login attempt
-- `cibus_email` - Cibus account email
-- `cibus_password` - Cibus account password
-- `cibus_company` - Cibus company name
-- `gift_amount` - Gift amount value
-- `email` - General purpose email
-- `password` - General purpose password
-
-## Security Considerations
-
-- Store credentials securely in a properly configured PostgreSQL database
-- Ensure your DATABASE_URL uses SSL/TLS for secure connections
-- Configure proper AWS security groups to limit database access
-- Use AWS IAM roles to control access to the Lambda functions
-- Never commit your `.env` file to version control (add it to .gitignore)
-
-## License
-
-[MIT License](LICENSE)
+Please follow contribution guidelines in each subproject. Fork, branch, and submit pull requests for review.

@@ -19,7 +19,7 @@ provider:
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
     DATABASE_URL_DEV: ${env:DATABASE_URL_DEV}
-    ENV: Production
+    ENV: ${env:ENV}
     GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
     GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
     OAUTH_REDIRECT_URI: ${env:OAUTH_REDIRECT_URI}
