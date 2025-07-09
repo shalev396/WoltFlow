@@ -32,8 +32,8 @@ import {
 
 // Define available gift card amounts
 const GIFT_CARD_AMOUNTS = [
-  20, 25, 30, 35, 40, 45, 50, 60, 70, 75, 80, 85, 90, 100, 150, 200, 250, 300,
-  350, 400, 450, 500, 550, 600, 650,
+  20, 25, 30, 35, 40, 45, 50, 60, 70, 75, 80, 85, 90, 100, 150, 180, 200, 250,
+  300, 350, 400, 450, 500, 550, 600, 650, 700, 800, 850, 900, 1000, 1500,
 ].sort((a, b) => a - b);
 
 const formSchema = z.object({
@@ -67,17 +67,18 @@ export function SettingsTab() {
 
   useEffect(() => {
     if (settings) {
-      form.reset({
-        isNotification: settings.isNotification,
-        wrtoken: settings.wrtoken || "",
-        wtoken: settings.wtoken || "",
-        cibusName: settings.cibusName || "",
-        cibusPassword: settings.cibusPassword || "",
-        cibusCompany: settings.cibusCompany || "",
-        giftAmount: settings.giftAmount
-          ? parseInt(settings.giftAmount.toString(), 10)
-          : 50,
-      });
+      const parsedAmount = settings.giftAmount
+        ? Math.round(parseFloat(settings.giftAmount))
+        : 50;
+
+      // Use setValue instead of reset to ensure proper form updates
+      form.setValue("isNotification", settings.isNotification);
+      form.setValue("wrtoken", settings.wrtoken || "");
+      form.setValue("wtoken", settings.wtoken || "");
+      form.setValue("cibusName", settings.cibusName || "");
+      form.setValue("cibusPassword", settings.cibusPassword || "");
+      form.setValue("cibusCompany", settings.cibusCompany || "");
+      form.setValue("giftAmount", parsedAmount);
     }
   }, [settings, form]);
 
@@ -87,7 +88,13 @@ export function SettingsTab() {
       return;
     }
 
-    updateSettingsMutation.mutate(values);
+    // Convert giftAmount to string format for server
+    const serverValues = {
+      ...values,
+      giftAmount: values.giftAmount.toFixed(2), // Convert to "35.00" format
+    };
+
+    updateSettingsMutation.mutate(serverValues);
   }
 
   const isLoading = isLoadingSettings || updateSettingsMutation.isPending;
@@ -176,7 +183,7 @@ export function SettingsTab() {
           <h3 className="text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Cibus Credentials
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <FormField
               control={form.control}
               name="cibusName"
@@ -209,7 +216,7 @@ export function SettingsTab() {
               control={form.control}
               name="cibusCompany"
               render={({ field }) => (
-                <FormItem className="md:col-span-2 lg:col-span-1">
+                <FormItem>
                   <FormLabel>Company</FormLabel>
                   <FormControl>
                     <Input {...field} className="bg-card" />
@@ -218,39 +225,43 @@ export function SettingsTab() {
                 </FormItem>
               )}
             />
-          </div>
-        </div>
 
-        <FormField
-          control={form.control}
-          name="giftAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Gift Card Amount (₪)</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value.toString()}
-              >
-                <FormControl>
-                  <SelectTrigger className="bg-card">
-                    <SelectValue placeholder="Select amount" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {GIFT_CARD_AMOUNTS.map((amount) => (
-                    <SelectItem key={amount} value={amount.toString()}>
-                      ₪{amount}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Choose from available Wolt gift card amounts
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="giftAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gift Card Amount (₪)</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={(value) => {
+                        if (value && value !== "") {
+                          field.onChange(Number(value));
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="bg-card w-full">
+                        <SelectValue placeholder="Select amount" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GIFT_CARD_AMOUNTS.map((amount) => (
+                          <SelectItem key={amount} value={amount.toString()}>
+                            ₪{amount}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormDescription className="text-sm text-muted-foreground">
+            Choose from available Wolt gift card amounts
+          </FormDescription>
+        </div>
 
         <Button
           type="submit"

@@ -31,7 +31,7 @@ export interface UserSettings {
   cibusName: string | null;
   cibusPassword: string | null;
   cibusCompany: string | null;
-  giftAmount: number | null;
+  giftAmount: string | null; // Server returns as string "35.00"
   createdAt: Date;
   updatedAt: Date;
 }

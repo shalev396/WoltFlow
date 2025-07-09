@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
   ChevronLeft,
@@ -34,32 +33,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 import { type RunWithScreenshots, type RunFilters } from "@/services/runs";
 import { useRunsQuery } from "@/queries/runs";
+import { RunDetailsDialog } from "@/components/RunDetailsDialog";
 
 export default function Runs() {
-  const [searchParams, setSearchParams] = useSearchParams();
-
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Filter state
   const [filters, setFilters] = useState<RunFilters>({});
-
-  // Dialog state
-  const [selectedRun, setSelectedRun] = useState<RunWithScreenshots | null>(
-    null
-  );
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Countdown state
   const [timeUntilNextRun, setTimeUntilNextRun] = useState<string>("");
@@ -77,20 +62,6 @@ export default function Runs() {
   const runs = runsData?.runs || [];
   const totalPages = runsData?.pagination.totalPages || 1;
   const totalCount = runsData?.pagination.totalCount || 0;
-
-  // Check for run ID in URL params
-  useEffect(() => {
-    const runId = searchParams.get("run");
-    if (runId && runs.length > 0) {
-      const run = runs.find(
-        (r: RunWithScreenshots) => r.id.toString() === runId
-      );
-      if (run) {
-        setSelectedRun(run);
-        setIsDialogOpen(true);
-      }
-    }
-  }, [searchParams, runs]);
 
   // Countdown to next run (12:00 daily except Friday and Saturday)
   useEffect(() => {
@@ -158,18 +129,6 @@ export default function Runs() {
     setCurrentPage(1);
   };
 
-  const handleViewRun = (run: RunWithScreenshots) => {
-    setSelectedRun(run);
-    setIsDialogOpen(true);
-    setSearchParams({ run: run.id.toString() });
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setSelectedRun(null);
-    setSearchParams({});
-  };
-
   const getStatusBadge = (status: string) => {
     const baseClasses =
       "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium";
@@ -197,18 +156,6 @@ export default function Runs() {
       default:
         return "";
     }
-  };
-
-  const getStageOrder = (stage: string) => {
-    const stages = [
-      "triggered",
-      "refreshing tokens",
-      "buying gift",
-      "getting code from mail",
-      "applying gift",
-      "done",
-    ];
-    return stages.indexOf(stage);
   };
 
   return (
@@ -460,14 +407,15 @@ export default function Runs() {
                               )}
                             </TableCell>
                             <TableCell className="text-center">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewRun(run)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
+                              <RunDetailsDialog
+                                run={run}
+                                trigger={
+                                  <Button variant="outline" size="sm">
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View
+                                  </Button>
+                                }
+                              />
                             </TableCell>
                           </TableRow>
                         ))
@@ -545,202 +493,7 @@ export default function Runs() {
         </Card>
       </main>
 
-      {/* Run Details Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Run #{selectedRun?.id} Details</DialogTitle>
-            <DialogDescription>
-              Created on{" "}
-              {selectedRun &&
-                format(
-                  new Date(selectedRun.created_at),
-                  "MMMM d, yyyy 'at' h:mm a"
-                )}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedRun && (
-            <div className="space-y-6">
-              {/* Run Overview */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Status
-                  </p>
-                  <span className={getStatusBadge(selectedRun.status)}>
-                    {getStatusIcon(selectedRun.status)}
-                    {selectedRun.status.charAt(0).toUpperCase() +
-                      selectedRun.status.slice(1)}
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Current Stage
-                  </p>
-                  <span className="text-sm font-medium capitalize">
-                    {selectedRun.stage}
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Amount
-                  </p>
-                  <p className="text-lg font-semibold">
-                    ₪{selectedRun.amount.toFixed(2)}
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Notifications
-                  </p>
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                      selectedRun.is_notify
-                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-                        : "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300"
-                    }`}
-                  >
-                    {selectedRun.is_notify ? "Enabled" : "Disabled"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Process Timeline */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Process Timeline</h3>
-                <div className="space-y-3">
-                  {[
-                    { stage: "triggered", label: "Run Triggered", icon: "🚀" },
-                    {
-                      stage: "refreshing tokens",
-                      label: "Refreshing Tokens",
-                      icon: "🔄",
-                    },
-                    {
-                      stage: "buying gift",
-                      label: "Buying Gift Card",
-                      icon: "🛒",
-                    },
-                    {
-                      stage: "getting code from mail",
-                      label: "Getting Code from Email",
-                      icon: "📧",
-                    },
-                    {
-                      stage: "applying gift",
-                      label: "Applying Gift Code",
-                      icon: "🎁",
-                    },
-                    { stage: "done", label: "Process Complete", icon: "✅" },
-                  ].map((step, index) => {
-                    const isCurrentStage = selectedRun.stage === step.stage;
-                    const isCompleted =
-                      getStageOrder(selectedRun.stage) >
-                      getStageOrder(step.stage);
-                    const isFailed =
-                      selectedRun.status === "failed" && isCurrentStage;
-
-                    return (
-                      <div key={step.stage} className="flex items-center gap-4">
-                        <div
-                          className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                            isFailed
-                              ? "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
-                              : isCompleted ||
-                                (isCurrentStage &&
-                                  selectedRun.status === "success")
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
-                              : isCurrentStage
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300"
-                          }`}
-                        >
-                          {isFailed
-                            ? "❌"
-                            : isCompleted ||
-                              (isCurrentStage &&
-                                selectedRun.status === "success")
-                            ? "✅"
-                            : isCurrentStage
-                            ? "⏳"
-                            : step.icon}
-                        </div>
-                        <div className="flex-1">
-                          <p
-                            className={`font-medium ${
-                              isCurrentStage
-                                ? "text-foreground"
-                                : "text-muted-foreground"
-                            }`}
-                          >
-                            {step.label}
-                          </p>
-                          {isCurrentStage &&
-                            selectedRun.status === "in progress" && (
-                              <p className="text-xs text-muted-foreground">
-                                Currently processing...
-                              </p>
-                            )}
-                          {isFailed && (
-                            <p className="text-xs text-red-600 dark:text-red-400">
-                              Failed at this stage
-                            </p>
-                          )}
-                        </div>
-                        {index < 5 && (
-                          <div
-                            className={`w-px h-6 ml-4 ${
-                              isCompleted
-                                ? "bg-green-300"
-                                : "bg-gray-200 dark:bg-gray-700"
-                            }`}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Screenshots */}
-              {selectedRun.Screenshots &&
-                selectedRun.Screenshots.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Screenshots</h3>
-                    <div className="grid gap-4">
-                      {selectedRun.Screenshots.map((screenshot, index) => (
-                        <div key={screenshot.id} className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">
-                              Screenshot {index + 1}
-                            </span>
-                            {screenshot.is_error && (
-                              <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300">
-                                Error Screenshot
-                              </span>
-                            )}
-                          </div>
-                          <img
-                            src={screenshot.url}
-                            alt={`Screenshot ${index + 1} for run ${
-                              selectedRun.id
-                            }`}
-                            className="max-w-full h-auto rounded-lg border shadow-sm"
-                            loading="lazy"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Run Details Dialog is now handled by RunDetailsDialog component */}
     </div>
   );
 }

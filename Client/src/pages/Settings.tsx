@@ -13,8 +13,8 @@ export default function Settings() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-24 py-8">
-        <div className="mb-8">
+      <main className="container mx-auto px-4 pt-20 py-6">
+        <div className="mb-6">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
             Settings
           </h1>
