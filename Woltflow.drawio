@@ -4,8 +4,11 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="R9d-7NJiSH4ExI2Srzwc-329" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-329" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
           <mxGeometry x="2200" y="200" width="840" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-61" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;align=center;verticalAlign=top;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1080" width="480" height="280" as="geometry" />
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-95" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Frontend API&lt;/h1&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;align=center;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
           <mxGeometry x="40" y="1520" width="880" height="840" as="geometry" />
@@ -15,9 +18,6 @@
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-68" value="Frontend + images" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;fontColor=default;" vertex="1" parent="1">
           <mxGeometry x="600" y="240" width="200" height="160" as="geometry" />
-        </mxCell>
-        <mxCell id="R9d-7NJiSH4ExI2Srzwc-61" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;align=center;verticalAlign=top;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontColor=default;" vertex="1" parent="1">
-          <mxGeometry x="160" y="1080" width="480" height="280" as="geometry" />
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-47" value="Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;align=center;verticalAlign=top;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
           <mxGeometry x="600" y="480" width="1080" height="480" as="geometry" />
@@ -129,7 +129,7 @@
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-30" value="/*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=default;" vertex="1" connectable="0" parent="R9d-7NJiSH4ExI2Srzwc-29">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-56" y="-8" as="offset" />
+            <mxPoint x="10" y="-50" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;startArrow=classic;startFill=1;fontColor=default;" edge="1" parent="1" source="R9d-7NJiSH4ExI2Srzwc-15" target="R9d-7NJiSH4ExI2Srzwc-14">
@@ -142,11 +142,11 @@
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-32" value="/api" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=default;" vertex="1" connectable="0" parent="R9d-7NJiSH4ExI2Srzwc-31">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-42" y="-20" as="offset" />
+            <mxPoint x="20" y="90" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-38" value="/images" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=default;" vertex="1" connectable="0" parent="1">
-          <mxGeometry x="590" y="280" as="geometry">
+          <mxGeometry x="589.9200000000001" y="280" as="geometry">
             <mxPoint x="-4" y="11" as="offset" />
           </mxGeometry>
         </mxCell>
