@@ -158,7 +158,7 @@ functions:
           path: /api/automation/start-all-runs
           method: get
       - schedule:
-          rate: cron(0 10 ? * SUN,MON,TUE,WED,THU *)
+          rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *)
           description: "Trigger startAllRuns on weekdays at 10:00 UTC (12:00 Israel time)"
 
   # gmail

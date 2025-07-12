@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query";
-import { runsService, type RunFilters } from "@/services/runs";
+import {
+  runsService,
+  type RunFilters,
+  type RunsResponse,
+  type RunWithScreenshots,
+} from "@/services/runs";
 
 export const RUNS_QUERY_KEY = ["runs"] as const;
 
@@ -12,7 +17,6 @@ export function useRunsQuery(
   options?: {
     refetchInterval?: number;
     staleTime?: number;
-    select?: (data: any) => any;
   }
 ) {
   return useQuery({
@@ -21,20 +25,16 @@ export function useRunsQuery(
     staleTime: options?.staleTime || 5 * 60 * 1000, // Default 5 minutes
     placeholderData: keepPreviousData, // Smooth pagination without loading states
     refetchInterval: options?.refetchInterval,
-    select: options?.select,
   });
 }
 
 // Optimized hooks for specific use cases using the same base query
 export function useRecentRunsQuery(limit: number = 5) {
-  return useRunsQuery(
-    1,
-    limit,
-    {},
-    {
-      staleTime: 2 * 60 * 1000, // 2 minutes for recent runs
-      refetchInterval: 30 * 1000, // Auto-refresh every 30s when focused
-      select: (data) => data.runs, // Return only runs array for recent activity
-    }
-  );
+  return useQuery({
+    queryKey: [...RUNS_QUERY_KEY, 1, limit, {}],
+    queryFn: () => runsService.getRuns(1, limit, {}),
+    staleTime: 2 * 60 * 1000, // 2 minutes for recent runs
+    refetchInterval: 30 * 1000, // Auto-refresh every 30s when focused
+    select: (data: RunsResponse): RunWithScreenshots[] => data.runs, // Return only runs array for recent activity
+  });
 }

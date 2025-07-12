@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { RunDetailsDialog } from "@/components/RunDetailsDialog";
 
-import { type RunWithScreenshots } from "@/services/runs";
+import { type RunWithScreenshots, type Screenshot } from "@/services/runs";
 import { useRecentRunsQuery } from "@/queries/runs";
 
 export default function RecentActivity() {
@@ -54,18 +54,12 @@ export default function RecentActivity() {
     }
   };
 
-  const getNotificationBadge = (isNotify: boolean) => {
-    return isNotify
-      ? "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-      : "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300";
-  };
-
   // Removed local RunDetailsDialog component; use shared version instead
 
   const ScreenshotsDialog = ({
     screenshots,
   }: {
-    screenshots: any[];
+    screenshots: Screenshot[];
     runId: number;
   }) => {
     if (!screenshots || screenshots.length === 0) {
@@ -137,25 +131,22 @@ export default function RecentActivity() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-foreground font-medium pl-6">
+                  <TableHead className="text-center text-foreground font-medium pl-6">
                     Date
                   </TableHead>
-                  <TableHead className="text-foreground font-medium">
+                  <TableHead className="text-center text-foreground font-medium hidden sm:table-cell">
                     Status
                   </TableHead>
-                  <TableHead className="text-foreground font-medium">
+                  <TableHead className="text-center text-foreground font-medium hidden 2xl:table-cell">
                     Stage
                   </TableHead>
-                  <TableHead className="text-foreground font-medium">
-                    Notification
-                  </TableHead>
-                  <TableHead className="text-foreground font-medium">
+                  <TableHead className="text-center text-foreground font-medium hidden sm:table-cell lg:hidden xl:table-cell">
                     Screenshots
                   </TableHead>
-                  <TableHead className="text-right text-foreground font-medium pr-6">
+                  <TableHead className="text-center text-foreground font-medium">
                     Amount
                   </TableHead>
-                  <TableHead className="text-right text-foreground font-medium pr-6">
+                  <TableHead className="text-center text-foreground font-medium pr-6">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -166,7 +157,7 @@ export default function RecentActivity() {
                     key={run.id}
                     className="hover:bg-muted/50 transition-colors"
                   >
-                    <TableCell className="pl-6">
+                    <TableCell className="text-center pl-6">
                       <div className="space-y-1">
                         <p className="font-medium text-foreground">
                           {format(new Date(run.created_at), "MMM d, yyyy")}
@@ -176,35 +167,30 @@ export default function RecentActivity() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center hidden sm:table-cell">
                       <span className={getStatusBadge(run.status)}>
                         {getStatusIcon(run.status)}
                         {run.status.charAt(0).toUpperCase() +
                           run.status.slice(1)}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center hidden 2xl:table-cell">
                       <span className="text-sm text-muted-foreground capitalize">
                         {run.stage}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <span className={getNotificationBadge(run.is_notify)}>
-                        {run.is_notify ? "Enabled" : "Disabled"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center hidden sm:table-cell lg:hidden xl:table-cell">
                       <ScreenshotsDialog
                         screenshots={run.Screenshots || []}
                         runId={run.id}
                       />
                     </TableCell>
-                    <TableCell className="text-right pr-6">
+                    <TableCell className="text-center">
                       <span className="font-medium text-foreground">
                         ₪{run.amount.toFixed(2)}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right pr-6">
+                    <TableCell className="text-center pr-6">
                       <RunDetailsDialog run={run} />
                     </TableCell>
                   </TableRow>

@@ -25,6 +25,8 @@ export interface UserSettings {
   settingsId: number;
   userId: string;
   isNotification: boolean;
+  automationEnabled: boolean | null;
+  automationMode: "full-run" | "buy-only" | "cross-account" | null;
   cookies: string | null; // deprecated
   wrtoken: string | null;
   wtoken: string | null;
@@ -42,6 +44,8 @@ export type UserSettingsUpdate = Partial<
 
 export type FormSettings = {
   isNotification: boolean;
+  automationEnabled: boolean;
+  automationMode: "full-run" | "buy-only" | "cross-account";
   wrtoken: string;
   wtoken: string;
   cibusName: string;

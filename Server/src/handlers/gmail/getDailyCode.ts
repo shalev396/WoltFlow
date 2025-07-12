@@ -60,7 +60,8 @@ export const handler = async (
     await run.update({ stage: "getting code from mail" });
 
     let targetDate = new Date();
-    if (process.env["ENV"] === "Development") {
+    // TODO: remove this || true on prod
+    if (process.env["ENV"] === "Development" || true) {
       // First check if date parameter is provided
       // if (event.queryStringParameters?.date) {
       //   const d = new Date(event.queryStringParameters.date);

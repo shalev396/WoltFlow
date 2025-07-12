@@ -169,10 +169,7 @@ export async function setupWoltCookies(
     }
 
     if (wToken) {
-      const accessTokenObject = {
-        accessToken: wToken,
-        expirationTime: expirationDate,
-      };
+      // wToken is already a JSON string from the database, so we use it directly
       cookiesToSet.push({
         domain: "wolt.com",
         expirationDate: expirationDate,
@@ -184,7 +181,7 @@ export async function setupWoltCookies(
         secure: true,
         session: false,
         storeId: "0",
-        value: encodeURIComponent(JSON.stringify(accessTokenObject)),
+        value: encodeURIComponent(wToken),
       });
     }
 

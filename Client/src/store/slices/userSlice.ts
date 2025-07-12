@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { AxiosError } from "axios";
 import type { GoogleUser } from "@/types";
 
 interface AuthState {
@@ -26,10 +27,13 @@ export const checkAuth = createAsyncThunk(
       const { api } = await import("@/api/api");
       const response = await api.get<GoogleUser>("/auth/me");
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.error || "Authentication failed"
-      );
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        return rejectWithValue(
+          error.response?.data?.error || "Authentication failed"
+        );
+      }
+      return rejectWithValue("Authentication failed");
     }
   }
 );
@@ -43,10 +47,13 @@ export const logoutUser = createAsyncThunk(
       const { api } = await import("@/api/api");
       await api.post("/auth/logout");
       return;
-    } catch (error: any) {
-      // Even if logout fails on server, we should clear local state
-      console.error("Logout failed:", error);
-      return rejectWithValue(error.response?.data?.error || "Logout failed");
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        // Even if logout fails on server, we should clear local state
+        console.error("Logout failed:", error);
+        return rejectWithValue(error.response?.data?.error || "Logout failed");
+      }
+      return rejectWithValue("Logout failed");
     }
   }
 );

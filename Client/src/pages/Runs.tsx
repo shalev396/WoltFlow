@@ -124,7 +124,10 @@ export default function Runs() {
 
   // No need for fetchRuns function - TanStack Query handles this automatically
 
-  const handleFilterChange = (key: keyof RunFilters, value: any) => {
+  const handleFilterChange = (
+    key: keyof RunFilters,
+    value: string | undefined
+  ) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1);
   };
@@ -316,19 +319,31 @@ export default function Runs() {
               </div>
             ) : (
               <>
-                <div className="rounded-md border">
+                <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-center">ID</TableHead>
-                        <TableHead className="text-center">Date</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
-                        <TableHead className="text-center">Stage</TableHead>
-                        <TableHead className="text-center">Amount</TableHead>
-                        <TableHead className="text-center">
+                        <TableHead className="text-center text-foreground font-medium pl-6">
+                          ID
+                        </TableHead>
+                        <TableHead className="text-center text-foreground font-medium">
+                          Date
+                        </TableHead>
+                        <TableHead className="text-center text-foreground font-medium hidden sm:table-cell">
+                          Status
+                        </TableHead>
+                        <TableHead className="text-center text-foreground font-medium hidden 2xl:table-cell">
+                          Stage
+                        </TableHead>
+                        <TableHead className="text-center text-foreground font-medium">
+                          Amount
+                        </TableHead>
+                        <TableHead className="text-center text-foreground font-medium hidden sm:table-cell lg:hidden xl:table-cell">
                           Screenshots
                         </TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
+                        <TableHead className="text-center text-foreground font-medium pr-6">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -354,7 +369,7 @@ export default function Runs() {
                             key={run.id}
                             className="hover:bg-muted/50 transition-colors"
                           >
-                            <TableCell className="text-center font-medium">
+                            <TableCell className="text-center font-medium pl-6">
                               #{run.id}
                             </TableCell>
                             <TableCell className="text-center">
@@ -370,14 +385,14 @@ export default function Runs() {
                                 </p>
                               </div>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center hidden sm:table-cell">
                               <span className={getStatusBadge(run.status)}>
                                 {getStatusIcon(run.status)}
                                 {run.status.charAt(0).toUpperCase() +
                                   run.status.slice(1)}
                               </span>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center hidden 2xl:table-cell">
                               <span className="text-sm text-muted-foreground capitalize">
                                 {run.stage}
                               </span>
@@ -387,7 +402,7 @@ export default function Runs() {
                                 ₪{run.amount.toFixed(2)}
                               </span>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center hidden sm:table-cell lg:hidden xl:table-cell">
                               {run.Screenshots && run.Screenshots.length > 0 ? (
                                 <Button
                                   variant="outline"
@@ -406,7 +421,7 @@ export default function Runs() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center pr-6">
                               <RunDetailsDialog
                                 run={run}
                                 trigger={

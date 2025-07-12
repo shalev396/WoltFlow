@@ -18,7 +18,7 @@ interface LogoutButtonProps {
   redirectTo?: string;
   onLogoutStart?: () => void;
   onLogoutComplete?: () => void;
-  onLogoutError?: (error: any) => void;
+  onLogoutError?: (error: unknown) => void;
 }
 
 export default function LogoutButton({

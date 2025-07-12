@@ -4,6 +4,10 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
 
+import { WoltCredentialsHelp } from "@/components/WoltCredentialsHelp";
+import { AutomationModesHelp } from "@/components/AutomationModesHelp";
+import { AutomationToggle } from "@/components/AutomationToggle";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -38,6 +42,10 @@ const GIFT_CARD_AMOUNTS = [
 
 const formSchema = z.object({
   isNotification: z.boolean(),
+  automationEnabled: z.boolean(),
+  automationMode: z.enum(["full-run", "buy-only", "cross-account"], {
+    required_error: "Please select an automation mode",
+  }),
   wrtoken: z.string().min(1, "Refresh token is required"),
   wtoken: z.string().min(1, "Access token is required"),
   cibusName: z.string().min(1, "Username is required"),
@@ -56,6 +64,8 @@ export function SettingsTab() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       isNotification: false,
+      automationEnabled: false,
+      automationMode: "full-run" as const,
       wrtoken: "",
       wtoken: "",
       cibusName: "",
@@ -73,6 +83,8 @@ export function SettingsTab() {
 
       // Use setValue instead of reset to ensure proper form updates
       form.setValue("isNotification", settings.isNotification);
+      form.setValue("automationEnabled", settings.automationEnabled ?? false);
+      form.setValue("automationMode", settings.automationMode || "full-run");
       form.setValue("wrtoken", settings.wrtoken || "");
       form.setValue("wtoken", settings.wtoken || "");
       form.setValue("cibusName", settings.cibusName || "");
@@ -110,31 +122,103 @@ export function SettingsTab() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="isNotification"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-card">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Notifications</FormLabel>
-                <FormDescription>
-                  Enable notifications for purchase updates
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <FormField
+            control={form.control}
+            name="isNotification"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-card">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Notifications</FormLabel>
+                  <FormDescription>
+                    Get notified about purchase updates
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <AutomationToggle control={form.control} name="automationEnabled" />
+
+          <FormField
+            control={form.control}
+            name="automationMode"
+            render={({ field }) => (
+              <FormItem className="rounded-lg border p-4 bg-card">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base flex items-center gap-2">
+                      Automation Mode
+                      <AutomationModesHelp />
+                    </FormLabel>
+                    <FormDescription>
+                      Choose how the automation should work
+                    </FormDescription>
+                  </div>
+                </div>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="bg-card w-full">
+                      <SelectValue placeholder="Select automation mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-run">
+                        <div className="flex items-center gap-2">
+                          <span>🚀</span>
+                          <div>
+                            <p className="font-medium">Complete Automation</p>
+                            <p className="text-xs text-muted-foreground">
+                              Buy and apply automatically
+                            </p>
+                          </div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="buy-only">
+                        <div className="flex items-center gap-2">
+                          <span>🛒</span>
+                          <div>
+                            <p className="font-medium">Buy Only</p>
+                            <p className="text-xs text-muted-foreground">
+                              Just purchase, apply manually
+                            </p>
+                          </div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="cross-account">
+                        <div className="flex items-center gap-2">
+                          <span>⚡</span>
+                          <div>
+                            <p className="font-medium">
+                              Smart Account Strategy
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Buy from secondary, apply to main
+                            </p>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Wolt Integration
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Wolt Integration
+            </h3>
+            <WoltCredentialsHelp />
+          </div>
           <div className="space-y-4">
             <FormField
               control={form.control}
@@ -146,7 +230,7 @@ export function SettingsTab() {
                     <Textarea
                       {...field}
                       className="bg-card min-h-[100px] font-mono text-sm"
-                      placeholder="Your Wolt refresh token"
+                      placeholder="xxxxxxxxxxxxxx"
                     />
                   </FormControl>
                   <FormDescription>
@@ -166,7 +250,7 @@ export function SettingsTab() {
                     <Textarea
                       {...field}
                       className="bg-card min-h-[100px] font-mono text-sm"
-                      placeholder="Your Wolt access token"
+                      placeholder='{accessToken:"xxxxxxxxxxxxxxxxxxxxxx",expireTime:1720704000}'
                     />
                   </FormControl>
                   <FormDescription>
