@@ -1,9 +1,12 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" version="28.0.4">
   <diagram id="Ht1M8jgEwFfnCIfOTk4-" name="Page-1">
-    <mxGraphModel dx="2220" dy="1220" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1943" dy="1068" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-95" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Frontend API&lt;/h1&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;align=center;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1520" width="880" height="840" as="geometry" />
+        </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-58" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;align=center;verticalAlign=top;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
           <mxGeometry x="160" y="160" width="1600" height="880" as="geometry" />
         </mxCell>
@@ -204,6 +207,165 @@
         </mxCell>
         <mxCell id="R9d-7NJiSH4ExI2Srzwc-55" value="Gmail API" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=middle;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://icons.diagrams.net/icon-cache1/Social_media_and_logos-2598/Gmail_envelope_letter_email_Gmail_envelope_letter_email-1025.svg;labelPosition=right;align=left;spacing=10;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontColor=default;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-64">
           <mxGeometry x="10" y="10" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-69" value="Lambda Funtions" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1440" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-70" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1470" width="880" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-71" value="Database" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1440" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-72" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1470" width="880" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-75" value="Docker" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1880" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-76" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1910" width="880" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-77" value="S3 Buckets" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2520" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-78" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2550" width="880" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-79" value="EventBrige" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2240" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-80" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2270" width="880" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-81" value="API Gateaway" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="3240" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-82" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="3270" width="880" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-85" value="Identity &amp;amp; Access Management" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2760" width="240" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-86" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2790" width="880" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-87" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;oauthStart&lt;/h1&gt;&lt;p&gt;Start Google OAuth 2.0&amp;nbsp;&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/auth/oauthStart.handler&lt;/p&gt;&lt;p&gt;Trigger: GET&amp;nbsp;/api/oauth2/start&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1560" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-89" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;oauthCallback&lt;/h1&gt;&lt;p&gt;Handle Response from Google OAuth 2.0&amp;nbsp;&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/auth/oauthCallback.handler&lt;/p&gt;&lt;p&gt;Trigger: GET&amp;nbsp;/api/oauth2/callback&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1560" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-90" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;logout&lt;/h1&gt;&lt;p&gt;Log the user out&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/auth/logout.handler&lt;/p&gt;&lt;p&gt;Trigger: POST /api/auth/logout&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1760" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-91" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;authMe&lt;/h1&gt;&lt;p&gt;Gets the user&#39;s information&amp;nbsp;&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/auth/authMeHandler.handler&lt;/p&gt;&lt;p&gt;Trigger: GET&amp;nbsp;/api/auth/me&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1760" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-92" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;getUserSettings&lt;/h1&gt;&lt;p&gt;gets the user settings&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/setting/getusersettings.handler&lt;/p&gt;&lt;p&gt;Trigger: GET&amp;nbsp;/api/setting&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1960" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-93" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;setUserSettings&lt;/h1&gt;&lt;p&gt;Sets the user&#39;s settings&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/setting/setusersettings.handler&lt;/p&gt;&lt;p&gt;Trigger: POST&amp;nbsp;/api/setting&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1960" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-94" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;getUserRuns&lt;/h1&gt;&lt;p&gt;gets the user runs&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/runs/getUserRuns.handler&lt;/p&gt;&lt;p&gt;Trigger: GET&amp;nbsp;/api/setting&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="2160" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-96" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Automation function&lt;/h1&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="2400" width="880" height="760" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-97" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;startAllRuns&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: normal;&quot;&gt;Start automation runs for all users&lt;/span&gt;&lt;/h1&gt;&lt;p&gt;Handler:./dist/handlers/automation/startAllRuns.handler&lt;/p&gt;&lt;p&gt;Triggers: EventBridge trigger&amp;nbsp;on weekdays at 10:00 UTC (12:00 Israel time)&amp;nbsp;&lt;br&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 0, 0));&quot;&gt;GET&amp;nbsp;/api/automation/start-all-runs&amp;nbsp;&lt;/font&gt;&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="2440" width="360" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-98" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;refreshTokens&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: normal;&quot;&gt;Refresh users&#39; Wolt tokens&amp;nbsp;&lt;/span&gt;&lt;/h1&gt;&lt;p&gt;Handler: ./dist/handlers/automation/refreshTokens.handler&lt;/p&gt;&lt;p&gt;Trigger: &lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 0, 0));&quot;&gt;GET&amp;nbsp;/api/wolt/refreshTokens&lt;/font&gt;&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="2440" width="360" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-99" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;getDailyCode&lt;/h1&gt;&lt;p&gt;Uses Gmail API to get wolt codes form user inbox&lt;br&gt;&lt;br&gt;Handler: ./dist/handlers/gmail/getDailyCode.handler&lt;/p&gt;&lt;p&gt;Trigger: &lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 0, 0));&quot;&gt;GET /api/gmail/daily-code&lt;/font&gt;&lt;br&gt;&lt;br&gt;Runtime: Node 22.x&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="2680" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-101" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;woltBuyGift&lt;/h1&gt;&lt;p&gt;Run Selenium to buy the user a Wolt gift card&amp;nbsp;&lt;br&gt;&lt;br&gt;Handler: dist/handlers/automation/woltBuyGift.handler&lt;/p&gt;&lt;p&gt;Trigger:&lt;/p&gt;&lt;p&gt;Timeout:200 seconds&lt;br&gt;&lt;br&gt;Runtime: Docker image: &quot;woltflow-selenium-image&quot;&lt;br&gt;&lt;br&gt;MemorySize:&amp;nbsp;1536 MB&lt;br&gt;&lt;br&gt;EphemeralStorageSize:&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1536 MB&lt;/span&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="2880" width="360" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-102" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;woltApplyGift&lt;/h1&gt;&lt;p&gt;Run Selenium to apply the code for the user&amp;nbsp;&lt;br&gt;&lt;br&gt;Handler: dist/handlers/automation/woltApplyGift.handler&lt;/p&gt;&lt;p&gt;Trigger:&amp;nbsp;&lt;br&gt;&lt;br&gt;Timeout:&amp;nbsp;120 seconds&lt;br&gt;&lt;br&gt;Runtime: Docker image: &quot;woltflow-selenium-image&quot;&lt;br&gt;&lt;br&gt;MemorySize:&amp;nbsp;1536 MB&lt;br&gt;&lt;br&gt;EphemeralStorageSize:&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;1536 MB&lt;/span&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="2880" width="360" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-104" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;woltflow-selenium-image&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: normal;&quot;&gt;Docker image with Chrome, Node, and webdriver installed with the application build&lt;/span&gt;&lt;/h1&gt;&lt;p&gt;&lt;br&gt;ECR: serverless-woltflow-server-dev&lt;/p&gt;&lt;p&gt;Chrome version:&amp;nbsp;131.0.6778.204&lt;br&gt;WebDriver version:&amp;nbsp;131.0.6778.204&lt;br&gt;Node version: latest&lt;br&gt;&lt;br&gt;Size: 715 MB&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1960" width="880" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-105" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;woltflow-server-dev-StartAllRunsEventsRuleSchedule1&lt;br&gt;&lt;span style=&quot;font-size: 12px; font-weight: 400;&quot;&gt;The rule that starts the&amp;nbsp;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: normal;&quot;&gt;startAllRuns lambda function&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/h1&gt;&lt;p&gt;Trigger:&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;trigger&amp;nbsp;on weekdays at 10:00 UTC (12:00 Israel time)&amp;nbsp;&lt;br&gt;&lt;br&gt;Target:&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;woltflow-server-dev-startAllRuns&lt;/span&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2320" width="880" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-106" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;woltflow.shalev396.com&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: normal;&quot;&gt;hold frontend build files &lt;br&gt;region:&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; font-size: 12px; font-weight: 400;&quot;&gt;eu-central-1&lt;/span&gt;&lt;/h1&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2600" width="400" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-107" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;woltflow.shalev396.com-assets&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: normal;&quot;&gt;hold images from automation runs&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: normal;&quot;&gt;region:&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px; font-weight: 400;&quot;&gt;eu-central-1&lt;/span&gt;&lt;/h1&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1480" y="2600" width="400" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-109" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;woltflow-server-dev-il-central-1-lambdaRole&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;font-size: 12px; font-weight: 400;&quot;&gt;have the following permission&lt;/span&gt;&lt;font color=&quot;rgba(0, 0, 0, 0)&quot;&gt;&lt;span style=&quot;font-size: 12px; font-weight: normal;&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/font&gt;&lt;/span&gt;&lt;/h1&gt;&lt;p&gt;Lambda:&lt;/p&gt;&lt;p&gt;InvokeFunction (&amp;nbsp;&lt;span style=&quot;background-color: transparent;&quot;&gt;refreshTokens,&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;woltBuyGift,&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;getDailyCode,&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;woltApplyGift)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;CloudWatch:&lt;br&gt;&lt;/p&gt;&lt;p&gt;CreateLogStream, CreateLogGroup, TagResource, PutLogEvents&lt;/p&gt;&lt;p&gt;ECR:&lt;/p&gt;&lt;p&gt;GetAuthorizationToken, BatchCheckLayerAvailability, GetDownloadUrlForLayer, BatchGetImage, InitiateLayerUpload, UploadLayerPart, CompleteLayerUpload, PutImage&lt;/p&gt;&lt;p&gt;S3:&lt;/p&gt;&lt;p&gt;PutObject, GetObject (woltflow.shalev396.com-assets)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;strokeColor=default;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2840" width="880" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-110" value="Table" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;strokeColor=default;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1520" width="180" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-111" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;strokeColor=inherit;top=0;left=0;bottom=0;right=0;collapsible=0;dropTarget=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-110">
+          <mxGeometry y="30" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-112" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-111">
+          <mxGeometry width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-113" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-111">
+          <mxGeometry x="60" width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-114" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-111">
+          <mxGeometry x="120" width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-115" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;strokeColor=inherit;top=0;left=0;bottom=0;right=0;collapsible=0;dropTarget=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-110">
+          <mxGeometry y="70" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-116" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-115">
+          <mxGeometry width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-117" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-115">
+          <mxGeometry x="60" width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-118" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-115">
+          <mxGeometry x="120" width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-119" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;strokeColor=inherit;top=0;left=0;bottom=0;right=0;collapsible=0;dropTarget=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-110">
+          <mxGeometry y="110" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-120" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-119">
+          <mxGeometry width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-121" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-119">
+          <mxGeometry x="60" width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-122" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;strokeColor=inherit;overflow=hidden;fillColor=none;top=0;left=0;bottom=0;right=0;pointerEvents=1;fontSize=16;" vertex="1" parent="R9d-7NJiSH4ExI2Srzwc-119">
+          <mxGeometry x="120" width="60" height="40" as="geometry">
+            <mxRectangle width="60" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-123" value="UI/UX" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="3320" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="R9d-7NJiSH4ExI2Srzwc-124" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="3350" width="880" height="10" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
