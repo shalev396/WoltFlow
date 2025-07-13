@@ -60,8 +60,7 @@ export const handler = async (
     await run.update({ stage: "getting code from mail" });
 
     let targetDate = new Date();
-    // TODO: remove this || true on prod
-    if (process.env["ENV"] === "Development" || true) {
+    if (process.env["ENV"] === "Development") {
       // First check if date parameter is provided
       // if (event.queryStringParameters?.date) {
       //   const d = new Date(event.queryStringParameters.date);
@@ -114,20 +113,71 @@ export const handler = async (
     const subject = '"הגיפט קארד של Wolt הגיע ומחכה לשליחה :)"';
     const q = `from:info@wolt.com subject:${subject} after:${after} before:${by}`;
     console.log(`Gmail search query: ${q}`);
-    const listRes = await gmail.users.messages.list({
-      userId: "me",
-      q,
-      maxResults: 1,
-    });
 
-    const msgs = listRes.data.messages;
-    console.log(`Gmail search returned ${msgs?.length || 0} messages`);
+    // Helper function to wait for specified milliseconds
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
+    let msgs: any[] | undefined;
+    let lastError: string | null = null;
+    const maxRetries = 3;
+    const retryDelay = 10000; // 10 seconds
+
+    // Retry logic for email search
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Email search attempt ${attempt}/${maxRetries}`);
+
+        const listRes = await gmail.users.messages.list({
+          userId: "me",
+          q,
+          maxResults: 1,
+        });
+
+        msgs = listRes.data.messages;
+        console.log(`Gmail search returned ${msgs?.length || 0} messages`);
+
+        if (msgs && msgs.length > 0) {
+          console.log(`Email found on attempt ${attempt}`);
+          break; // Success, exit retry loop
+        }
+
+        // No messages found
+        lastError = `No matching Wolt email found for query: ${q}`;
+        console.log(`Attempt ${attempt}: ${lastError}`);
+
+        // If this isn't the last attempt, wait before retrying
+        if (attempt < maxRetries) {
+          console.log(
+            `Waiting ${retryDelay / 1000} seconds before next attempt...`
+          );
+          await wait(retryDelay);
+        }
+      } catch (error: any) {
+        lastError = `Gmail API error: ${error.message}`;
+        console.error(`Attempt ${attempt}: ${lastError}`);
+
+        // If this isn't the last attempt, wait before retrying
+        if (attempt < maxRetries) {
+          console.log(
+            `Waiting ${retryDelay / 1000} seconds before next attempt...`
+          );
+          await wait(retryDelay);
+        }
+      }
+    }
+
+    // If we still don't have messages after all retries, fail
     if (!msgs || msgs.length === 0) {
-      console.error(`No matching Wolt email found for query: ${q}`);
+      console.error(
+        `All ${maxRetries} attempts failed. Final error: ${lastError}`
+      );
       await run.update({ status: "failed" });
       return {
         statusCode: 404,
-        body: JSON.stringify({ error: "No matching Wolt email found" }),
+        body: JSON.stringify({
+          error: lastError || "No matching Wolt email found after retries",
+        }),
       };
     }
 

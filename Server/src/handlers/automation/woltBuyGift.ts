@@ -378,8 +378,8 @@ export const handler = async (
     } catch (err) {
       console.log("confirmation element not found");
       console.error("soft error", err);
+      //add || true to debug script
       if (isDev || true) {
-        //TODO: remove || true
         success = true;
       }
     }

@@ -33,7 +33,7 @@ export function useRecentRunsQuery(limit: number = 5) {
   return useQuery({
     queryKey: [...RUNS_QUERY_KEY, 1, limit, {}],
     queryFn: () => runsService.getRuns(1, limit, {}),
-    staleTime: 2 * 60 * 1000, // 2 minutes for recent runs
+    staleTime: 5 * 60 * 1000, // 2 minutes for recent runs
     refetchInterval: 30 * 1000, // Auto-refresh every 30s when focused
     select: (data: RunsResponse): RunWithScreenshots[] => data.runs, // Return only runs array for recent activity
   });

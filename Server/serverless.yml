@@ -199,10 +199,10 @@ functions:
     memorySize: 1536
     ephemeralStorageSize: 1536
     timeout: 200
-    # events:
-    #   - httpApi:
-    #       path: /api/wolt/buyGift
-    #       method: get
+    events:
+      - httpApi:
+          path: /api/wolt/buyGift
+          method: get
 
   woltApplyGift:
     image:
@@ -211,7 +211,7 @@ functions:
     memorySize: 1536
     ephemeralStorageSize: 1536
     timeout: 120
-    # events:
-    #   - httpApi:
-    #       path: /api/wolt/applyGift
-    #       method: get
+    events:
+      - httpApi:
+          path: /api/wolt/applyGift
+          method: get
