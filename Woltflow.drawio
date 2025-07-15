@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" version="28.0.4">
   <diagram id="Ht1M8jgEwFfnCIfOTk4-" name="Page-1">
-    <mxGraphModel dx="1636" dy="899" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="3885" dy="2135" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1478,37 +1478,37 @@
         <mxCell id="rlCBzO-j7zK63doWtmgx-157" value="Serverless" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=data:image/png,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAVFBMVEUAAACDLSnWSkTSSELcTEaKLyuiODP/W1P/WFH/WVLKRUCtPDelOTT/XVVsJSKwPTgIAwMUBwZUHRqGLioyERB2KSVbHx1NGhhiIh8OBQTkTkiVMy/ucYFDAAAAhUlEQVR4AdyQtQGAQBAEFzncHfovlH3cIWaSc8Xf0HSD6NRMSmqyCVq24ziuxywqxPY3wSC0bTuMWEhFqTE2JArKNJnARzLJcymAMh+RareQ69qUFAN2vA/aatfwKsi2UgONbNp+pr2NBGFYAkZoT4SHhdSuDjm/TzqmRp050/WTHm5JCwAsHwcYX4oZJgAAAABJRU5ErkJggg==;" parent="1" vertex="1">
           <mxGeometry x="1000" y="4480" width="80" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-1" value="TODO" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-1" value="TODO" style="text;html=1;resizable=0;points=[];autosize=1;align=left;verticalAlign=top;spacingTop=-4;fontSize=16;labelBackgroundColor=none;fontColor=default;" parent="1" vertex="1">
           <mxGeometry x="2120" y="1440" width="70" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-2" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-2" value="" style="line;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=none;fontColor=default;" parent="1" vertex="1">
           <mxGeometry x="2120" y="1470" width="880" height="10" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-4" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Automation errors&lt;/h1&gt;&lt;p&gt;Fix automation when it has an active order&lt;br&gt;fix automation when it has an order from a different restaurant&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-4" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Automation errors&lt;/h1&gt;&lt;p&gt;Fix automation when it has an active order&lt;br&gt;fix automation when it has an order from a different restaurant&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="2120" y="1520" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-5" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Notification sms/email&lt;/h1&gt;&lt;p&gt;Add a notification for error on sms/email&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Add an option for notification on success&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-5" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Notification sms/email&lt;/h1&gt;&lt;p&gt;Add a notification for error on sms/email&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Add an option for notification on success&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="2120" y="1640" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-6" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Apply new modes&amp;nbsp;&lt;/h1&gt;&lt;p&gt;buy only&lt;br&gt;smart stratagy&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-6" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Apply new modes&amp;nbsp;&lt;/h1&gt;&lt;p&gt;buy only&lt;br&gt;smart stratagy&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="2120" y="1760" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-7" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Publish an app on Google&amp;nbsp;&lt;/h1&gt;&lt;p&gt;GPT tos and pp&lt;br&gt;and a notification letting the user know before the refresh token expires&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-7" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Publish an app on Google&amp;nbsp;&lt;/h1&gt;&lt;p&gt;GPT tos and pp&lt;br&gt;and a notification letting the user know before the refresh token expires&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="2120" y="1880" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-8" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Save user details in db&amp;nbsp;&lt;/h1&gt;&lt;p&gt;and if enabled Gmail access&amp;nbsp;&amp;nbsp;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="2120" y="1995" width="880" height="120" as="geometry" />
+        <mxCell id="GBbTfU_pKb0co6kztdkg-9" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;QA adds test users&amp;nbsp;&amp;nbsp;&lt;/h1&gt;&lt;p&gt;add real user and documet errors for a week&amp;nbsp;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="2120" y="2000" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-9" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;QA adds test users&amp;nbsp;&amp;nbsp;&lt;/h1&gt;&lt;p&gt;add real user and documet errors for a week&amp;nbsp;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-10" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Create proper DEV / QA / PROD&amp;nbsp;&amp;nbsp;env&lt;/h1&gt;&lt;p&gt;deploy them on aws&lt;br&gt;run test daily on QA&amp;nbsp;&lt;br&gt;1. ui&lt;br&gt;2. api&lt;br&gt;3. automation (1 step away from buying adn applying codes)&amp;nbsp;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="2120" y="2120" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-10" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Create proper DEV / QA / PROD&amp;nbsp;&amp;nbsp;env&lt;/h1&gt;&lt;p&gt;deploy them on aws&lt;br&gt;run test daily on QA&amp;nbsp;&lt;br&gt;1. ui&lt;br&gt;2. api&lt;br&gt;3. automation (1 step away from buying adn applying codes)&amp;nbsp;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="2120" y="2240" width="880" height="120" as="geometry" />
+        <mxCell id="GBbTfU_pKb0co6kztdkg-11" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Add serverless CI/CD&lt;/h1&gt;&lt;p&gt;use serverless documented ci/cd&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="2120" y="2280" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-11" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Add serverless CI/CD&lt;/h1&gt;&lt;p&gt;use serverless documented ci/cd&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="GBbTfU_pKb0co6kztdkg-13" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Make extension to get tokens off wolt.com&lt;/h1&gt;&lt;p&gt;figure it out&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="2120" y="2400" width="880" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="GBbTfU_pKb0co6kztdkg-13" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Make extension to get tokens off wolt.com&lt;/h1&gt;&lt;p&gt;figure it out&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="uGB7KLQRIh22OO7XjZEY-1" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;add apply all codes from email&lt;/h1&gt;&lt;p&gt;new feature&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="2120" y="2520" width="880" height="120" as="geometry" />
         </mxCell>
       </root>
