@@ -25,8 +25,9 @@ export interface UserSettings {
   settingsId: number;
   userId: string;
   isNotification: boolean;
-  automationEnabled: boolean | null;
-  automationMode: "full-run" | "buy-only" | "cross-account" | null;
+  hasGmailAccess: boolean; // Whether user granted Gmail access during OAuth
+  automationEnabled: boolean; // Whether automation is enabled
+  automationMode: "full-run" | "buy-only" | "cross-account"; // Automation mode
   cookies: string | null; // deprecated
   wrtoken: string | null;
   wtoken: string | null;
@@ -44,6 +45,7 @@ export type UserSettingsUpdate = Partial<
 
 export type FormSettings = {
   isNotification: boolean;
+  hasGmailAccess: boolean;
   automationEnabled: boolean;
   automationMode: "full-run" | "buy-only" | "cross-account";
   wrtoken: string;

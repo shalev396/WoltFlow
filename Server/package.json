@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "cross-env ENV=Development serverless offline",
+    "dev": "npm run build && cross-env ENV=Development serverless offline",
     "deploy": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy",
     "test:woltBuyGift": "serverless invoke -f woltBuyGift --path woltBuyGift.json"
   },

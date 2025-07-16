@@ -18,7 +18,7 @@ export const handler: APIGatewayProxyHandler = async () => {
 
   // 2. Generate PKCE verifier & challenge
   const { codeVerifier, codeChallenge } =
-    await oauth2Client.generateCodeVerifierAsync(); // convenience PKCE helper :contentReference[oaicite:2]{index=2}
+    await oauth2Client.generateCodeVerifierAsync(); // convenience PKCE helper 
 
   // 3. Pack verifier into state (we’ll parse this on callback)
   const state = JSON.stringify({ codeVerifier });

@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import sequelize from "../../config/database";
 import User from "../../models/User";
+import Setting from "../../models/Setting";
 // import { google } from "googleapis";
 import { oauth2_v2 } from "@googleapis/oauth2";
 
@@ -20,9 +21,10 @@ export const handler = async (
   // 1. Ensure DB connection
   await sequelize.authenticate();
 
-  // 2. Extract 'code' + 'state'
+  // 2. Extract 'code', 'state', and 'scope'
   const code = event.queryStringParameters?.["code"];
   const rawState = event.queryStringParameters?.["state"];
+  const scope = event.queryStringParameters?.["scope"] || "";
   if (!code || !rawState) {
     return {
       statusCode: 400,
@@ -64,9 +66,40 @@ export const handler = async (
   });
   const userInfo = await oauth2.userinfo.get();
   const userId = userInfo.data.id!;
+  const name = userInfo.data.name || null;
+  const email = userInfo.data.email || null;
 
-  // 6. Upsert user in PostgreSQL
-  await User.upsert({ userId, refreshToken: refresh_token });
+  // 6. Upsert user in PostgreSQL with name and email
+  // This will create new users or update existing ones with fresh Google data
+  await User.upsert({
+    userId,
+    refreshToken: refresh_token,
+    name,
+    email,
+  });
+
+  // 6.1. Check if user granted Gmail access and update settings
+  const hasGmailAccess = scope.includes(
+    "https://www.googleapis.com/auth/gmail.readonly"
+  );
+  console.log(`Gmail access granted: ${hasGmailAccess}`);
+
+  // Find existing settings record and update, or create new one
+  const [settings] = await Setting.findOrCreate({
+    where: { userId },
+    defaults: {
+      userId,
+      hasGmailAccess,
+      isNotification: false,
+      automationEnabled: false,
+      automationMode: "full-run",
+    },
+  });
+
+  // Update the hasGmailAccess field for existing records
+  if (settings.get("hasGmailAccess") !== hasGmailAccess) {
+    await settings.update({ hasGmailAccess });
+  }
 
   // 7. Create 7-day session JWT
   const sessionToken = jwt.sign({ userId }, process.env["JWT_SECRET"]!, {

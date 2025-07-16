@@ -6,6 +6,9 @@ import { authMiddleware } from "../../middlewares/auth";
 
 interface UpdateBody {
   isNotification?: boolean;
+  hasGmailAccess?: boolean;
+  automationEnabled?: boolean;
+  automationMode?: "full-run" | "buy-only" | "cross-account";
   woltAccessToken?: string;
   woltRefreshToken?: string;
   wrtoken?: string;

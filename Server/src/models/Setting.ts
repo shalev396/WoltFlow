@@ -6,7 +6,9 @@ export default class Setting extends Model {
   declare settingsId: number;
   declare userId: string;
   declare isNotification: boolean;
-  declare cookies: string | null; // deprecated field (keep for now)
+  declare hasGmailAccess: boolean; // New field to track Gmail access permission
+  declare automationEnabled: boolean; // Whether automation is enabled
+  declare automationMode: "full-run" | "buy-only" | "cross-account"; // Automation mode
   declare wrtoken: string | null; // new field
   declare wtoken: string | null; // new field
   declare cibusName: string | null;
@@ -37,6 +39,21 @@ Setting.init(
     isNotification: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+      allowNull: false,
+    },
+    hasGmailAccess: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    automationEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    automationMode: {
+      type: DataTypes.ENUM("full-run", "buy-only", "cross-account"),
+      defaultValue: "full-run",
       allowNull: false,
     },
     cookies: {

@@ -1,12 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
 
 import { WoltCredentialsHelp } from "@/components/WoltCredentialsHelp";
-import { AutomationModesHelp } from "@/components/AutomationModesHelp";
 import { AutomationToggle } from "@/components/AutomationToggle";
+import { NotificationToggle } from "@/components/NotificationToggle";
+import { AutomationModeSelector } from "@/components/AutomationModeSelector";
+import { GmailAccessIndicator } from "@/components/GmailAccessIndicator";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +21,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -59,6 +60,7 @@ type FormData = z.infer<typeof formSchema>;
 export function SettingsTab() {
   const { data: settings, isLoading: isLoadingSettings } = useSettingsQuery();
   const updateSettingsMutation = useUpdateSettingsMutation();
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -76,23 +78,29 @@ export function SettingsTab() {
   });
 
   useEffect(() => {
-    if (settings) {
+    if (settings && !isFormInitialized) {
       const parsedAmount = settings.giftAmount
         ? Math.round(parseFloat(settings.giftAmount))
         : 50;
 
-      // Use setValue instead of reset to ensure proper form updates
-      form.setValue("isNotification", settings.isNotification);
-      form.setValue("automationEnabled", settings.automationEnabled ?? false);
-      form.setValue("automationMode", settings.automationMode || "full-run");
-      form.setValue("wrtoken", settings.wrtoken || "");
-      form.setValue("wtoken", settings.wtoken || "");
-      form.setValue("cibusName", settings.cibusName || "");
-      form.setValue("cibusPassword", settings.cibusPassword || "");
-      form.setValue("cibusCompany", settings.cibusCompany || "");
-      form.setValue("giftAmount", parsedAmount);
+      // Use reset to properly update all form values from API data
+      const formValues: FormData = {
+        isNotification: Boolean(settings.isNotification),
+        automationEnabled: Boolean(settings.automationEnabled),
+        automationMode: settings.automationMode || "full-run",
+        wrtoken: settings.wrtoken || "",
+        wtoken: settings.wtoken || "",
+        cibusName: settings.cibusName || "",
+        cibusPassword: settings.cibusPassword || "",
+        cibusCompany: settings.cibusCompany || "",
+        giftAmount: parsedAmount,
+      };
+
+      // Reset the form with the new values
+      form.reset(formValues);
+      setIsFormInitialized(true);
     }
-  }, [settings, form]);
+  }, [settings, isFormInitialized, form]);
 
   async function onSubmit(values: FormData) {
     // Validate tokens
@@ -106,12 +114,18 @@ export function SettingsTab() {
       giftAmount: values.giftAmount.toFixed(2), // Convert to "35.00" format
     };
 
-    updateSettingsMutation.mutate(serverValues);
+    updateSettingsMutation.mutate(serverValues, {
+      onSuccess: () => {
+        // Reset form initialization flag so useEffect can reinitialize with fresh data
+        setIsFormInitialized(false);
+      },
+    });
   }
 
   const isLoading = isLoadingSettings || updateSettingsMutation.isPending;
 
-  if (isLoading) {
+  // Don't render the form until we have settings data AND form is initialized
+  if (isLoadingSettings || !settings || !isFormInitialized) {
     return (
       <div className="flex items-center justify-center p-6">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -122,93 +136,18 @@ export function SettingsTab() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <FormField
-            control={form.control}
-            name="isNotification"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-card">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Notifications</FormLabel>
-                  <FormDescription>
-                    Get notified about purchase updates
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <NotificationToggle control={form.control} name="isNotification" />
 
           <AutomationToggle control={form.control} name="automationEnabled" />
 
-          <FormField
+          <GmailAccessIndicator
+            hasGmailAccess={settings?.hasGmailAccess || false}
+          />
+
+          <AutomationModeSelector
             control={form.control}
             name="automationMode"
-            render={({ field }) => (
-              <FormItem className="rounded-lg border p-4 bg-card">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base flex items-center gap-2">
-                      Automation Mode
-                      <AutomationModesHelp />
-                    </FormLabel>
-                    <FormDescription>
-                      Choose how the automation should work
-                    </FormDescription>
-                  </div>
-                </div>
-                <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="bg-card w-full">
-                      <SelectValue placeholder="Select automation mode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-run">
-                        <div className="flex items-center gap-2">
-                          <span>🚀</span>
-                          <div>
-                            <p className="font-medium">Complete Automation</p>
-                            <p className="text-xs text-muted-foreground">
-                              Buy and apply automatically
-                            </p>
-                          </div>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="buy-only">
-                        <div className="flex items-center gap-2">
-                          <span>🛒</span>
-                          <div>
-                            <p className="font-medium">Buy Only</p>
-                            <p className="text-xs text-muted-foreground">
-                              Just purchase, apply manually
-                            </p>
-                          </div>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="cross-account">
-                        <div className="flex items-center gap-2">
-                          <span>⚡</span>
-                          <div>
-                            <p className="font-medium">
-                              Smart Account Strategy
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Buy from secondary, apply to main
-                            </p>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
           />
         </div>
 
