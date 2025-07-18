@@ -7,6 +7,7 @@ export default class User extends Model {
   declare refreshToken: string; // Google refresh token
   declare name?: string; // User's display name (optional for existing users)
   declare email?: string; // User's email address (optional for existing users)
+  declare apiKey?: string; // API key for SMS forwarding and external access
   // Timestamps
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -29,6 +30,11 @@ User.init(
     email: {
       type: DataTypes.STRING,
       allowNull: true, // Allow null for existing users
+    },
+    apiKey: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
     },
   },
   {

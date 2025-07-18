@@ -14,6 +14,7 @@ export default class Setting extends Model {
   declare cibusName: string | null;
   declare cibusPassword: string | null;
   declare cibusCompany: string | null;
+  declare cibus2FAcode: string | null; // 6-digit 2FA code from SMS
   declare giftAmount: number | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -77,6 +78,10 @@ Setting.init(
       allowNull: true,
     },
     cibusCompany: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    cibus2FAcode: {
       type: DataTypes.STRING,
       allowNull: true,
     },

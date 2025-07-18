@@ -9,6 +9,7 @@ import { AutomationToggle } from "@/components/AutomationToggle";
 import { NotificationToggle } from "@/components/NotificationToggle";
 import { AutomationModeSelector } from "@/components/AutomationModeSelector";
 import { GmailAccessIndicator } from "@/components/GmailAccessIndicator";
+import { ApiKeyButton } from "@/components/ApiKeyButton";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -284,6 +285,23 @@ export function SettingsTab() {
           <FormDescription className="text-sm text-muted-foreground">
             Choose from available Wolt gift card amounts
           </FormDescription>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            API Access
+          </h3>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">SMS Forwarding API Key</p>
+                <p className="text-sm text-muted-foreground">
+                  Generate an API key to allow external services to forward SMS messages to your account
+                </p>
+              </div>
+              <ApiKeyButton />
+            </div>
+          </div>
         </div>
 
         <Button

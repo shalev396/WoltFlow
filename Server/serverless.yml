@@ -191,6 +191,22 @@ functions:
           path: /api/setting
           method: post
 
+  #api
+  generateApiKey:
+    handler: ./dist/handlers/api/generateApiKey.handler
+    events:
+      - httpApi:
+          path: /api/generate-api-key
+          method: post
+
+  #sms
+  smsForward:
+    handler: ./dist/handlers/sms/smsForward.handler
+    events:
+      - httpApi:
+          path: /api/sms/forward
+          method: post
+
   #automation with selenium
   woltBuyGift:
     image:

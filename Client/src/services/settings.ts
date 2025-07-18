@@ -11,4 +11,11 @@ export const settingsService = {
     const response = await api.post<UserSettings>("/setting", settings);
     return response.data;
   },
+
+  async generateApiKey(): Promise<{ apiKey: string; message: string }> {
+    const response = await api.post<{ apiKey: string; message: string }>(
+      "/generate-api-key"
+    );
+    return response.data;
+  },
 };
