@@ -214,7 +214,7 @@ functions:
       command: ["dist/handlers/automation/woltBuyGift.handler"]
     memorySize: 1536
     ephemeralStorageSize: 1536
-    timeout: 200
+    timeout: 225
     events:
       - httpApi:
           path: /api/wolt/buyGift

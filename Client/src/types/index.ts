@@ -4,8 +4,16 @@ export interface Run {
   created_at: Date;
   updated_at: Date;
   status: "failed" | "in progress" | "success";
+  stage:
+    | "triggered"
+    | "refreshing tokens"
+    | "buying gift"
+    | "getting code from mail"
+    | "applying gift"
+    | "done";
   amount: number;
   is_notify: boolean;
+  mode: "full-run" | "buy-only" | "cross-account";
 }
 
 export interface Screenshot {

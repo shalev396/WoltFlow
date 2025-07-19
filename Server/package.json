@@ -5,6 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "postinstall": "patch-package",
     "build": "tsc",
     "dev": "npm run build && cross-env ENV=Development serverless offline",
     "deploy": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy",
@@ -19,6 +20,7 @@
     "dotenv": "^16.5.0",
     "google-auth-library": "^10.1.0",
     "jsonwebtoken": "^9.0.2",
+    "patch-package": "^8.0.0",
     "pdf-parse": "^1.1.1",
     "pg": "^8.16.2",
     "pg-hstore": "^2.3.4",

@@ -260,10 +260,12 @@ export const handler = async (
       await safeClick(driver, cibusElement as WebElement);
       await sleep(1000);
     }
-
+    //FIX use the cibus one
     const modalButtons = await waitForElement(
       driver,
-      By.xpath("/html/body/div[4]/div[8]/div/div[2]/div/aside/div[1]/button")
+      By.xpath(
+        "/html[1]/body[1]/div[4]/div[9]/div[1]/div[2]/div[1]/aside[1]/div[1]/button[1]/div[2]"
+      )
     );
     if (modalButtons) {
       await safeClick(driver, modalButtons);
@@ -348,6 +350,34 @@ export const handler = async (
         throw new Error("LEVEL 10");
       }
       console.log("start step 11");
+
+      // handle 2FA
+      const otpInput = await waitForElement(
+        driver,
+        By.xpath("//input[@id='txtOTP']"),
+        10000
+      );
+      if (otpInput) {
+        await sleep(10000);
+
+        // Fetch fresh settings to get the updated 2FA code
+        const freshSettings = await Setting.findOne({ where: { userId } });
+        if (!freshSettings) {
+          throw new Error("Could not fetch fresh settings for 2FA code");
+        }
+
+        await otpInput.clear();
+        await otpInput.sendKeys(freshSettings.get("cibus2FAcode") || "");
+      }
+      const loginButton2 = await waitForElement(
+        driver,
+        By.id("btnSubmit"),
+        10000
+      );
+      if (loginButton2) {
+        await safeClick(driver, loginButton2);
+      }
+
       // Step 4: Confirm Cibus payment
       const paymentButton = await waitForElement(
         driver,
@@ -415,51 +445,65 @@ export const handler = async (
       }
     }
 
-    // Fire-and-forget trigger getDailyCode function if purchase was successful
+    // Check if mode is "buy-only" and set success status if purchase was successful
     if ((success || process.env["ENV"] === "Development") && run) {
-      console.log("Gift purchase successful, triggering getDailyCode function");
+      const runMode = run.get("mode");
 
-      if (isDev) {
-        // For serverless offline, make HTTP request without waiting
+      if (runMode === "buy-only") {
         console.log(
-          "Running in offline mode, triggering getDailyCode (fire-and-forget)"
+          "Mode is 'buy-only', marking run as successful and skipping getDailyCode"
         );
-
-        // Fire and forget - don't await the response
-        fetch(`${baseURL}/gmail/daily-code?runId=${run.id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).catch((error) => {
-          console.error(
-            "HTTP request to getDailyCode failed (but continuing):",
-            error
-          );
+        await run.update({
+          status: "success",
+          // stage: "done",
         });
-
-        console.log(
-          "getDailyCode HTTP request triggered (not waiting for completion)"
-        );
       } else {
-        // For production, use Lambda invoke with fire-and-forget
-        const functionName = process.env["GET_DAILY_CODE_FUNCTION_NAME"]!;
-        const invokeParams = {
-          FunctionName: functionName,
-          InvocationType: "Event" as const, // Fire and forget
-          Payload: JSON.stringify({
-            queryStringParameters: { runId: run.id },
-          }),
-        };
-
-        // Fire and forget - don't await the response
-        // Synchronous invoke to ensure we see the result
-        const command = new InvokeCommand(invokeParams);
-        const result = await lambdaClient.send(command);
-
         console.log(
-          `getDailyCode Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`
+          "Gift purchase successful, triggering getDailyCode function"
         );
+
+        if (isDev) {
+          // For serverless offline, make HTTP request without waiting
+          console.log(
+            "Running in offline mode, triggering getDailyCode (fire-and-forget)"
+          );
+
+          // Fire and forget - don't await the response
+          fetch(`${baseURL}/gmail/daily-code?runId=${run.id}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }).catch((error) => {
+            console.error(
+              "HTTP request to getDailyCode failed (but continuing):",
+              error
+            );
+          });
+
+          console.log(
+            "getDailyCode HTTP request triggered (not waiting for completion)"
+          );
+        } else {
+          // For production, use Lambda invoke with fire-and-forget
+          const functionName = process.env["GET_DAILY_CODE_FUNCTION_NAME"]!;
+          const invokeParams = {
+            FunctionName: functionName,
+            InvocationType: "Event" as const, // Fire and forget
+            Payload: JSON.stringify({
+              queryStringParameters: { runId: run.id },
+            }),
+          };
+
+          // Fire and forget - don't await the response
+          // Synchronous invoke to ensure we see the result
+          const command = new InvokeCommand(invokeParams);
+          const result = await lambdaClient.send(command);
+
+          console.log(
+            `getDailyCode Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`
+          );
+        }
       }
     } else {
       console.log("Gift purchase failed, skipping getDailyCode trigger");

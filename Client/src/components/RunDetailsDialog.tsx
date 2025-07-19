@@ -218,7 +218,7 @@ export function RunDetailsDialog({
                           >
                             {stage.name}
                           </h4>
-                          {isActive && (
+                          {isActive && run.status === "in progress" && (
                             <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                               <Clock className="w-3 h-3" />
                               <span>In Progress</span>

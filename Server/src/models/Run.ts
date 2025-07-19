@@ -17,6 +17,7 @@ class Run extends Model {
     | "done";
   declare amount: number;
   declare is_notify: boolean;
+  declare mode: "full-run" | "buy-only" | "cross-account";
 }
 
 Run.init(
@@ -59,6 +60,11 @@ Run.init(
     is_notify: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+    },
+    mode: {
+      type: DataTypes.ENUM("full-run", "buy-only", "cross-account"),
+      allowNull: false,
+      defaultValue: "full-run",
     },
   },
   {

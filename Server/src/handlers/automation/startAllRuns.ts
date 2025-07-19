@@ -11,7 +11,6 @@ await sequelize.authenticate();
 const lambdaClient = new LambdaClient({
   region: process.env["AWS_REGION"] || "il-central-1", // configure region
 });
-
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
     const isDev = process.env["ENV"] === "Development";
@@ -61,6 +60,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
           stage: "triggered",
           amount: Number(userSettings.get("giftAmount")) || 0,
           is_notify: userSettings.get("isNotification") || false,
+          mode: userSettings.get("automationMode") || "full-run",
         });
 
         console.log(
