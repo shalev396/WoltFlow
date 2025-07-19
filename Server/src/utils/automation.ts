@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { By, until, WebDriver, WebElement } from "selenium-webdriver";
-import { PAGE_LOAD_TIME, sleep } from "./general";
+import { PAGE_LOAD_TIME, sleep } from "./general.js";
 
 export function getGiftCardUrl(amount: number): string | null {
   const giftCards: Array<{ amount: number; url: string }> = [

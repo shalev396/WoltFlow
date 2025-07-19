@@ -1,10 +1,13 @@
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
-import sequelize from "../../config/database";
-import Run from "../../models/Run";
-import Screenshot from "../../models/Screenshot";
-import { authMiddleware } from "../../middlewares/auth";
+import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import sequelize from "../../config/database.js";
+import Run from "../../models/Run.js";
+import Screenshot from "../../models/Screenshot.js";
+import { authMiddleware } from "../../middlewares/auth.js";
 import { Op } from "sequelize";
+import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
 
+// Connect to database
+await sequelize.authenticate();
 interface QueryParams {
   page?: string;
   limit?: string;
@@ -22,7 +25,7 @@ interface QueryParams {
 }
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event) => {
+  async (event: ICustomAPIGatewayProxyEvent) => {
     try {
       await sequelize.authenticate();
 

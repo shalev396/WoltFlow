@@ -1,26 +1,29 @@
 import { By, Builder, WebElement } from "selenium-webdriver";
 
-import { Lambda } from "aws-sdk";
-import sequelize from "../../config/database";
-import Setting from "../../models/Setting";
-import Run from "../../models/Run";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import sequelize from "../../config/database.js";
+import Setting from "../../models/Setting.js";
+import Run from "../../models/Run.js";
 import {
   safeClick,
   getGiftCardUrl,
   waitForElement,
   setupWoltCookies,
-} from "../../utils/automation";
-import { sleep } from "../../utils/general";
-import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util";
+} from "../../utils/automation.js";
+import { sleep } from "../../utils/general.js";
+import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
 import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
-} from "selenium-webdriver/chrome";
+} from "selenium-webdriver/chrome.js";
 import {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
+
+// Connect to database
+await sequelize.authenticate();
 
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -30,8 +33,8 @@ export const handler = async (
   console.log("Environment:", process.env["ENV"]);
   const LEVEL = event.queryStringParameters?.["LEVEL"];
 
-  const lambda = new Lambda({
-    region: process.env["AWS_REGION"] || "il-central-1",
+  const lambdaClient = new LambdaClient({
+    region: process.env["AWS_REGION"] || "il-central-1", // configure region
   });
   console.log("Start chrome + driver");
   const options = new ChromeOptions();
@@ -84,7 +87,6 @@ export const handler = async (
       };
     }
     console.log("start db");
-    await sequelize.authenticate();
     console.log("end db");
     // Get the run and associated user
     console.log("start get run");
@@ -451,15 +453,9 @@ export const handler = async (
         };
 
         // Fire and forget - don't await the response
-        const result = await lambda
-          .invoke(invokeParams)
-          .promise()
-          .catch((error) => {
-            console.error(
-              "Lambda invoke to getDailyCode failed (but continuing):",
-              error
-            );
-          });
+        // Synchronous invoke to ensure we see the result
+        const command = new InvokeCommand(invokeParams);
+        const result = await lambdaClient.send(command);
 
         console.log(
           `getDailyCode Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`

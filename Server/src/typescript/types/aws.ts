@@ -1,17 +1,5 @@
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
-import { ICustomAPIGatewayProxyEvent } from "../interfaces/aws";
-
-export interface CustomAPIGatewayProxyEvent extends APIGatewayProxyEvent {
-  userId?: string;
-}
-
-export interface CustomContext extends Context {
-  userId?: string;
-}
+import { APIGatewayProxyResult, Context } from "aws-lambda";
+import { ICustomAPIGatewayProxyEvent } from "../interfaces/aws.js";
 
 export type CustomAPIGatewayProxyHandler = (
   event: ICustomAPIGatewayProxyEvent,

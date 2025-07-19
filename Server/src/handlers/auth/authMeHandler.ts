@@ -1,10 +1,13 @@
 import { APIGatewayProxyEventV2 } from "aws-lambda";
 // import { google } from "googleapis";
 import jwt from "jsonwebtoken";
-import User from "../../models/User";
-import sequelize from "../../config/database";
+import User from "../../models/User.js";
+import sequelize from "../../config/database.js";
 import { OAuth2Client } from "google-auth-library"; // Standalone auth library
 import { oauth2_v2 } from "@googleapis/oauth2";
+
+// Connect to database
+await sequelize.authenticate();
 
 export const handler = async (event: APIGatewayProxyEventV2) => {
   try {
@@ -13,7 +16,6 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
       ? process.env["OAUTH_REDIRECT_URI_DEV"]!
       : process.env["OAUTH_REDIRECT_URI"]!;
     // 1. Ensure DB connection
-    await sequelize.authenticate();
 
     // 2. Parse cookies to get sessionToken
     const cookieHeader =

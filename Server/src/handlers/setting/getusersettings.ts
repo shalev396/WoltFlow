@@ -1,11 +1,14 @@
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
-import sequelize from "../../config/database";
-import Setting from "../../models/Setting";
-import { authMiddleware } from "../../middlewares/auth";
+import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import sequelize from "../../config/database.js";
+import Setting from "../../models/Setting.js";
+import { authMiddleware } from "../../middlewares/auth.js";
+import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
+
+// Connect to database
+await sequelize.authenticate();
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event) => {
-    await sequelize.authenticate();
+  async (event: ICustomAPIGatewayProxyEvent) => {
     const settings = await Setting.findOne({
       where: { userId: event.userId },
     });

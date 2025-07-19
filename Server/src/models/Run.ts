@@ -1,6 +1,6 @@
 import { Model, DataTypes } from "sequelize";
-import sequelize from "../config/database";
-import User from "./User";
+import sequelize from "../config/database.js";
+import User from "./User.js";
 
 class Run extends Model {
   declare id: number;

@@ -1,21 +1,24 @@
 import { By, Builder } from "selenium-webdriver";
 
-import sequelize from "../../config/database";
-import Setting from "../../models/Setting";
-import Code from "../../models/Code";
-import Run from "../../models/Run";
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
+import sequelize from "../../config/database.js";
+import Setting from "../../models/Setting.js";
+import Code from "../../models/Code.js";
+import Run from "../../models/Run.js";
+import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import {
   safeClick,
   waitForElement,
   setupWoltCookies,
-} from "../../utils/automation";
-import { sleep } from "../../utils/general";
-import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util";
+} from "../../utils/automation.js";
+import { sleep } from "../../utils/general.js";
+import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
 import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
-} from "selenium-webdriver/chrome";
+} from "selenium-webdriver/chrome.js";
+
+// Connect to database
+await sequelize.authenticate();
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
@@ -30,8 +33,6 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         body: JSON.stringify({ error: "Missing runId" }),
       };
     }
-
-    await sequelize.authenticate();
 
     // Get the run and associated user
     run = await Run.findByPk(runId);

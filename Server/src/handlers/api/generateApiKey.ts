@@ -1,14 +1,16 @@
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
-import sequelize from "../../config/database";
-import User from "../../models/User";
-import { authMiddleware } from "../../middlewares/auth";
+import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import sequelize from "../../config/database.js";
+import User from "../../models/User.js";
+import { authMiddleware } from "../../middlewares/auth.js";
 import { randomBytes } from "crypto";
+import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
+
+// Connect to database
+await sequelize.authenticate();
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event) => {
+  async (event: ICustomAPIGatewayProxyEvent) => {
     try {
-      await sequelize.authenticate();
-
       // Generate a unique API key
       const apiKey = randomBytes(32).toString("hex");
 

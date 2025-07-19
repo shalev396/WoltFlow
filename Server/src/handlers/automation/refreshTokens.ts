@@ -1,12 +1,15 @@
-import { Lambda } from "aws-sdk";
-import sequelize from "../../config/database";
-import Setting from "../../models/Setting";
-import Run from "../../models/Run";
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
-import { refreshTokens } from "../../utils/automation";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import sequelize from "../../config/database.js";
+import Setting from "../../models/Setting.js";
+import Run from "../../models/Run.js";
+import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import { refreshTokens } from "../../utils/automation.js";
 
-const lambda = new Lambda({
-  region: process.env["AWS_REGION"] || "il-central-1",
+// Connect to database
+await sequelize.authenticate();
+
+const lambdaClient = new LambdaClient({
+  region: process.env["AWS_REGION"] || "il-central-1", // configure region
 });
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
@@ -24,8 +27,6 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         body: JSON.stringify({ error: "Missing runId parameter" }),
       };
     }
-
-    await sequelize.authenticate();
 
     // Get the run and associated user
     run = await Run.findByPk(runId);
@@ -117,15 +118,9 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
         };
 
         // Fire and forget - don't await the response
-        const result = await lambda
-          .invoke(invokeParams)
-          .promise()
-          .catch((error) => {
-            console.error(
-              "Lambda invoke to woltBuyGift failed (but continuing):",
-              error
-            );
-          });
+        // Synchronous invoke to ensure we see the result
+        const command = new InvokeCommand(invokeParams);
+        const result = await lambdaClient.send(command);
 
         console.log(
           `woltBuyGift Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`

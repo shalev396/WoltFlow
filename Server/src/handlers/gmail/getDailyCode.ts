@@ -1,19 +1,21 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Lambda } from "aws-sdk";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { gmail_v1 } from "@googleapis/gmail"; // Scoped Gmail client
 import { OAuth2Client } from "google-auth-library"; // Standalone auth library
 
-// import { google } from "googleapis";
 import pdf from "pdf-parse";
 import dotenv from "dotenv";
-import sequelize from "../../config/database";
-import User from "../../models/User";
-import Code from "../../models/Code";
-import Run from "../../models/Run";
+import sequelize from "../../config/database.js";
+import User from "../../models/User.js";
+import Code from "../../models/Code.js";
+import Run from "../../models/Run.js";
+
+// Connect to database
+await sequelize.authenticate();
 
 dotenv.config();
-const lambda = new Lambda({
-  region: process.env["AWS_REGION"] || "il-central-1",
+const lambdaClient = new LambdaClient({
+  region: process.env["AWS_REGION"] || "il-central-1", // configure region
 });
 
 export const handler = async (
@@ -272,15 +274,8 @@ export const handler = async (
       };
 
       // Fire and forget - don't await the response
-      const result = await lambda
-        .invoke(invokeParams)
-        .promise()
-        .catch((error) => {
-          console.error(
-            "Lambda invoke to woltApplyGift failed (but continuing):",
-            error
-          );
-        });
+      const command = new InvokeCommand(invokeParams);
+      const result = await lambdaClient.send(command);
 
       console.log(
         `woltApplyGift Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`

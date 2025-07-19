@@ -1,7 +1,11 @@
-import AWS from "aws-sdk";
+import {
+  S3Client,
+  PutObjectCommand,
+  PutObjectCommandInput,
+} from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
-import Screenshot from "../models/Screenshot";
+import Screenshot from "../models/Screenshot.js";
 
 dotenv.config();
 
@@ -24,9 +28,7 @@ if (
 }
 
 // Initialize S3 client with explicit credentials
-const s3 = new AWS.S3({
-  accessKeyId: AWS_ACCESS_CONNECT_KEY,
-  secretAccessKey: AWS_ACCESS_SECRET,
+const s3 = new S3Client({
   region: AWS_REGION,
 });
 
@@ -97,14 +99,15 @@ export async function uploadImageToS3(
 
   // 3. Upload to S3
   try {
-    const uploadParams: AWS.S3.PutObjectRequest = {
+    const uploadParams: PutObjectCommandInput = {
       Bucket: ASSETS_BUCKET_NAME!,
       Key: key,
       Body: imgBuffer,
       ContentType: contentType!,
     };
 
-    await s3.upload(uploadParams).promise();
+    const command = new PutObjectCommand(uploadParams);
+    await s3.send(command);
     console.log(`Image uploaded successfully to ${ASSETS_BUCKET_NAME}/${key}`);
   } catch (error) {
     console.error("Error uploading image to S3:", error);

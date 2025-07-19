@@ -1,6 +1,6 @@
 // models/User.ts
 import { DataTypes, Model } from "sequelize";
-import sequelize from "../config/database";
+import sequelize from "../config/database.js";
 
 export default class User extends Model {
   declare userId: string; // Google sub (unique ID)

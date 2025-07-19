@@ -8,9 +8,9 @@ provider:
   name: aws
   # versionFunctions: false
   stage: ${opt:stage, 'dev'}
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   timeout: 30
-  memorySize: 1024
+  memorySize: 160
   region: il-central-1
   apiGateway:
     shouldStartNameWithService: true

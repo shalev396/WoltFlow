@@ -2,11 +2,14 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import sequelize from "../../config/database";
-import User from "../../models/User";
-import Setting from "../../models/Setting";
+import sequelize from "../../config/database.js";
+import User from "../../models/User.js";
+import Setting from "../../models/Setting.js";
 // import { google } from "googleapis";
 import { oauth2_v2 } from "@googleapis/oauth2";
+
+// Connect to database
+await sequelize.authenticate();
 
 dotenv.config();
 
@@ -18,8 +21,6 @@ export const handler = async (
   const oauthRedirectUri = isDev
     ? process.env["OAUTH_REDIRECT_URI_DEV"]!
     : process.env["OAUTH_REDIRECT_URI"]!;
-  // 1. Ensure DB connection
-  await sequelize.authenticate();
 
   // 2. Extract 'code', 'state', and 'scope'
   const code = event.queryStringParameters?.["code"];

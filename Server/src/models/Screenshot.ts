@@ -1,6 +1,6 @@
 import { Model, DataTypes } from "sequelize";
-import sequelize from "../config/database";
-import Run from "./Run";
+import sequelize from "../config/database.js";
+import Run from "./Run.js";
 
 class Screenshot extends Model {
   declare id: number;

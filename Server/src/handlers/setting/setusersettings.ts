@@ -1,9 +1,12 @@
 // src/handlers/setting/setUserSettings.ts
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
-import sequelize from "../../config/database";
-import Setting from "../../models/Setting";
-import { authMiddleware } from "../../middlewares/auth";
+import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import sequelize from "../../config/database.js";
+import Setting from "../../models/Setting.js";
+import { authMiddleware } from "../../middlewares/auth.js";
+import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
 
+// Connect to database
+await sequelize.authenticate();
 interface UpdateBody {
   isNotification?: boolean;
   hasGmailAccess?: boolean;
@@ -20,10 +23,8 @@ interface UpdateBody {
 }
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event) => {
+  async (event: ICustomAPIGatewayProxyEvent) => {
     try {
-      await sequelize.authenticate();
-
       // Parse incoming fields
       const body: UpdateBody = JSON.parse(event.body || "{}");
 

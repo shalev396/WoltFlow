@@ -1,7 +1,7 @@
 // src/models/Code.ts
 import { DataTypes, Model } from "sequelize";
-import sequelize from "../config/database";
-import User from "./User";
+import sequelize from "../config/database.js";
+import User from "./User.js";
 
 export default class Code extends Model {
   declare codeId: number;

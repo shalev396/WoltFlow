@@ -1,7 +1,10 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyResult } from "aws-lambda";
-import sequelize from "../../config/database";
-import User from "../../models/User";
-import Setting from "../../models/Setting";
+import sequelize from "../../config/database.js";
+import User from "../../models/User.js";
+import Setting from "../../models/Setting.js";
+
+// Connect to database
+await sequelize.authenticate();
 
 export const handler = async (
   event: APIGatewayProxyEventV2
@@ -16,8 +19,6 @@ export const handler = async (
         body: JSON.stringify({ error: "API key required" }),
       };
     }
-
-    await sequelize.authenticate();
 
     // Find user by API key
     const user = await User.findOne({

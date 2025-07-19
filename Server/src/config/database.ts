@@ -19,6 +19,8 @@ const sequelize = new Sequelize(databaseUrl, {
             rejectUnauthorized: false,
           }
         : undefined,
+    connectionTimeoutMillis: 60000,
+    statement_timeout: 60000,
   },
   logging: process.env["ENV"] === "Development" ? console.log : false,
 });

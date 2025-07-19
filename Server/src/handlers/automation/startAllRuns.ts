@@ -1,12 +1,15 @@
-import { Lambda } from "aws-sdk";
-import sequelize from "../../config/database";
-import User from "../../models/User";
-import Run from "../../models/Run";
-import Setting from "../../models/Setting";
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import sequelize from "../../config/database.js";
+import User from "../../models/User.js";
+import Run from "../../models/Run.js";
+import Setting from "../../models/Setting.js";
+import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 
-const lambda = new Lambda({
-  region: process.env["AWS_REGION"] || "il-central-1",
+// Connect to database
+await sequelize.authenticate();
+
+const lambdaClient = new LambdaClient({
+  region: process.env["AWS_REGION"] || "il-central-1", // configure region
 });
 
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
@@ -15,7 +18,6 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
     const baseURL = isDev
       ? "http://localhost:3000/api"
       : `https://woltflow.shalev396.com/api`;
-    await sequelize.authenticate();
 
     // Ensure Run table exists (dev only)
     if (process.env["ENV"] === "Development") {
@@ -109,7 +111,9 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
 
           try {
             // Synchronous invoke to ensure we see the result
-            const result = await lambda.invoke(invokeParams).promise();
+            const command = new InvokeCommand(invokeParams);
+            const result = await lambdaClient.send(command);
+
             console.log(
               `Successfully invoked refreshTokens Lambda for run ${newRun.get(
                 "id"

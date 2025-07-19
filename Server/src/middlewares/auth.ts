@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { CustomAPIGatewayProxyHandler } from "../typescript/types/aws";
-import { ICustomAPIGatewayProxyEvent } from "../typescript/interfaces/aws";
+import { CustomAPIGatewayProxyHandler } from "../typescript/types/aws.js";
+import { ICustomAPIGatewayProxyEvent } from "../typescript/interfaces/aws.js";
 import { APIGatewayProxyResult, Context } from "aws-lambda";
 console.log("authMiddleware");
 export const authMiddleware = (
