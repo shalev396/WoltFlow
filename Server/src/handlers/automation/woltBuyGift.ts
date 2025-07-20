@@ -40,7 +40,7 @@ export const handler = async (
   const LEVEL = event.queryStringParameters?.["LEVEL"];
 
   const lambdaClient = new LambdaClient({
-    region: process.env["AWS_REGIONS"] || "", // configure region
+    region: process.env["AWS_REGION"] || "", // Use AWS_REGION (standard) or default to provider region
   });
   console.log("Start chrome + driver");
   const options = new ChromeOptions();

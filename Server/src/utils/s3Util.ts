@@ -12,19 +12,19 @@ dotenv.config();
 const ENV = process.env["ENV"];
 let ENV_ASSETS_BUCKET_NAME = "";
 if (ENV === "prod") {
-  ENV_ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME_PROD"] || "";
+  ENV_ASSETS_BUCKET_NAME = process.env["S3_ASSETS_BUCKET_NAME_PROD"] || "";
 } else if (ENV === "dev") {
-  ENV_ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME_DEV"] || "";
+  ENV_ASSETS_BUCKET_NAME = process.env["S3_ASSETS_BUCKET_NAME_DEV"] || "";
 } else if (ENV === "local") {
-  ENV_ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME_DEV"] || "";
+  ENV_ASSETS_BUCKET_NAME = process.env["S3_ASSETS_BUCKET_NAME_DEV"] || "";
 }
 const ASSETS_BUCKET_NAME = ENV_ASSETS_BUCKET_NAME;
 // AWS Configuration
-const AWS_REGION = process.env["AWS_REGIONS"];
+const AWS_REGION = process.env["AWS_REGION"];
 
 if (!AWS_REGION || !ASSETS_BUCKET_NAME) {
   throw new Error(
-    "Missing one or more environment variables: " + "AWS_REGION, S3_BUCKET_NAME"
+    `Missing one or more environment variables: AWS_REGION=${AWS_REGION}, ASSETS_BUCKET_NAME=${ASSETS_BUCKET_NAME}, ENV=${ENV}`
   );
 }
 

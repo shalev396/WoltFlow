@@ -27,7 +27,7 @@ await sequelize.authenticate();
 
 dotenv.config();
 const lambdaClient = new LambdaClient({
-  region: process.env["AWS_REGIONS"] || "", // configure region
+  region: process.env["AWS_REGION"] || "", // Use AWS_REGION (standard) or default to provider region
 });
 
 export const handler = async (

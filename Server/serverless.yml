@@ -66,25 +66,24 @@ provider:
     JWT_SECRET: ${env:JWT_SECRET}
     DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE, ""}
 
-    # AWS Configuration
-    AWS_REGIONS: ${env:AWS_REGIONS}
+    # AWS Configuration - AWS_REGION is automatically provided by AWS Lambda
 
     # S3 Bucket Configuration
     S3_ASSETS_BUCKET_NAME_DEV: ${env:S3_ASSETS_BUCKET_NAME_DEV}
     S3_ASSETS_BUCKET_NAME_PROD: ${env:S3_ASSETS_BUCKET_NAME_PROD}
 
     # Lambda Function Names
-    REFRESH_TOKENS_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-refreshTokens
-    WOLT_BUY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltBuyGift
-    GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-getDailyCode
-    WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'dev'}-woltApplyGift
+    REFRESH_TOKENS_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-refreshTokens
+    WOLT_BUY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-woltBuyGift
+    GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-getDailyCode
+    WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-woltApplyGift
 
     # CloudFront and Domain Configuration (Stage-specific)
     DOMAIN_NAME: ${self:custom.domainName.${self:provider.stage}}
     CLIENT_BUCKET_NAME: ${self:custom.clientBucketName.${self:provider.stage}}
     ASSETS_BUCKET_NAME_NEW: ${self:custom.assetsBucketName.${self:provider.stage}}
-    HOSTED_ZONE_ID: ${env:HOSTED_ZONE_ID} # Route 53 hosted zone ID 
-    CERTIFICATE_ARN_DEV: ${env:CERTIFICATE_ARN_DEV} # ACM certificate ARN 
+    HOSTED_ZONE_ID: ${env:HOSTED_ZONE_ID} # Route 53 hosted zone ID
+    CERTIFICATE_ARN_DEV: ${env:CERTIFICATE_ARN_DEV} # ACM certificate ARN
     CERTIFICATE_ARN_PROD: ${env:CERTIFICATE_ARN_PROD} # ACM certificate ARN
 
   ecr:
@@ -100,10 +99,10 @@ provider:
           Action:
             - lambda:InvokeFunction
           Resource:
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-refreshTokens
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-woltBuyGift
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-getDailyCode
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'dev'}-woltApplyGift
+            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-refreshTokens
+            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltBuyGift
+            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-getDailyCode
+            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltApplyGift
 
         # S3 Permissions for all buckets
         - Effect: Allow
@@ -369,7 +368,7 @@ resources:
 
     # S3 Bucket for Client Files (React Vite Build)
     # This bucket will store the compiled React application files
-    # Stage-specific: 
+    # Stage-specific:
     ClientFilesBucket:
       Type: AWS::S3::Bucket
       Properties:

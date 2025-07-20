@@ -15,7 +15,7 @@ const ENV = process.env["ENV"];
 await sequelize.authenticate();
 
 const lambdaClient = new LambdaClient({
-  region: process.env["AWS_REGIONS"] || "", // configure region
+  region: process.env["AWS_REGION"] || "", // Use AWS_REGION (standard) or default to provider region
 });
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
