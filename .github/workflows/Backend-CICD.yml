@@ -64,8 +64,13 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         run: npm run deploy:dev
         working-directory: Server
+        env:
+          SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}
+
 
       - name: Deploy to prod stage
         if: github.ref == 'refs/heads/main'
         run: npm run deploy:prod
         working-directory: Server
+        env:
+          SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}
