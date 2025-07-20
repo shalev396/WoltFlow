@@ -34,6 +34,8 @@ app: woltflow
 
 service: woltflow-server
 
+frameworkVersion: ^4.0.0
+
 provider:
   name: aws
   # versionFunctions: false
@@ -147,25 +149,18 @@ provider:
 
 # Package Configuration
 package:
-  # individually: true
+  individually: true
   excludeDevDependencies: true
   patterns:
     - "!src/**"
-    # - "!node_modules/**"
-    # - "node_modules/pg/**"
     - "!.serverless/**"
-    - "!.webpack/**"
-    - "!.build/**"
     - "!tsconfig.json"
     - "!*.md"
     - "!screenshots/**"
-    - "!layers/**"
     - "!undefined/**"
     - "!*.zip"
-    - "!webpack.config.js"
     - "dist/**"
     - "package.json"
-    # - "node_modules/**"
 
 build:
   esbuild: false # Disable built-in ESBuild support

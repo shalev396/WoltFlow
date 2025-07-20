@@ -58,6 +58,20 @@ jobs:
         run: npm run build
         working-directory: Server
 
+      - name: Debug package contents before deployment
+        run: |
+          echo "=== Checking package size and contents ==="
+          echo "Current directory contents:"
+          ls -la
+          echo "Dist directory size:"
+          du -sh dist/ || echo "du command failed, using alternative"
+          find dist/ -type f | wc -l
+          echo "Node modules size:"
+          du -sh node_modules/ | head -10 || echo "node_modules check failed"
+          echo "Total directory size:"
+          du -sh . || echo "directory size check failed"
+        working-directory: Server
+
       - name: Deploy to dev stage
         if: github.ref == 'refs/heads/dev'
         run: npm run deploy:dev
