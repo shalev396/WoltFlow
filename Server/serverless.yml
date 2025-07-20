@@ -165,7 +165,7 @@ package:
     - "!webpack.config.js"
     - "dist/**"
     - "package.json"
-    - "node_modules/**"
+    # - "node_modules/**"
 
 build:
   esbuild: false # Disable built-in ESBuild support
