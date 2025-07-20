@@ -152,6 +152,7 @@ package:
   individually: true
   excludeDevDependencies: true
   patterns:
+    # Exclude source and development files
     - "!src/**"
     - "!.serverless/**"
     - "!tsconfig.json"
@@ -159,6 +160,42 @@ package:
     - "!screenshots/**"
     - "!undefined/**"
     - "!*.zip"
+    - "!.env*"
+    - "!.dockerignore"
+    - "!Dockerfile"
+    - "!patches/**"
+    - "!woltBuyGift.json"
+
+    # Exclude AWS SDK - Lambda runtime provides it
+    - "!node_modules/aws-sdk/**"
+
+    # Exclude large dev dependencies that might slip through
+    - "!node_modules/typescript/**"
+    - "!node_modules/@types/**"
+    - "!node_modules/@esbuild/**"
+    - "!node_modules/webpack/**"
+    - "!node_modules/serverless/**"
+
+    # # Exclude unnecessary files from all node_modules
+    # - "!node_modules/**/README*"
+    # - "!node_modules/**/readme*"
+    # - "!node_modules/**/CHANGELOG*"
+    # - "!node_modules/**/changelog*"
+    # - "!node_modules/**/HISTORY*"
+    # - "!node_modules/**/LICENSE*"
+    # - "!node_modules/**/license*"
+    # - "!node_modules/**/*.md"
+    # - "!node_modules/**/*.txt"
+    # - "!node_modules/**/test/**"
+    # - "!node_modules/**/tests/**"
+    # - "!node_modules/**/spec/**"
+    # - "!node_modules/**/docs/**"
+    # - "!node_modules/**/examples/**"
+    # - "!node_modules/**/.github/**"
+    # - "!node_modules/**/coverage/**"
+    # - "!node_modules/**/*.map"
+
+    # Include only what we need
     - "dist/**"
     - "package.json"
 

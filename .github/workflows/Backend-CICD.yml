@@ -89,8 +89,24 @@ jobs:
           echo "Checking .serverless directory after packaging:"
           ls -la .serverless/ || echo "No .serverless directory found"
           if [ -d .serverless ]; then
-            echo "Package contents:"
-            find .serverless -name "*.zip" -exec sh -c 'echo "Checking: $1"; unzip -l "$1" | head -20' _ {} \; || echo "Could not examine packages"
+            echo "Package sizes (should be much smaller now):"
+            ls -lh .serverless/*.zip | head -5
+            echo "Verifying AWS SDK exclusion - checking first package:"
+            FIRST_ZIP=$(ls .serverless/*.zip | head -1)
+            if [ -f "$FIRST_ZIP" ]; then
+              echo "Checking if aws-sdk is excluded from $FIRST_ZIP:"
+              unzip -l "$FIRST_ZIP" | grep -i "aws-sdk" || echo "✓ aws-sdk successfully excluded!"
+              echo "Checking if node_modules are included:"
+              unzip -l "$FIRST_ZIP" | grep "node_modules" | head -10 || echo "No node_modules found"
+              echo "Package size verification:"
+              UNZIPPED_SIZE=$(unzip -l "$FIRST_ZIP" | tail -1 | awk '{print $1}')
+              echo "Unzipped size: $UNZIPPED_SIZE bytes"
+              if [ "$UNZIPPED_SIZE" -lt 250000000 ]; then
+                echo "✓ Package size is under 250MB limit!"
+              else
+                echo "✗ Package size still exceeds 250MB limit"
+              fi
+            fi
           fi
         working-directory: Server
 
