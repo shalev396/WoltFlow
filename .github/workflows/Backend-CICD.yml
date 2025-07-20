@@ -28,7 +28,6 @@ jobs:
           node-version: 22
 
       - name: Load environment variables from ENV
-        if: github.ref == 'refs/heads/main'
         run: |
           echo '${{ secrets.ENV }}' > .env
         working-directory: Server
