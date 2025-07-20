@@ -4,8 +4,6 @@ permissions:
   id-token: write
   contents: read
 
-
-
 on:
   push:
     branches:
@@ -45,7 +43,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ env.AWS_REGIONS }}
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
       - name: Login to Amazon ECR
@@ -53,7 +51,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --production
         working-directory: Server
 
       - name: Build TypeScript
@@ -66,7 +64,6 @@ jobs:
         working-directory: Server
         env:
           SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}
-
 
       - name: Deploy to prod stage
         if: github.ref == 'refs/heads/main'
