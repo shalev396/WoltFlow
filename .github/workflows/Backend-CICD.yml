@@ -33,6 +33,14 @@ jobs:
           echo '${{ secrets.ENV }}' > .env
         working-directory: Server
 
+      - name: Mask and export .env variables
+        shell: bash
+        run: |
+          while IFS='=' read -r key value; do
+            echo "::add-mask::$value"
+            echo "$key=$value" >> $GITHUB_ENV
+          done < Server/.env
+
       - name: Export .env variables
         uses: falti/dotenv-action@v1.1.4
         with:
