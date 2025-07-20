@@ -68,8 +68,30 @@ jobs:
           find dist/ -type f | wc -l
           echo "Node modules size:"
           du -sh node_modules/ | head -10 || echo "node_modules check failed"
+          echo "=== DEBUGGING NODE_MODULES BLOAT ==="
+          echo "Top 20 largest directories in node_modules:"
+          du -sh node_modules/*/ | sort -hr | head -20
+          echo "Total node_modules file count:"
+          find node_modules/ -type f | wc -l
+          echo "Checking for duplicate packages:"
+          find node_modules/ -name "package.json" -exec grep -l "selenium-webdriver\|pdf-parse\|typescript" {} \; | head -10
           echo "Total directory size:"
           du -sh . || echo "directory size check failed"
+        working-directory: Server
+
+      - name: Debug serverless packaging
+        run: |
+          echo "=== DEBUGGING SERVERLESS PACKAGING ==="
+          echo "Checking package.json production vs dev dependencies:"
+          node -e "const pkg = require('./package.json'); console.log('Prod deps:', Object.keys(pkg.dependencies || {}).length); console.log('Dev deps:', Object.keys(pkg.devDependencies || {}).length);"
+          echo "Testing excludeDevDependencies with --verbose:"
+          npx serverless package --stage prod --verbose | grep -E "(exclud|packag|node_modules)" || echo "No exclusion info found"
+          echo "Checking .serverless directory after packaging:"
+          ls -la .serverless/ || echo "No .serverless directory found"
+          if [ -d .serverless ]; then
+            echo "Package contents:"
+            find .serverless -name "*.zip" -exec sh -c 'echo "Checking: $1"; unzip -l "$1" | head -20' _ {} \; || echo "Could not examine packages"
+          fi
         working-directory: Server
 
       - name: Deploy to dev stage
