@@ -165,9 +165,9 @@ export default function Runs() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-24 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
+      <main className="container mx-auto px-4 pt-18 pb-8">
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
             Runs
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -176,7 +176,7 @@ export default function Runs() {
         </div>
 
         {/* Countdown Card and Filters */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
           {/* Next Run Card */}
           <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 border-blue-200 dark:border-blue-800">
             <CardHeader className="pb-3">
@@ -195,7 +195,7 @@ export default function Runs() {
                   <p className="text-sm font-medium text-muted-foreground mb-2">
                     Time Until Next Run
                   </p>
-                  <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <p className="text-xl sm:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {timeUntilNextRun || "Calculating..."}
                   </p>
                 </div>
@@ -319,11 +319,11 @@ export default function Runs() {
               </div>
             ) : (
               <>
-                <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-center text-foreground font-medium pl-6">
+                        <TableHead className="text-center text-foreground font-medium w-16">
                           ID
                         </TableHead>
                         <TableHead className="text-center text-foreground font-medium">
@@ -332,16 +332,16 @@ export default function Runs() {
                         <TableHead className="text-center text-foreground font-medium hidden sm:table-cell">
                           Status
                         </TableHead>
-                        <TableHead className="text-center text-foreground font-medium hidden 2xl:table-cell">
+                        <TableHead className="text-center text-foreground font-medium hidden lg:table-cell">
                           Stage
                         </TableHead>
                         <TableHead className="text-center text-foreground font-medium">
                           Amount
                         </TableHead>
-                        <TableHead className="text-center text-foreground font-medium hidden sm:table-cell lg:hidden xl:table-cell">
+                        <TableHead className="text-center text-foreground font-medium hidden md:table-cell">
                           Screenshots
                         </TableHead>
-                        <TableHead className="text-center text-foreground font-medium pr-6">
+                        <TableHead className="text-center text-foreground font-medium">
                           Actions
                         </TableHead>
                       </TableRow>
@@ -369,18 +369,18 @@ export default function Runs() {
                             key={run.id}
                             className="hover:bg-muted/50 transition-colors"
                           >
-                            <TableCell className="text-center font-medium pl-6">
+                            <TableCell className="text-center font-medium">
                               #{run.id}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="space-y-1">
-                                <p className="font-medium text-foreground">
+                                <p className="font-medium text-foreground text-sm">
                                   {format(
                                     new Date(run.created_at),
                                     "MMM d, yyyy"
                                   )}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs text-muted-foreground">
                                   {format(new Date(run.created_at), "h:mm a")}
                                 </p>
                               </div>
@@ -392,7 +392,7 @@ export default function Runs() {
                                   run.status.slice(1)}
                               </span>
                             </TableCell>
-                            <TableCell className="text-center hidden 2xl:table-cell">
+                            <TableCell className="text-center hidden lg:table-cell">
                               <span className="text-sm text-muted-foreground capitalize">
                                 {run.stage}
                               </span>
@@ -402,7 +402,7 @@ export default function Runs() {
                                 ₪{run.amount.toFixed(2)}
                               </span>
                             </TableCell>
-                            <TableCell className="text-center hidden sm:table-cell lg:hidden xl:table-cell">
+                            <TableCell className="text-center hidden md:table-cell">
                               {run.Screenshots && run.Screenshots.length > 0 ? (
                                 <Button
                                   variant="outline"
@@ -421,13 +421,15 @@ export default function Runs() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-center pr-6">
+                            <TableCell className="text-center">
                               <RunDetailsDialog
                                 run={run}
                                 trigger={
                                   <Button variant="outline" size="sm">
                                     <Eye className="h-4 w-4 mr-1" />
-                                    View
+                                    <span className="hidden sm:inline">
+                                      View
+                                    </span>
                                   </Button>
                                 }
                               />
@@ -440,7 +442,7 @@ export default function Runs() {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between mt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
                   <div className="flex items-center space-x-2">
                     <p className="text-sm text-muted-foreground">
                       Showing {(currentPage - 1) * pageSize + 1} to{" "}

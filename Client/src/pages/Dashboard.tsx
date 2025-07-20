@@ -12,9 +12,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto px-4 pt-24 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
+      <main className="container mx-auto px-4 pt-18 pb-8">
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
             Dashboard
           </h1>
           {user?.name && (

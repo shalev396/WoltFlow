@@ -195,21 +195,26 @@ custom:
   # ================================
   # Domain names for different stages
   domainName:
+    local: ${env:DOMAIN_NAME_LOCAL}
     dev: ${env:DOMAIN_NAME_DEV} # Will have its own certificate
     prod: ${env:DOMAIN_NAME_PROD} # Will have its own certificate
 
   # Client bucket names for different stages
   clientBucketName:
+    local: ${env:S3_BUCKET_NAME_LOCAL}
     dev: ${env:S3_BUCKET_NAME_DEV}
     prod: ${env:S3_BUCKET_NAME_PROD}
 
   # Assets bucket names for different stages
   assetsBucketName:
+    local: ${env:S3_ASSETS_BUCKET_NAME_LOCAL}
     dev: ${env:S3_ASSETS_BUCKET_NAME_DEV}
     prod: ${env:S3_ASSETS_BUCKET_NAME_PROD}
 
   # CloudFront aliases - enable custom domains for both stages
   aliases:
+    local:
+      - ${self:custom.domainName.local} # local.woltflow.shalev396.com
     dev:
       - ${self:custom.domainName.dev} # dev.woltflow.shalev396.com
     prod:
@@ -217,6 +222,10 @@ custom:
 
   # SSL/TLS Certificate configuration - use manually created certificates
   viewerCertificate:
+    local:
+      AcmCertificateArn: ${env:CERTIFICATE_ARN_LOCAL} # Manually created local certificate
+      SslSupportMethod: sni-only
+      MinimumProtocolVersion: TLSv1.2_2021
     dev:
       AcmCertificateArn: ${env:CERTIFICATE_ARN_DEV} # Manually created dev certificate
       SslSupportMethod: sni-only
@@ -228,6 +237,7 @@ custom:
 
   # CloudFront distribution descriptions
   distributionComment:
+    local: "WoltFlow Local"
     dev: "WoltFlow Development"
     prod: "WoltFlow Production"
 

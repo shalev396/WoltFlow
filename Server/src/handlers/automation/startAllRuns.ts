@@ -56,6 +56,14 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
           continue;
         }
 
+        // Check if automation is enabled for this user
+        if (!userSettings.get("automationEnabled")) {
+          console.log(
+            `Skipping user ${user.get("userId")} - automation disabled`
+          );
+          continue;
+        }
+
         // Create a new run for this user
         const newRun = await Run.create({
           user_id: user.get("userId"),

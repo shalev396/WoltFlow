@@ -76,7 +76,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky border-b top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed border-b top-0 z-50 w-full bg-background/98 backdrop-blur-md supports-[backdrop-filter]:bg-background/95 shadow-sm">
       <NavigationMenu className="mx-auto max-w-none">
         <NavigationMenuList className="container h-16 px-4 w-screen flex justify-between items-center">
           {/* Logo */}

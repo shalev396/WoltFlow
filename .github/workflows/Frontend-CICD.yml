@@ -33,6 +33,7 @@ jobs:
           path: Client/.env
           export-variables: true
           keys-case: bypass
+          mask-variables: true
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
@@ -45,9 +46,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_CONNECT_KEY }}
-          aws-secret-access-key: ${{ env.AWS_ACCESS_SECRET }}
-          aws-region: ${{ env.AWS_REGIONS }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
       - name: Deploy to Dev S3 and CloudFront
         if: github.ref == 'refs/heads/dev'
