@@ -1,19 +1,27 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 import pg from "pg";
+
+// Environment variables
 dotenv.config();
 
-const databaseUrl =
-  process.env["ENV"] === "Development"
-    ? process.env["DATABASE_URL_DEV"]!
-    : process.env["DATABASE_URL"]!;
+const ENV = process.env["ENV"];
+let ENV_DATABASE_URL = "";
+if (ENV === "prod") {
+  ENV_DATABASE_URL = process.env["DATABASE_URL_PROD"] || "";
+} else if (ENV === "dev") {
+  ENV_DATABASE_URL = process.env["DATABASE_URL_DEV"] || "";
+} else if (ENV === "local") {
+  ENV_DATABASE_URL = process.env["DATABASE_URL_LOCAL"] || "";
+}
+const databaseUrl = ENV_DATABASE_URL;
 
 const sequelize = new Sequelize(databaseUrl, {
   dialect: "postgres",
   dialectModule: pg,
   dialectOptions: {
     ssl:
-      process.env["ENV"] === "Production"
+      ENV === "prod"
         ? {
             require: true,
             rejectUnauthorized: false,
@@ -22,7 +30,7 @@ const sequelize = new Sequelize(databaseUrl, {
     connectionTimeoutMillis: 60000,
     statement_timeout: 60000,
   },
-  logging: process.env["ENV"] === "Development" ? console.log : false,
+  logging: ENV === "local" ? console.log : false,
 });
 
 // Sync database in development mode

@@ -1,13 +1,22 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
+
+// Environment variables
 dotenv.config();
 
+const ENV = process.env["ENV"];
+
+let ENV_OAUTH_REDIRECT_URI = "";
+if (ENV === "prod") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_PROD"] || "";
+} else if (ENV === "dev") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_DEV"] || "";
+} else if (ENV === "local") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_LOCAL"] || "";
+}
 export const handler: APIGatewayProxyHandler = async () => {
-  const isDev = process.env["ENV"] === "Development";
-  const oauthRedirectUri = isDev
-    ? process.env["OAUTH_REDIRECT_URI_DEV"]!
-    : process.env["OAUTH_REDIRECT_URI"]!;
+  const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
   console.log("oauthRedirectUri", oauthRedirectUri);
   // 1. Create OAuth2 client
   const oauth2Client = new OAuth2Client(
@@ -42,10 +51,6 @@ export const handler: APIGatewayProxyHandler = async () => {
     statusCode: 302,
     headers: {
       Location: consentUrl,
-      "Access-Control-Allow-Origin":
-        process.env["ENV"] === "Development"
-          ? "http://localhost:5173"
-          : "https://woltflow.shalev396.com",
       "Access-Control-Allow-Credentials": "true",
     },
     body: "",

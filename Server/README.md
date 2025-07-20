@@ -39,7 +39,7 @@ Server/
 │       ├── interfaces/
 │       └── types/
 ├── .env                             # Env vars placeholder
-├── package.json                     # Scripts: build, dev, deploy, 
+├── package.json                     # Scripts: build, dev, deploy,
 ├── serverless.yml                   # Serverless Framework config
 └── tsconfig.json                    # TypeScript config
 ```
@@ -49,33 +49,55 @@ Server/
 Create a `.env` file with:
 
 ```
+#AWS
 AWS_ACCESS_CONNECT_KEY=""
 AWS_ACCESS_SECRET=""
-S3_BUCKET_NAME=""
-CLOUDFRONT_DISTRIBUTION_ID=""
 
+
+S3_ASSETS_BUCKET_NAME_DEV=""
+S3_ASSETS_BUCKET_NAME_PROD=""
+S3_BUCKET_NAME_DEV=""
+S3_BUCKET_NAME_PROD=""
+
+CLOUDFRONT_DISTRIBUTION_ID_DEV=""
+CLOUDFRONT_DISTRIBUTION_ID_PROD=""
+
+AWS_REGIONS=""
+
+DOMAIN_NAME_DEV=""
+DOMAIN_NAME_PROD=""
+
+CERTIFICATE_ARN_DEV=""
+CERTIFICATE_ARN_PROD=""
+
+
+HOSTED_ZONE_ID=""
+
+#Serverless
 SLS_ACCESS_KEY=""
 
-# ENV="Development" # defaults to prod
-
-DATABASE_URL=""
+#Database
+DATABASE_URL_LOCAL=""
 DATABASE_URL_DEV=""
+DATABASE_URL_PROD=""
+
+#JWT
 JWT_SECRET=""
 
+#Google
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
+OAUTH_REDIRECT_URI_LOCAL=""
 OAUTH_REDIRECT_URI_DEV=""
-OAUTH_REDIRECT_URI=""
+OAUTH_REDIRECT_URI_PROD=""
 
+#Function names
 REFRESH_TOKENS_FUNCTION_NAME=""
 WOLT_BUY_GIFT_FUNCTION_NAME=""
 GET_DAILY_CODE_FUNCTION_NAME=""
 WOLT_APPLY_GIFT_FUNCTION_NAME=""
-
-AWS_REGIONS=""
-ASSETS_BUCKET_NAME=""
-
-DEVELOPMENT_DATE="" # for testing 
+#Developmrnt
+DEVELOPMENT_DATE=""
 ```
 
 ## Setup
@@ -163,6 +185,7 @@ Response (200):
 Updates settings (body fields optional).
 
 Request Body:
+
 ```json
 {
   "isNotification": true,
@@ -174,6 +197,7 @@ Request Body:
   "giftAmount": 50.0
 }
 ```
+
 ### Runs
 
 #### GET `/api/runs` (requires auth cookie)

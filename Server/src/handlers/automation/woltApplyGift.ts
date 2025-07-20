@@ -16,7 +16,12 @@ import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
+import dotenv from "dotenv";
 
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
 // Connect to database
 await sequelize.authenticate();
 
@@ -24,7 +29,6 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
   let run: Run | null = null;
   let driver: any = null;
-  const isDev = process.env["ENV"] === "Development";
   try {
     const runId = event.queryStringParameters?.["runId"];
     if (!runId) {
@@ -202,7 +206,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     }
 
     // Take final screenshot and return it only in development mode
-    if (isDev && driver) {
+    if (ENV === "local" && driver) {
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         return {

@@ -7,8 +7,9 @@
   "scripts": {
     "postinstall": "patch-package",
     "build": "tsc",
-    "dev": "npm run build && cross-env ENV=Development serverless offline",
-    "deploy": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy",
+    "dev": "npm run build && serverless offline --stage local",
+    "deploy:dev": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage dev",
+    "deploy:prod": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage prod",
     "test:woltBuyGift": "serverless invoke -f woltBuyGift --path woltBuyGift.json"
   },
   "dependencies": {

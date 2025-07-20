@@ -104,11 +104,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       return {
         statusCode: 200,
         headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin":
-            process.env["ENV"] === "Development"
-              ? "http://localhost:5173"
-              : "https://woltflow.shalev396.com",
           "Access-Control-Allow-Credentials": "true",
         },
         body: JSON.stringify({
@@ -143,11 +138,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       return {
         statusCode: 500,
         headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin":
-            process.env["ENV"] === "Development"
-              ? "http://localhost:5173"
-              : "https://woltflow.shalev396.com",
           "Access-Control-Allow-Credentials": "true",
         },
         body: JSON.stringify({ error: "Failed to fetch runs" }),

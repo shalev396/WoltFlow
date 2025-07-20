@@ -1,21 +1,31 @@
 import { APIGatewayProxyEventV2 } from "aws-lambda";
-// import { google } from "googleapis";
 import jwt from "jsonwebtoken";
 import User from "../../models/User.js";
 import sequelize from "../../config/database.js";
 import { OAuth2Client } from "google-auth-library"; // Standalone auth library
 import { oauth2_v2 } from "@googleapis/oauth2";
+import dotenv from "dotenv";
+
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
+
+let ENV_OAUTH_REDIRECT_URI = "";
+if (ENV === "prod") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_PROD"] || "";
+} else if (ENV === "dev") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_DEV"] || "";
+} else if (ENV === "local") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_LOCAL"] || "";
+}
 
 // Connect to database
 await sequelize.authenticate();
 
 export const handler = async (event: APIGatewayProxyEventV2) => {
   try {
-    const isDev = process.env["ENV"] === "Development";
-    const oauthRedirectUri = isDev
-      ? process.env["OAUTH_REDIRECT_URI_DEV"]!
-      : process.env["OAUTH_REDIRECT_URI"]!;
-    // 1. Ensure DB connection
+    const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
 
     // 2. Parse cookies to get sessionToken
     const cookieHeader =
@@ -26,12 +36,6 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
       cookieHeader.split("; ").map((p: string) => p.split("="))
     );
     const token = cookies["sessionToken"];
-
-    // const cookieHeader = event.headers.Cookie || event.headers.cookie || "";
-    // const cookies = Object.fromEntries(
-    //   cookieHeader.split("; ").map((pair: string) => pair.split("="))
-    // );
-    // const token = cookies["sessionToken"];
     if (!token) throw new Error("No session token");
 
     // 3. Verify JWT and extract userId
@@ -78,11 +82,6 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     return {
       statusCode: 200,
       headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin":
-          process.env["ENV"] === "Development"
-            ? "http://localhost:5173"
-            : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({
@@ -96,7 +95,7 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     // 9. Clear session cookie on failure
 
     const cookieSettings =
-      process.env["ENV"] === "Development"
+      ENV === "local"
         ? "HttpOnly; SameSite=Lax"
         : "HttpOnly; Secure; SameSite=Strict";
 
@@ -104,11 +103,6 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
       statusCode: 401,
       headers: {
         "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin":
-          process.env["ENV"] === "Development"
-            ? "http://localhost:5173"
-            : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({

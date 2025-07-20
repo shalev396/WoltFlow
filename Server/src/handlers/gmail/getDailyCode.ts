@@ -10,12 +10,24 @@ import User from "../../models/User.js";
 import Code from "../../models/Code.js";
 import Run from "../../models/Run.js";
 
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
+let ENV_OAUTH_REDIRECT_URI = "";
+if (ENV === "prod") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_PROD"] || "";
+} else if (ENV === "dev") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_DEV"] || "";
+} else if (ENV === "local") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_LOCAL"] || "";
+}
 // Connect to database
 await sequelize.authenticate();
 
 dotenv.config();
 const lambdaClient = new LambdaClient({
-  region: process.env["AWS_REGION"] || "il-central-1", // configure region
+  region: process.env["AWS_REGIONS"] || "", // configure region
 });
 
 export const handler = async (
@@ -24,14 +36,9 @@ export const handler = async (
   let run: Run | null = null;
 
   try {
-    const isDev = process.env["ENV"] === "Development";
-    const baseURL = isDev
-      ? "http://localhost:3000/api"
-      : `https://woltflow.shalev396.com/api`;
+    const baseURL_LOCAL = "http://localhost:3000/api";
 
-    const oauthRedirectUri = isDev
-      ? process.env["OAUTH_REDIRECT_URI_DEV"]!
-      : process.env["OAUTH_REDIRECT_URI"]!;
+    const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
 
     await sequelize.authenticate();
     // ensure Codes table exists (dev only)
@@ -241,14 +248,14 @@ export const handler = async (
 
     // Fire-and-forget trigger woltApplyGift function
 
-    if (isDev) {
+    if (ENV === "local") {
       // For serverless offline, make HTTP request without waiting
       console.log(
         "Running in offline mode, triggering woltApplyGift (fire-and-forget)"
       );
 
       // Fire and forget - don't await the response
-      fetch(`${baseURL}/wolt/applyGift?runId=${runId}`, {
+      fetch(`${baseURL_LOCAL}/wolt/applyGift?runId=${runId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -4,20 +4,22 @@ import Setting from "../../models/Setting.js";
 import Run from "../../models/Run.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import { refreshTokens } from "../../utils/automation.js";
+import dotenv from "dotenv";
 
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
 // Connect to database
 await sequelize.authenticate();
 
 const lambdaClient = new LambdaClient({
-  region: process.env["AWS_REGION"] || "il-central-1", // configure region
+  region: process.env["AWS_REGIONS"] || "", // configure region
 });
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let run: Run | null = null;
-  const isDev = process.env["ENV"] === "Development";
-  const baseURL = isDev
-    ? "http://localhost:3000/api"
-    : `https://woltflow.shalev396.com/api`;
+  const baseURL_LOCAL = "http://localhost:3000/api";
 
   try {
     const runId = event.queryStringParameters?.["runId"];
@@ -84,14 +86,14 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       console.log("Tokens refreshed successfully for run:", runId);
 
       // Fire-and-forget invoke woltBuyGift function
-      if (isDev) {
+      if (ENV === "local") {
         // For serverless offline, make HTTP request without waiting
         console.log(
           "Running in offline mode, triggering woltBuyGift (fire-and-forget)"
         );
 
         // Fire and forget - don't await the response
-        fetch(`${baseURL}/wolt/buyGift?runId=${runId}`, {
+        fetch(`${baseURL_LOCAL}/wolt/buyGift?runId=${runId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

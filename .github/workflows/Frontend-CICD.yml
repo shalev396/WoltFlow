@@ -1,0 +1,62 @@
+name: Frontend CI/CD
+on:
+  push:
+    branches:
+      - "main" # Production deployment
+      - "dev" # Development deployment
+    paths:
+      - "Client/**"
+      - ".github/workflows/Frontend-CICD.yml"
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Load environment variables from ENV
+        run: |
+          echo '${{ secrets.ENV }}' > .env
+        working-directory: Client
+
+      - name: Export .env variables
+        uses: falti/dotenv-action@v1.1.4
+        with:
+          path: Client/.env
+          export-variables: true
+          keys-case: bypass
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: Client
+
+      - name: Build
+        run: npm run build
+        working-directory: Client
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_CONNECT_KEY }}
+          aws-secret-access-key: ${{ env.AWS_ACCESS_SECRET }}
+          aws-region: ${{ env.AWS_REGIONS }}
+
+      - name: Deploy to Dev S3 and CloudFront
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          aws s3 sync ./Client/dist s3://${{ env.S3_BUCKET_NAME_DEV }}/ --delete
+          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID_DEV }} --paths "/*"
+
+      - name: Deploy to Prod S3 and CloudFront
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws s3 sync ./Client/dist s3://${{ env.S3_BUCKET_NAME_PROD }}/ --delete
+          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID_PROD }} --paths "/*"

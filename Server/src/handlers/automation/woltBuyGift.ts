@@ -21,6 +21,12 @@ import {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
+import dotenv from "dotenv";
+
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
 
 // Connect to database
 await sequelize.authenticate();
@@ -30,11 +36,11 @@ export const handler = async (
   _context: Context
 ): Promise<APIGatewayProxyResult> => {
   console.log("Starting woltBuyGift");
-  console.log("Environment:", process.env["ENV"]);
+  console.log("Environment:", ENV);
   const LEVEL = event.queryStringParameters?.["LEVEL"];
 
   const lambdaClient = new LambdaClient({
-    region: process.env["AWS_REGION"] || "il-central-1", // configure region
+    region: process.env["AWS_REGIONS"] || "", // configure region
   });
   console.log("Start chrome + driver");
   const options = new ChromeOptions();
@@ -73,10 +79,7 @@ export const handler = async (
   let success = false;
   let run: Run | null = null;
 
-  const isDev = process.env["ENV"] === "Development";
-  const baseURL = isDev
-    ? "http://localhost:3000/api"
-    : `https://woltflow.shalev396.com/api`;
+  const baseURL_LOCAL = "http://localhost:3000/api";
   try {
     console.log("user setup");
     const runId = event.queryStringParameters?.["runId"];
@@ -411,7 +414,7 @@ export const handler = async (
       console.log("confirmation element not found");
       console.error("soft error", err);
       //add || true to debug script
-      if (isDev || true) {
+      if (ENV === "local" || ENV === "dev") {
         success = true;
       }
     }
@@ -462,14 +465,14 @@ export const handler = async (
           "Gift purchase successful, triggering getDailyCode function"
         );
 
-        if (isDev) {
+        if (ENV === "local") {
           // For serverless offline, make HTTP request without waiting
           console.log(
             "Running in offline mode, triggering getDailyCode (fire-and-forget)"
           );
 
           // Fire and forget - don't await the response
-          fetch(`${baseURL}/gmail/daily-code?runId=${run.id}`, {
+          fetch(`${baseURL_LOCAL}/gmail/daily-code?runId=${run.id}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",

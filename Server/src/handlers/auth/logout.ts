@@ -1,4 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import dotenv from "dotenv";
+
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
 
 export const handler = async (
   _event: APIGatewayProxyEvent
@@ -6,7 +12,7 @@ export const handler = async (
   try {
     // Clear the session cookie by setting Max-Age to 0
     const cookieSettings =
-      process.env["ENV"] === "Development"
+      ENV === "local"
         ? "HttpOnly; SameSite=Lax; Path=/"
         : "HttpOnly; Secure; SameSite=Strict; Path=/";
 
@@ -14,11 +20,7 @@ export const handler = async (
       statusCode: 200,
       headers: {
         "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin":
-          process.env["ENV"] === "Development"
-            ? "http://localhost:5173"
-            : "https://woltflow.shalev396.com",
+
         "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({ message: "Logged out successfully" }),
@@ -28,11 +30,6 @@ export const handler = async (
     return {
       statusCode: 500,
       headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin":
-          process.env["ENV"] === "Development"
-            ? "http://localhost:5173"
-            : "https://woltflow.shalev396.com",
         "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({ error: "Failed to logout" }),

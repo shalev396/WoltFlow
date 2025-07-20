@@ -4,19 +4,22 @@ import User from "../../models/User.js";
 import Run from "../../models/Run.js";
 import Setting from "../../models/Setting.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import dotenv from "dotenv";
+
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
 
 // Connect to database
 await sequelize.authenticate();
 
 const lambdaClient = new LambdaClient({
-  region: process.env["AWS_REGION"] || "il-central-1", // configure region
+  region: process.env["AWS_REGIONS"] || "", // configure region
 });
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
-    const isDev = process.env["ENV"] === "Development";
-    const baseURL = isDev
-      ? "http://localhost:3000/api"
-      : `https://woltflow.shalev396.com/api`;
+    const baseURL_LOCAL = "http://localhost:3000/api";
 
     // Ensure Run table exists (dev only)
     if (process.env["ENV"] === "Development") {
@@ -68,8 +71,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
         );
 
         // Fire-and-forget trigger refreshTokens function with runId
-        console.log("isDev", isDev);
-        if (isDev) {
+        if (ENV === "local") {
           // For serverless offline, make HTTP request without waiting
           console.log(
             `Triggering refreshTokens for run ${newRun.get(
@@ -77,12 +79,15 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
             )} (offline mode)`
           );
 
-          fetch(`${baseURL}/wolt/refreshTokens?runId=${newRun.get("id")}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }).catch((error) => {
+          fetch(
+            `${baseURL_LOCAL}/wolt/refreshTokens?runId=${newRun.get("id")}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          ).catch((error) => {
             console.error(
               `HTTP request to refreshTokens failed for run ${newRun.get(
                 "id"

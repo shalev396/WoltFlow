@@ -269,7 +269,7 @@ export async function waitForElement(
     console.log(`Element not found within ${timeoutMs}ms: ${locator}`);
 
     // Only save screenshot to filesystem in development mode
-    if (process.env["ENV"] === "Development") {
+    if (process.env["ENV"] === "local") {
       const base64 = await driver.takeScreenshot();
       const dir = path.resolve(process.cwd(), "screenshots");
       fs.mkdirSync(dir, { recursive: true });

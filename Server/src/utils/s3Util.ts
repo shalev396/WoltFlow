@@ -7,23 +7,24 @@ import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
 import Screenshot from "../models/Screenshot.js";
 
+// Environment variables
 dotenv.config();
-
+const ENV = process.env["ENV"];
+let ENV_ASSETS_BUCKET_NAME = "";
+if (ENV === "prod") {
+  ENV_ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME_PROD"] || "";
+} else if (ENV === "dev") {
+  ENV_ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME_DEV"] || "";
+} else if (ENV === "local") {
+  ENV_ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME_DEV"] || "";
+}
+const ASSETS_BUCKET_NAME = ENV_ASSETS_BUCKET_NAME;
 // AWS Configuration
-const AWS_ACCESS_CONNECT_KEY = process.env["AWS_ACCESS_CONNECT_KEY"];
-const AWS_ACCESS_SECRET = process.env["AWS_ACCESS_SECRET"];
 const AWS_REGION = process.env["AWS_REGIONS"];
-const ASSETS_BUCKET_NAME = process.env["ASSETS_BUCKET_NAME"];
 
-if (
-  !AWS_ACCESS_CONNECT_KEY ||
-  !AWS_ACCESS_SECRET ||
-  !AWS_REGION ||
-  !ASSETS_BUCKET_NAME
-) {
+if (!AWS_REGION || !ASSETS_BUCKET_NAME) {
   throw new Error(
-    "Missing one or more environment variables: " +
-      "AWS_ACCESS_CONNECT_KEY, AWS_ACCESS_SECRET, AWS_REGION, S3_BUCKET_NAME"
+    "Missing one or more environment variables: " + "AWS_REGION, S3_BUCKET_NAME"
   );
 }
 

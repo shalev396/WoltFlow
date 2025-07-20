@@ -5,22 +5,34 @@ import dotenv from "dotenv";
 import sequelize from "../../config/database.js";
 import User from "../../models/User.js";
 import Setting from "../../models/Setting.js";
-// import { google } from "googleapis";
 import { oauth2_v2 } from "@googleapis/oauth2";
+
+// Environment variables
+dotenv.config();
+
+const ENV = process.env["ENV"];
+
+let ENV_OAUTH_REDIRECT_URI = "";
+let ENV_LOCATION = "";
+if (ENV === "prod") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_PROD"] || "";
+  ENV_LOCATION = "https://woltflow.shalev396.com/dashboard";
+} else if (ENV === "dev") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_DEV"] || "";
+  ENV_LOCATION = "https://dev.woltflow.shalev396.com/dashboard";
+} else if (ENV === "local") {
+  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_LOCAL"] || "";
+  ENV_LOCATION = "http://localhost:5173/dashboard";
+}
 
 // Connect to database
 await sequelize.authenticate();
-
-dotenv.config();
 
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   console.log("Incoming event:", JSON.stringify(event));
-  const isDev = process.env["ENV"] === "Development";
-  const oauthRedirectUri = isDev
-    ? process.env["OAUTH_REDIRECT_URI_DEV"]!
-    : process.env["OAUTH_REDIRECT_URI"]!;
+  const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
 
   // 2. Extract 'code', 'state', and 'scope'
   const code = event.queryStringParameters?.["code"];
@@ -114,14 +126,7 @@ export const handler = async (
       "Set-Cookie": `sessionToken=${sessionToken}; HttpOnly; Path=/; Max-Age=${
         7 * 24 * 60 * 60
       }`,
-      Location:
-        process.env["ENV"] === "Development"
-          ? "http://localhost:5173/dashboard"
-          : "https://woltflow.shalev396.com/dashboard",
-      "Access-Control-Allow-Origin":
-        process.env["ENV"] === "Development"
-          ? "http://localhost:5173"
-          : "https://woltflow.shalev396.com",
+      Location: ENV_LOCATION,
       "Access-Control-Allow-Credentials": "true",
     },
     body: "",
