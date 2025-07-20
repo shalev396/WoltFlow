@@ -58,58 +58,6 @@ jobs:
         run: npm run build
         working-directory: Server
 
-      - name: Debug package contents before deployment
-        run: |
-          echo "=== Checking package size and contents ==="
-          echo "Current directory contents:"
-          ls -la
-          echo "Dist directory size:"
-          du -sh dist/ || echo "du command failed, using alternative"
-          find dist/ -type f | wc -l
-          echo "Node modules size:"
-          du -sh node_modules/ | head -10 || echo "node_modules check failed"
-          echo "=== DEBUGGING NODE_MODULES BLOAT ==="
-          echo "Top 20 largest directories in node_modules:"
-          du -sh node_modules/*/ | sort -hr | head -20
-          echo "Total node_modules file count:"
-          find node_modules/ -type f | wc -l
-          echo "Checking for duplicate packages:"
-          find node_modules/ -name "package.json" -exec grep -l "selenium-webdriver\|pdf-parse\|typescript" {} \; | head -10
-          echo "Total directory size:"
-          du -sh . || echo "directory size check failed"
-        working-directory: Server
-
-      - name: Debug serverless packaging
-        run: |
-          echo "=== DEBUGGING SERVERLESS PACKAGING ==="
-          echo "Checking package.json production vs dev dependencies:"
-          node -e "const pkg = require('./package.json'); console.log('Prod deps:', Object.keys(pkg.dependencies || {}).length); console.log('Dev deps:', Object.keys(pkg.devDependencies || {}).length);"
-          echo "Testing excludeDevDependencies with --verbose:"
-          npx serverless package --stage prod --verbose | grep -E "(exclud|packag|node_modules)" || echo "No exclusion info found"
-          echo "Checking .serverless directory after packaging:"
-          ls -la .serverless/ || echo "No .serverless directory found"
-          if [ -d .serverless ]; then
-            echo "Package sizes (should be much smaller now):"
-            ls -lh .serverless/*.zip | head -5
-            echo "Verifying AWS SDK exclusion - checking first package:"
-            FIRST_ZIP=$(ls .serverless/*.zip | head -1)
-            if [ -f "$FIRST_ZIP" ]; then
-              echo "Checking if aws-sdk is excluded from $FIRST_ZIP:"
-              unzip -l "$FIRST_ZIP" | grep -i "aws-sdk" || echo "✓ aws-sdk successfully excluded!"
-              echo "Checking if node_modules are included:"
-              unzip -l "$FIRST_ZIP" | grep "node_modules" | head -10 || echo "No node_modules found"
-              echo "Package size verification:"
-              UNZIPPED_SIZE=$(unzip -l "$FIRST_ZIP" | tail -1 | awk '{print $1}')
-              echo "Unzipped size: $UNZIPPED_SIZE bytes"
-              if [ "$UNZIPPED_SIZE" -lt 250000000 ]; then
-                echo "✓ Package size is under 250MB limit!"
-              else
-                echo "✗ Package size still exceeds 250MB limit"
-              fi
-            fi
-          fi
-        working-directory: Server
-
       - name: Deploy to dev stage
         if: github.ref == 'refs/heads/dev'
         run: npm run deploy:dev
