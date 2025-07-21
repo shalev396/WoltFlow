@@ -54,15 +54,15 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       };
     }
 
-    // Check if we have a refresh token to work with
-    if (!settings.get("wrtoken")) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "No refresh token found in settings" }),
-      };
-    }
-
     try {
+      // Check if we have a refresh token to work with
+      if (!settings.get("wrtoken")) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: "No refresh token found in settings" }),
+        };
+      }
+
       // Refresh the tokens using the existing refresh token
       const tokenResponse = await refreshTokens(
         settings.get("wrtoken") as string
@@ -142,6 +142,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       if (run) {
         await run.update({ status: "failed" });
       }
+      //TODO:send failed sms
       return {
         statusCode: 500,
         body: JSON.stringify({

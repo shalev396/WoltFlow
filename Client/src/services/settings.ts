@@ -14,7 +14,7 @@ export const settingsService = {
 
   async generateApiKey(): Promise<{ apiKey: string; message: string }> {
     const response = await api.post<{ apiKey: string; message: string }>(
-      "/generate-api-key"
+      "/sms/generate-api-key"
     );
     return response.data;
   },

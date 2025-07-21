@@ -147,6 +147,18 @@ provider:
             - cloudfront:ListInvalidations
           Resource: "*"
 
+        # SNS Permissions for SMS
+        - Effect: Allow
+          Action:
+            - sns:Publish
+            - sns:CreateTopic
+            - sns:Subscribe
+            - sns:GetSMSAttributes
+            - sns:SetSMSAttributes
+            - sns:CheckIfPhoneNumberIsOptedOut
+            - sns:OptInPhoneNumber
+          Resource: "*"
+
 # Package Configuration
 package:
   # individually: true
@@ -346,7 +358,7 @@ functions:
     handler: ./dist/handlers/api/generateApiKey.handler
     events:
       - httpApi:
-          path: /api/generate-api-key
+          path: /api/sms/generate-api-key
           method: post
 
   #sms
@@ -356,6 +368,14 @@ functions:
       - httpApi:
           path: /api/sms/forward
           method: post
+
+  testSms:
+    handler: ./dist/handlers/sms/testSms.handler
+    events:
+      - httpApi:
+          path: /api/sms/test
+          method: post
+    # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
   #automation with selenium
   woltBuyGift:
