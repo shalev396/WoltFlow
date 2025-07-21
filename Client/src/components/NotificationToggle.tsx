@@ -1,4 +1,5 @@
-import { Bell, BellOff } from "lucide-react";
+import { useState } from "react";
+import { Bell, BellOff, Settings } from "lucide-react";
 import {
   FormControl,
   FormDescription,
@@ -7,7 +8,10 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Control, FieldPath } from "react-hook-form";
+
+import { NotificationSettingsDialog } from "@/components/NotificationSettingsDialog";
 
 interface NotificationToggleProps<
   T extends Record<string, unknown> & { isNotification: boolean }
@@ -19,36 +23,57 @@ interface NotificationToggleProps<
 export function NotificationToggle<
   T extends Record<string, unknown> & { isNotification: boolean }
 >({ control, name }: NotificationToggleProps<T>) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-card">
-          <div className="space-y-0.5">
-            <FormLabel className="text-base flex items-center gap-2">
-              {field.value ? (
-                <Bell className="h-4 w-4 text-blue-600 animate-pulse" />
-              ) : (
-                <BellOff className="h-4 w-4 text-muted-foreground" />
-              )}
-              Notifications
-            </FormLabel>
-            <FormDescription>
-              {field.value
-                ? "You'll receive purchase updates"
-                : "No notifications will be sent"}
-            </FormDescription>
-          </div>
-          <FormControl>
-            <Switch
-              checked={Boolean(field.value)}
-              onCheckedChange={field.onChange}
-              className="data-[state=checked]:bg-blue-600"
-            />
-          </FormControl>
-        </FormItem>
-      )}
-    />
+    <>
+      <FormField
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-card">
+            <div className="space-y-0.5 flex-1">
+              <FormLabel className="text-base flex items-center gap-2">
+                {field.value ? (
+                  <Bell className="h-4 w-4 text-blue-600 animate-pulse" />
+                ) : (
+                  <BellOff className="h-4 w-4 text-muted-foreground" />
+                )}
+                Notifications
+              </FormLabel>
+              <FormDescription>
+                {field.value
+                  ? "You'll receive purchase updates"
+                  : "No notifications will be sent"}
+              </FormDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSettingsOpen(true)}
+                className="h-8 w-8 p-0"
+                title="Notification settings"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <FormControl>
+                <Switch
+                  checked={Boolean(field.value)}
+                  onCheckedChange={field.onChange}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+              </FormControl>
+            </div>
+          </FormItem>
+        )}
+      />
+
+      <NotificationSettingsDialog
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+      />
+    </>
   );
 }
