@@ -6,6 +6,11 @@ export default class Setting extends Model {
   declare settingsId: number;
   declare userId: string;
   declare isNotification: boolean;
+  declare notificationMethod: "sms" | "email" | null;
+  declare phoneNumber: string | null;
+  declare phoneVerified: boolean;
+  declare email: string | null;
+  declare emailVerified: boolean;
   declare hasGmailAccess: boolean; // New field to track Gmail access permission
   declare automationEnabled: boolean; // Whether automation is enabled
   declare automationMode: "full-run" | "buy-only" | "cross-account"; // Automation mode
@@ -38,6 +43,31 @@ Setting.init(
       onDelete: "CASCADE",
     },
     isNotification: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    notificationMethod: {
+      type: DataTypes.ENUM("sms", "email"),
+      allowNull: true,
+      defaultValue: null,
+    },
+    phoneNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    phoneVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    emailVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
       allowNull: false,

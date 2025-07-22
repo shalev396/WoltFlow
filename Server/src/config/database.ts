@@ -30,7 +30,7 @@ const sequelize = new Sequelize(databaseUrl, {
     connectionTimeoutMillis: 60000,
     statement_timeout: 60000,
   },
-  logging: ENV === "local" ? console.log : false,
+  logging: false, //ENV === "local" ? console.log : false,
 });
 
 // Sync database in development mode

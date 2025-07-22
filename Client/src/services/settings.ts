@@ -19,9 +19,13 @@ export const settingsService = {
     return response.data;
   },
 
-  async updateNotificationSettings(settings: {
-    notificationMethod: "sms" | "email";
-    notificationContact: string;
+  // Save notification settings (both phone and email)
+  async saveNotificationSettings(settings: {
+    notificationMethod?: "sms" | "email" | null;
+    phoneNumber?: string | null;
+    // phoneVerified?: boolean;
+    email?: string | null;
+    // emailVerified?: boolean;
   }): Promise<UserSettings> {
     const response = await api.post<UserSettings>(
       "/setting/notification",
@@ -30,60 +34,28 @@ export const settingsService = {
     return response.data;
   },
 
-  async start2FASMS(
-    phoneNumber: string
-  ): Promise<{ success: boolean; message: string; sessionId?: string }> {
+  // Start 2FA verification for phone or email
+  async start2FA(settings: {
+    method: "sms" | "email";
+    contact: string; // phone number or email
+  }): Promise<{ success: boolean; message: string }> {
     const response = await api.post<{
       success: boolean;
       message: string;
-      sessionId?: string;
-    }>("/api/settings/2fa/start", {
-      method: "sms",
-      contact: phoneNumber,
-    });
+      // sessionId?: string;
+    }>("/setting/2FA/start", settings);
     return response.data;
   },
 
-  async start2FAEmail(
-    email: string
-  ): Promise<{ success: boolean; message: string; sessionId?: string }> {
-    const response = await api.post<{
-      success: boolean;
-      message: string;
-      sessionId?: string;
-    }>("/api/settings/2fa/start", {
-      method: "email",
-      contact: email,
-    });
-    return response.data;
-  },
-
-  async verify2FASMS(
-    code: string,
-    sessionId?: string
-  ): Promise<{ success: boolean; message: string }> {
+  // Verify 2FA code
+  async verify2FA(settings: {
+    method: "sms" | "email";
+    code: string;
+    // sessionId?: string;
+  }): Promise<{ success: boolean; message: string }> {
     const response = await api.post<{ success: boolean; message: string }>(
-      "/api/settings/2fa/code",
-      {
-        method: "sms",
-        code: code,
-        sessionId: sessionId,
-      }
-    );
-    return response.data;
-  },
-
-  async verify2FAEmail(
-    code: string,
-    sessionId?: string
-  ): Promise<{ success: boolean; message: string }> {
-    const response = await api.post<{ success: boolean; message: string }>(
-      "/api/settings/2fa/code",
-      {
-        method: "email",
-        code: code,
-        sessionId: sessionId,
-      }
+      "/setting/2FA/code",
+      settings
     );
     return response.data;
   },

@@ -34,8 +34,10 @@ export interface UserSettings {
   userId: string;
   isNotification: boolean;
   notificationMethod?: "sms" | "email" | null;
-  notificationContact?: string | null; // Phone number or email
-  notificationVerified?: boolean;
+  phoneNumber?: string | null;
+  phoneVerified?: boolean;
+  email?: string | null;
+  emailVerified?: boolean;
   hasGmailAccess: boolean; // Whether user granted Gmail access during OAuth
   automationEnabled: boolean; // Whether automation is enabled
   automationMode: "full-run" | "buy-only" | "cross-account"; // Automation mode

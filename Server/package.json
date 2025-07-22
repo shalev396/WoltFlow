@@ -15,6 +15,7 @@
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.840.0",
     "@aws-sdk/client-s3": "^3.848.0",
+    "@aws-sdk/client-ses": "^3.848.0",
     "@aws-sdk/client-sns": "^3.840.0",
     "@googleapis/gmail": "^13.0.1",
     "@googleapis/oauth2": "^2.0.1",

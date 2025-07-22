@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Control, FieldPath } from "react-hook-form";
 
 import { NotificationSettingsDialog } from "@/components/NotificationSettingsDialog";
+import { useSettingsQuery } from "@/queries/settings";
 
 interface NotificationToggleProps<
   T extends Record<string, unknown> & { isNotification: boolean }
@@ -24,6 +25,20 @@ export function NotificationToggle<
   T extends Record<string, unknown> & { isNotification: boolean }
 >({ control, name }: NotificationToggleProps<T>) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { data: settings } = useSettingsQuery();
+
+  // Check if user has the primary notification method verified
+  const hasVerifiedPrimaryMethod = Boolean(
+    settings?.notificationMethod === "sms"
+      ? settings?.phoneVerified && settings?.phoneNumber
+      : settings?.notificationMethod === "email"
+      ? settings?.emailVerified && settings?.email
+      : false
+  );
+
+  // Get the primary method display name
+  const primaryMethodName =
+    settings?.notificationMethod?.toUpperCase() || "notification method";
 
   return (
     <>
@@ -43,7 +58,11 @@ export function NotificationToggle<
               </FormLabel>
               <FormDescription>
                 {field.value
-                  ? "You'll receive purchase updates"
+                  ? hasVerifiedPrimaryMethod
+                    ? `You'll receive updates via ${primaryMethodName}`
+                    : settings?.notificationMethod
+                    ? `${primaryMethodName} method needs verification`
+                    : "Please configure notification method in settings"
                   : "No notifications will be sent"}
               </FormDescription>
             </div>
