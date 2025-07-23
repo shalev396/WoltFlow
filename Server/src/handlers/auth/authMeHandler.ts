@@ -5,6 +5,7 @@ import sequelize from "../../config/database.js";
 import { OAuth2Client } from "google-auth-library"; // Standalone auth library
 import { oauth2_v2 } from "@googleapis/oauth2";
 import dotenv from "dotenv";
+import "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();

@@ -4,7 +4,7 @@ import { authMiddleware } from "../../middlewares/auth.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
 import sequelize from "../../config/database.js";
-
+import "../../config/bootstrap.js";
 interface Verify2FARequest {
   method: "sms" | "email";
   code: string;

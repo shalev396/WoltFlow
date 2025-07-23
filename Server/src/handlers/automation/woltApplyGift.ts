@@ -17,7 +17,7 @@ import {
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
 import dotenv from "dotenv";
-
+import "../../config/bootstrap.js";
 // Environment variables
 dotenv.config();
 

@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { sendSms, formatPhoneNumber } from "../../utils/smsUtil.js";
+import "../../config/bootstrap.js";
 
 export const handler = async (
   event: APIGatewayProxyEvent

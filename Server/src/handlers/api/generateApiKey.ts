@@ -4,6 +4,7 @@ import User from "../../models/User.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { randomBytes } from "crypto";
 import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
+import "../../config/bootstrap.js";
 
 // Connect to database
 await sequelize.authenticate();

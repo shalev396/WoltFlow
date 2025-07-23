@@ -22,7 +22,7 @@ import {
   Context,
 } from "aws-lambda";
 import dotenv from "dotenv";
-
+import "../../config/bootstrap.js";
 // Environment variables
 dotenv.config();
 

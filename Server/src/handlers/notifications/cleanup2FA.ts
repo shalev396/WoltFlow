@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import TwoFA from "../../models/TwoFA.js";
 import sequelize from "../../config/database.js";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-
+import "../../config/bootstrap.js";
 // Connect to database
 await sequelize.authenticate();
 

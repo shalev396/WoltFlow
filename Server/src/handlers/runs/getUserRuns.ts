@@ -5,6 +5,7 @@ import Screenshot from "../../models/Screenshot.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { Op } from "sequelize";
 import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
+import "../../config/bootstrap.js";
 
 // Connect to database
 await sequelize.authenticate();

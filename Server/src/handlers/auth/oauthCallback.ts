@@ -6,6 +6,7 @@ import sequelize from "../../config/database.js";
 import User from "../../models/User.js";
 import Setting from "../../models/Setting.js";
 import { oauth2_v2 } from "@googleapis/oauth2";
+import "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();

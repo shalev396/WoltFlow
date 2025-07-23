@@ -1,6 +1,7 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
+import "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();

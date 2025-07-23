@@ -5,6 +5,7 @@ import Run from "../../models/Run.js";
 import Setting from "../../models/Setting.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import dotenv from "dotenv";
+import "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();
