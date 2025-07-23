@@ -259,7 +259,7 @@ export function NotificationSettingsDialog({
     }
 
     const method = activeVerificationMethod;
-    const sessionId = state[method].sessionId;
+    // const sessionId = state[method].sessionId;
 
     setIsLoading(true);
     try {
