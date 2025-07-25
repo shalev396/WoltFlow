@@ -157,6 +157,39 @@ provider:
             - sns:SetSMSAttributes
             - sns:CheckIfPhoneNumberIsOptedOut
             - sns:OptInPhoneNumber
+            # Long Code and Origination Number Management
+            - sns:GetOriginationNumbers
+            - sns:RequestOriginationNumber
+            - sns:DeleteOriginationNumber
+            - sns:ListOriginationNumbers
+            # SMS Sandbox and Configuration
+            - sns:GetSMSSandboxAccountStatus
+            - sns:PromotePhoneNumber
+            - sns:VerifySMSSandboxPhoneNumber
+            - sns:ListSMSSandboxPhoneNumbers
+            - sns:DeleteSMSSandboxPhoneNumber
+            - sns:CreateSMSSandboxPhoneNumber
+          Resource: "*"
+
+        # AWS End User Messaging (for Sender ID management)
+        - Effect: Allow
+          Action:
+            - sms-voice:DescribePhoneNumbers
+            - sms-voice:PutKeyword
+            - sms-voice:DeleteKeyword
+            - sms-voice:DescribeKeywords
+            - sms-voice:PutOptedOutNumber
+            - sms-voice:DeleteOptedOutNumber
+            - sms-voice:DescribeOptedOutNumbers
+            - sms-voice:SendTextMessage
+            - sms-voice:SendVoiceMessage
+            - sms-voice:DescribeConfigurationSets
+            - sms-voice:DescribeSenderIds
+            # Pinpoint SMS (alternative SMS service)
+            - mobiletargeting:SendMessages
+            - mobiletargeting:SendUsersMessages
+            - mobiletargeting:GetSmsChannel
+            - mobiletargeting:UpdateSmsChannel
           Resource: "*"
 
         # SES Permissions for Email

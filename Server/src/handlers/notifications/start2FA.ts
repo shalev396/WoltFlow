@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import TwoFA from "../../models/TwoFA.js";
-import { sendSms, formatPhoneNumber } from "../../utils/smsUtil.js";
+import { sendSmsBySenderID, formatPhoneNumber } from "../../utils/smsUtil.js";
 import { sendEmail, normalizeEmail } from "../../utils/emailUtil.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
@@ -139,9 +139,10 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Send verification code
       try {
         if (method === "sms") {
-          const result = await sendSms({
+          const result = await sendSmsBySenderID({
             phoneNumber: formattedContact,
             message: `Your WoltFlow verification code is: ${code}. This code expires in 5 minutes. Never share this code with anyone.`,
+            senderID: "WoltFlow",
             smsType: "Transactional",
           });
 

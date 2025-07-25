@@ -7,10 +7,23 @@ import {
 // Initialize SNS client for il-central-1 region
 const snsClient = new SNSClient({ region: "il-central-1" });
 
-export interface SendSmsOptions {
+export interface SendSmsBySenderIDOptions {
   phoneNumber: string;
   message: string;
-  senderID?: string;
+  senderID?: string; // Default to "WoltFlow"
+  smsType?: "Promotional" | "Transactional";
+}
+
+export interface SendSmsByLongCodeOptions {
+  phoneNumber: string;
+  message: string;
+  originationNumber: string; // The dedicated long code number
+  smsType?: "Promotional" | "Transactional";
+}
+
+export interface SendSmsBySharedNumberOptions {
+  phoneNumber: string;
+  message: string;
   smsType?: "Promotional" | "Transactional";
 }
 
@@ -18,14 +31,17 @@ export interface SendSmsResult {
   success: boolean;
   messageId?: string;
   error?: string;
+  method?: "senderID" | "longCode" | "sharedNumber";
 }
 
 /**
- * Send SMS using AWS SNS
- * @param options SMS sending options
+ * Send SMS using Sender ID (WoltFlow or custom)
+ * @param options SMS sending options with sender ID
  * @returns Promise with result of SMS sending
  */
-export async function sendSms(options: SendSmsOptions): Promise<SendSmsResult> {
+export async function sendSmsBySenderID(
+  options: SendSmsBySenderIDOptions
+): Promise<SendSmsResult> {
   try {
     const {
       phoneNumber,
@@ -41,15 +57,16 @@ export async function sendSms(options: SendSmsOptions): Promise<SendSmsResult> {
         success: false,
         error:
           "Invalid phone number format. Please provide a valid phone number.",
+        method: "senderID",
       };
     }
 
-    // Validate message length (SMS limit is 160 characters for single SMS)
+    // Validate message length
     if (message.length > 1600) {
-      // Allow up to 10 concatenated SMS
       return {
         success: false,
         error: "Message is too long. Maximum 1600 characters allowed.",
+        method: "senderID",
       };
     }
 
@@ -72,16 +89,17 @@ export async function sendSms(options: SendSmsOptions): Promise<SendSmsResult> {
     const result = await snsClient.send(publishCommand);
 
     console.log(
-      `SMS sent successfully to ${formattedPhoneNumber}:`,
+      `SMS sent successfully via Sender ID "${senderID}" to ${formattedPhoneNumber}:`,
       result.MessageId
     );
 
     return {
       success: true,
       messageId: result.MessageId || "unknown",
+      method: "senderID",
     };
   } catch (error) {
-    console.error("Error sending SMS:", error);
+    console.error("Error sending SMS via Sender ID:", error);
 
     let errorMessage = "Unknown error occurred";
     if (error instanceof Error) {
@@ -91,6 +109,169 @@ export async function sendSms(options: SendSmsOptions): Promise<SendSmsResult> {
     return {
       success: false,
       error: errorMessage,
+      method: "senderID",
+    };
+  }
+}
+
+/**
+ * Send SMS using Long Code (dedicated phone number)
+ * @param options SMS sending options with origination number
+ * @returns Promise with result of SMS sending
+ */
+export async function sendSmsByLongCode(
+  options: SendSmsByLongCodeOptions
+): Promise<SendSmsResult> {
+  try {
+    const {
+      phoneNumber,
+      message,
+      originationNumber,
+      smsType = "Transactional",
+    } = options;
+
+    // Format and validate destination phone number
+    const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
+    if (!formattedPhoneNumber) {
+      return {
+        success: false,
+        error:
+          "Invalid phone number format. Please provide a valid phone number.",
+        method: "longCode",
+      };
+    }
+
+    // Validate origination number format
+    const formattedOriginationNumber = formatPhoneNumber(originationNumber);
+    if (!formattedOriginationNumber) {
+      return {
+        success: false,
+        error:
+          "Invalid origination number format. Please provide a valid long code number.",
+        method: "longCode",
+      };
+    }
+
+    // Validate message length
+    if (message.length > 1600) {
+      return {
+        success: false,
+        error: "Message is too long. Maximum 1600 characters allowed.",
+        method: "longCode",
+      };
+    }
+
+    const publishInput: PublishCommandInput = {
+      PhoneNumber: formattedPhoneNumber,
+      Message: message,
+      MessageAttributes: {
+        "AWS.SNS.SMS.OriginationNumber": {
+          DataType: "String",
+          StringValue: formattedOriginationNumber,
+        },
+        "AWS.SNS.SMS.SMSType": {
+          DataType: "String",
+          StringValue: smsType,
+        },
+      },
+    };
+
+    const publishCommand = new PublishCommand(publishInput);
+    const result = await snsClient.send(publishCommand);
+
+    console.log(
+      `SMS sent successfully via Long Code "${formattedOriginationNumber}" to ${formattedPhoneNumber}:`,
+      result.MessageId
+    );
+
+    return {
+      success: true,
+      messageId: result.MessageId || "unknown",
+      method: "longCode",
+    };
+  } catch (error) {
+    console.error("Error sending SMS via Long Code:", error);
+
+    let errorMessage = "Unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+      method: "longCode",
+    };
+  }
+}
+
+/**
+ * Send SMS using Shared Numbers (default AWS behavior)
+ * @param options SMS sending options for shared numbers
+ * @returns Promise with result of SMS sending
+ */
+export async function sendSmsBySharedNumber(
+  options: SendSmsBySharedNumberOptions
+): Promise<SendSmsResult> {
+  try {
+    const { phoneNumber, message, smsType = "Transactional" } = options;
+
+    // Format and validate phone number
+    const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
+    if (!formattedPhoneNumber) {
+      return {
+        success: false,
+        error:
+          "Invalid phone number format. Please provide a valid phone number.",
+        method: "sharedNumber",
+      };
+    }
+
+    // Validate message length
+    if (message.length > 1600) {
+      return {
+        success: false,
+        error: "Message is too long. Maximum 1600 characters allowed.",
+        method: "sharedNumber",
+      };
+    }
+
+    const publishInput: PublishCommandInput = {
+      PhoneNumber: formattedPhoneNumber,
+      Message: message,
+      MessageAttributes: {
+        "AWS.SNS.SMS.SMSType": {
+          DataType: "String",
+          StringValue: smsType,
+        },
+      },
+    };
+
+    const publishCommand = new PublishCommand(publishInput);
+    const result = await snsClient.send(publishCommand);
+
+    console.log(
+      `SMS sent successfully via Shared Number to ${formattedPhoneNumber}:`,
+      result.MessageId
+    );
+
+    return {
+      success: true,
+      messageId: result.MessageId || "unknown",
+      method: "sharedNumber",
+    };
+  } catch (error) {
+    console.error("Error sending SMS via Shared Number:", error);
+
+    let errorMessage = "Unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+      method: "sharedNumber",
     };
   }
 }

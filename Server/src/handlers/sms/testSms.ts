@@ -1,5 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { sendSms, formatPhoneNumber } from "../../utils/smsUtil.js";
+import {
+  sendSmsBySenderID,
+  sendSmsByLongCode,
+  sendSmsBySharedNumber,
+  formatPhoneNumber,
+} from "../../utils/smsUtil.js";
 import "../../config/bootstrap.js";
 
 export const handler = async (
@@ -8,9 +13,11 @@ export const handler = async (
   console.log("Test SMS Handler - Event:", JSON.stringify(event, null, 2));
 
   try {
-    // Parse the request body to get the phone number
+    // Parse the request body to get the phone number and test method
     const body = event.body ? JSON.parse(event.body) : {};
     let phoneNumber = body.phoneNumber;
+    const method = body.method || "senderID"; // Default to senderID
+    const longCodeNumber = body.longCodeNumber; // Required for longCode method
 
     if (!phoneNumber) {
       return {
@@ -35,15 +42,61 @@ export const handler = async (
       };
     }
 
-    // Send SMS using the utility function
-    const message =
-      "Hey! This is a test message from WoltFlow. SMS notifications are working! 🎉";
-    const result = await sendSms({
-      phoneNumber: formattedPhoneNumber,
-      message,
-      senderID: "WoltFlow",
-      smsType: "Transactional",
-    });
+    let result;
+    let testDescription;
+
+    switch (method) {
+      case "senderID":
+        testDescription = "Sender ID (WoltFlow)";
+        result = await sendSmsBySenderID({
+          phoneNumber: formattedPhoneNumber,
+          message:
+            "🎉 Test from WoltFlow! This message was sent using Sender ID. SMS notifications are working!",
+          senderID: "WoltFlow",
+          smsType: "Transactional",
+        });
+        break;
+
+      case "longCode":
+        if (!longCodeNumber) {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({
+              success: false,
+              error: "Long code number is required for longCode method",
+            }),
+          };
+        }
+        testDescription = `Long Code (${longCodeNumber})`;
+        result = await sendSmsByLongCode({
+          phoneNumber: formattedPhoneNumber,
+          message:
+            "📱 Test from WoltFlow! This message was sent using a dedicated Long Code number. SMS notifications are working!",
+          originationNumber: longCodeNumber,
+          smsType: "Transactional",
+        });
+        break;
+
+      case "sharedNumber":
+        testDescription = "Shared Number";
+        result = await sendSmsBySharedNumber({
+          phoneNumber: formattedPhoneNumber,
+          message:
+            "🔄 Test from WoltFlow! This message was sent using AWS Shared Numbers. SMS notifications are working!",
+          smsType: "Transactional",
+        });
+        break;
+
+      default:
+        return {
+          statusCode: 400,
+          body: JSON.stringify({
+            success: false,
+            error:
+              "Invalid method. Use 'senderID', 'longCode', or 'sharedNumber'",
+          }),
+        };
+    }
 
     if (!result.success) {
       return {
@@ -51,6 +104,7 @@ export const handler = async (
         body: JSON.stringify({
           success: false,
           error: result.error || "Failed to send SMS",
+          method: result.method,
         }),
       };
     }
@@ -59,9 +113,11 @@ export const handler = async (
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        message: "Test SMS sent successfully!",
+        message: `Test SMS sent successfully via ${testDescription}!`,
         messageId: result.messageId,
         phoneNumber: formattedPhoneNumber,
+        method: result.method,
+        testDescription,
       }),
     };
   } catch (error) {

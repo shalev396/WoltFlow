@@ -126,6 +126,20 @@ Request body:
 - Automatically formats to E.164 international format
 - Default country code: Israel (+972)
 
+### SMS Delivery Methods
+
+The system uses **Sender ID method** for 2FA verification codes:
+
+- **Method**: `sendSmsBySenderID()`
+- **Sender ID**: "WoltFlow" (branded sender)
+- **Use Case**: Verification codes and transactional messages
+- **Delivery**: High reliability with brand recognition
+
+Other available methods (configurable):
+
+- **Long Code**: Dedicated phone number for two-way communication
+- **Shared Numbers**: AWS default numbers for cost-effective messaging
+
 ### Email Handling
 
 - Validates email format using RFC-compliant regex
@@ -150,11 +164,28 @@ Request body:
 
 ## Dependencies
 
-- **AWS SNS**: SMS delivery
+- **AWS SNS**: SMS delivery via Sender ID (WoltFlow)
+- **AWS End User Messaging**: Sender ID management and registration
 - **AWS SES**: Email delivery
 - **Sequelize**: Database ORM
 - **Authentication**: Uses existing auth middleware
 - **Templates**: File system template loading
+
+### SMS Configuration
+
+The 2FA system uses the **Sender ID method** with "WoltFlow" branding:
+
+```typescript
+import { sendSmsBySenderID } from "../../utils/smsUtil.js";
+
+// Verification code delivery
+await sendSmsBySenderID({
+  phoneNumber: "+972501234567",
+  message: "Your WoltFlow verification code is: 123456...",
+  senderID: "WoltFlow",
+  smsType: "Transactional",
+});
+```
 
 ## Deployment
 
