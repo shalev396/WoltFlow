@@ -4,10 +4,11 @@ import User from "../../models/User.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { randomBytes } from "crypto";
 import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
-import "../../config/bootstrap.js";
-
+import { syncDatabase } from "../../config/bootstrap.js";
 // Connect to database
+
 await sequelize.authenticate();
+await syncDatabase();
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEvent) => {

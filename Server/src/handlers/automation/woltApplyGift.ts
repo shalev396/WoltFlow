@@ -17,14 +17,14 @@ import {
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
 import dotenv from "dotenv";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 // Environment variables
 dotenv.config();
 
 const ENV = process.env["ENV"];
 // Connect to database
 await sequelize.authenticate();
-
+await syncDatabase();
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   let success = false;
   let run: Run | null = null;

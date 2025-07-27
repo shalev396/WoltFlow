@@ -2,9 +2,10 @@ import { Op } from "sequelize";
 import TwoFA from "../../models/TwoFA.js";
 import sequelize from "../../config/database.js";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 // Connect to database
 await sequelize.authenticate();
+await syncDatabase();
 
 export const handler = async (
   _event: APIGatewayProxyEvent

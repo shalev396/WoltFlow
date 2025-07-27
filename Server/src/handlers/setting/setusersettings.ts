@@ -4,10 +4,10 @@ import sequelize from "../../config/database.js";
 import Setting from "../../models/Setting.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
-import "../../config/bootstrap.js";
-
+import { syncDatabase } from "../../config/bootstrap.js";
 // Connect to database
 await sequelize.authenticate();
+await syncDatabase();
 interface UpdateBody {
   isNotification?: boolean;
   hasGmailAccess?: boolean;

@@ -5,27 +5,22 @@ import Run from "../../models/Run.js";
 import Setting from "../../models/Setting.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import dotenv from "dotenv";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();
 
 const ENV = process.env["ENV"];
 
-// Connect to database
-await sequelize.authenticate();
-
 const lambdaClient = new LambdaClient({
   region: process.env["AWS_REGION"] || "", // Use AWS_REGION (standard) or default to provider region
 });
+await sequelize.authenticate();
+await syncDatabase();
 export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
   try {
     const baseURL_LOCAL = "http://localhost:3000/api";
 
-    // Ensure Run table exists (dev only)
-    if (process.env["ENV"] === "Development") {
-      await Run.sync({ alter: true });
-    }
 
     // Get all users from the database
     const users = await User.findAll();
@@ -124,7 +119,7 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
           );
 
           try {
-            // Synchronous invoke to ensure we see the result
+            // Fire and forget invoke
             const command = new InvokeCommand(invokeParams);
             const result = await lambdaClient.send(command);
 

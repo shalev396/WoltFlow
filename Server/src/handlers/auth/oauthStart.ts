@@ -1,7 +1,6 @@
-import { APIGatewayProxyHandler } from "aws-lambda";
+import { APIGatewayProxyResultV2 } from "aws-lambda";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
-import "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();
@@ -16,7 +15,7 @@ if (ENV === "prod") {
 } else if (ENV === "local") {
   ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_LOCAL"] || "";
 }
-export const handler: APIGatewayProxyHandler = async () => {
+export const handler = async (): Promise<APIGatewayProxyResultV2> => {
   const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
   console.log("oauthRedirectUri", oauthRedirectUri);
   // 1. Create OAuth2 client

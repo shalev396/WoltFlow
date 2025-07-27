@@ -57,7 +57,9 @@ Thumbs.db
 .serverless
 db.json
 *node_modules
-.build
+*build
+Server/build/
+Server/dist/
 15
 
 *chrome-layer

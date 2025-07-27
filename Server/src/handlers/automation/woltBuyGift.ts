@@ -22,7 +22,7 @@ import {
   Context,
 } from "aws-lambda";
 import dotenv from "dotenv";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 // Environment variables
 dotenv.config();
 
@@ -30,7 +30,7 @@ const ENV = process.env["ENV"];
 
 // Connect to database
 await sequelize.authenticate();
-
+await syncDatabase();
 export const handler = async (
   event: APIGatewayProxyEvent,
   _context: Context
@@ -398,26 +398,26 @@ export const handler = async (
       // Return to main content
       await driver.switchTo().defaultContent();
     }
-    try {
-      if (
-        await waitForElement(
-          driver,
-          By.xpath(
-            "//span[@data-localization-key='order.gift-card-tracking-title']"
-          ),
-          15000
-        )
-      ) {
-        success = true;
-      }
-    } catch (err) {
-      console.log("confirmation element not found");
-      console.error("soft error", err);
-      //add || true to debug script
-      if (ENV === "local" || ENV === "dev") {
-        success = true;
-      }
+    // try {
+    if (
+      await waitForElement(
+        driver,
+        By.xpath(
+          "//span[@data-localization-key='order.gift-card-tracking-title']"
+        ),
+        15000
+      )
+    ) {
+      success = true;
     }
+    // } catch (err) {
+    //   console.log("confirmation element not found");
+    //   console.error("soft error", err);
+    //   //add || true to debug script
+    //   if (ENV === "local" || ENV === "dev" || true) {
+    //     success = true;
+    //   }
+    // }
 
     //script end
   } catch (err) {
@@ -449,7 +449,7 @@ export const handler = async (
     }
 
     // Check if mode is "buy-only" and set success status if purchase was successful
-    if ((success || process.env["ENV"] === "Development") && run) {
+    if ((success || process.env["ENV"] === "dev") && run) {
       const runMode = run.get("mode");
 
       if (runMode === "buy-only") {

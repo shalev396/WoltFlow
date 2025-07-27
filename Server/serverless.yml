@@ -211,13 +211,15 @@ provider:
 
 # Package Configuration
 package:
-  # individually: true
+  individually: true
   excludeDevDependencies: true
   patterns:
     # Exclude source and development files
     - "!src/**"
+    - "!dist/**"
     - "!.serverless/**"
     - "!tsconfig.json"
+    - "!webpack.config.cjs"
     - "!*.md"
     - "!screenshots/**"
     - "!undefined/**"
@@ -228,23 +230,17 @@ package:
     - "!patches/**"
     - "!woltBuyGift.json"
 
-    # Exclude AWS SDK - Lambda runtime provides it
-    - "!node_modules/aws-sdk/**"
+    # Exclude all node_modules - webpack bundles everything
+    - "!node_modules/**"
 
-    # Exclude large dev dependencies that might slip through
-    - "!node_modules/typescript/**"
-    - "!node_modules/@types/**"
-    - "!node_modules/@esbuild/**"
-    - "!node_modules/webpack/**"
-    - "!node_modules/serverless/**"
+    # Exclude build directory - handled per function
+    - "!build/**"
 
-    # Include only what we need
-    - "dist/**"
-    - "templates/**"
+    # Global files that all functions need
     - "package.json"
 
 build:
-  esbuild: false # Disable built-in ESBuild support
+  esbuild: false # Disable built-in ESBuild support - using webpack instead
 
 # Serverless Plugins
 plugins:
@@ -329,28 +325,51 @@ custom:
 functions:
   #auth
   authMe:
-    handler: ./dist/handlers/auth/authMeHandler.handler
+    handler: ./build/auth/authMeHandler.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/authMeHandler.mjs"
+        - "package.json"
     events:
       - httpApi:
           path: /api/auth/me
           method: get
 
   logout:
-    handler: ./dist/handlers/auth/logout.handler
+    handler: ./build/auth/logout.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/logout.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/auth/logout
           method: post
 
   oauthCallback:
-    handler: ./dist/handlers/auth/oauthCallback.handler
+    handler: ./build/auth/oauthCallback.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/oauthCallback.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/oauth2/callback
           method: get
 
   oauthStart:
-    handler: ./dist/handlers/auth/oauthStart.handler
+    handler: ./build/auth/oauthStart.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/oauthStart.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/oauth2/start
@@ -358,14 +377,26 @@ functions:
 
   # automation no selenium
   refreshTokens:
-    handler: ./dist/handlers/automation/refreshTokens.handler
+    handler: ./build/automation/refreshTokens.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/automation/refreshTokens.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/wolt/refreshTokens
           method: get
 
   startAllRuns:
-    handler: ./dist/handlers/automation/startAllRuns.handler
+    handler: ./build/automation/startAllRuns.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/automation/startAllRuns.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/automation/start-all-runs
@@ -377,28 +408,52 @@ functions:
   # gmail
 
   getDailyCode:
-    handler: ./dist/handlers/gmail/getDailyCode.handler
+    handler: ./build/gmail/getDailyCode.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/gmail/getDailyCode.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/gmail/daily-code
           method: get
   #runs
   getUserRuns:
-    handler: ./dist/handlers/runs/getUserRuns.handler
+    handler: ./build/runs/getUserRuns.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/runs/getUserRuns.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/runs
           method: get
   #setting
   getUserSettings:
-    handler: ./dist/handlers/setting/getusersettings.handler
+    handler: ./build/setting/getusersettings.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/setting/getusersettings.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/setting
           method: get
 
   setUserSettings:
-    handler: ./dist/handlers/setting/setusersettings.handler
+    handler: ./build/setting/setusersettings.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/setting/setusersettings.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/setting
@@ -406,7 +461,13 @@ functions:
 
   #api
   generateApiKey:
-    handler: ./dist/handlers/api/generateApiKey.handler
+    handler: ./build/api/generateApiKey.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/api/generateApiKey.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/sms/generate-api-key
@@ -414,14 +475,26 @@ functions:
 
   #sms
   smsForward:
-    handler: ./dist/handlers/sms/smsForward.handler
+    handler: ./build/sms/smsForward.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/sms/smsForward.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/sms/forward
           method: post
 
   testSms:
-    handler: ./dist/handlers/sms/testSms.handler
+    handler: ./build/sms/testSms.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/sms/testSms.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/sms/test
@@ -429,7 +502,13 @@ functions:
     # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
   testEmail:
-    handler: ./dist/handlers/email/testEmail.handler
+    handler: ./build/email/testEmail.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/email/testEmail.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/email/test
@@ -438,28 +517,52 @@ functions:
 
   # 2FA notification endpoints
   start2FA:
-    handler: ./dist/handlers/notifications/start2FA.handler
+    handler: ./build/notifications/start2FA.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/notifications/start2FA.mjs"
+
+        - "package.json"
+        - "templates/**"
     events:
       - httpApi:
           path: /api/setting/2FA/start
           method: post
 
   verify2FA:
-    handler: ./dist/handlers/notifications/verify2FA.handler
+    handler: ./build/notifications/verify2FA.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/notifications/verify2FA.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/setting/2FA/code
           method: post
 
   saveNotificationSettings:
-    handler: ./dist/handlers/notifications/saveNotificationSettings.handler
+    handler: ./build/notifications/saveNotificationSettings.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/notifications/saveNotificationSettings.mjs"
+
+        - "package.json"
     events:
       - httpApi:
           path: /api/setting/notification
           method: post
 
   # cleanup2FA:
-  #   handler: ./dist/handlers/notifications/cleanup2FA.handler
+  #   handler: ./build/notifications/cleanup2FA.handler
+  #   package:
+  #     patterns:
+  #       - "!build/**"
+  #       - "build/notifications/cleanup2FA.mjs"
+  #       - "package.json"
   #   events:
   #     - schedule:
   #         rate: cron(0 0 * * ? *) # every day at 00:00
@@ -469,7 +572,14 @@ functions:
   woltBuyGift:
     image:
       name: woltflow-selenium-image
-      command: ["dist/handlers/automation/woltBuyGift.handler"]
+      command: ["build/automation/woltBuyGift.handler"]
+    # package:
+    #   patterns:
+    #     - "!build/**"
+    #     - "build/automation/woltBuyGift.mjs"
+
+    #     - "package.json"
+    #     - "templates/**"
     memorySize: 1536
     ephemeralStorageSize: 1536
     timeout: 225
@@ -481,7 +591,13 @@ functions:
   woltApplyGift:
     image:
       name: woltflow-selenium-image
-      command: ["dist/handlers/automation/woltApplyGift.handler"]
+      command: ["build/automation/woltApplyGift.handler"]
+    # package:
+    #   patterns:
+    #     - "!build/**"
+    #     - "build/automation/woltApplyGift.mjs"
+    #     - "package.json"
+    #     - "templates/**"
     memorySize: 1536
     ephemeralStorageSize: 1536
     timeout: 120
@@ -734,9 +850,3 @@ resources:
               - DomainName
           HostedZoneId: Z2FDTNDATAQYW2 # CloudFront hosted zone ID (global)
           EvaluateTargetHealth: false
-
-  # ================================
-  # OUTPUTS SECTION - TEMPORARILY REMOVED
-  # ================================
-  # Will add back once deployment works
-  # Outputs:

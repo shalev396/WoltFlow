@@ -9,7 +9,7 @@ import sequelize from "../../config/database.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -20,7 +20,7 @@ interface Start2FARequest {
 
 // Connect to database
 await sequelize.authenticate();
-
+await syncDatabase();
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEvent) => {
     try {

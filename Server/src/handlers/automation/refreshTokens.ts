@@ -6,6 +6,7 @@ import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import { refreshTokens } from "../../utils/automation.js";
 import dotenv from "dotenv";
 import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();
@@ -13,6 +14,7 @@ dotenv.config();
 const ENV = process.env["ENV"];
 // Connect to database
 await sequelize.authenticate();
+await syncDatabase();
 
 const lambdaClient = new LambdaClient({
   region: process.env["AWS_REGION"] || "", // Use AWS_REGION (standard) or default to provider region
@@ -166,3 +168,11 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
     };
   }
 };
+
+// export const handler: CustomAPIGatewayProxyHandler = async (event) => {
+//   console.log("event", event);
+//   return {
+//     statusCode: 200,
+//     body: JSON.stringify({ message: "Hello, world!" }),
+//   };
+// };

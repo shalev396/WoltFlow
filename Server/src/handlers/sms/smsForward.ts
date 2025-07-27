@@ -2,11 +2,11 @@ import { APIGatewayProxyEventV2, APIGatewayProxyResult } from "aws-lambda";
 import sequelize from "../../config/database.js";
 import User from "../../models/User.js";
 import Setting from "../../models/Setting.js";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 
 // Connect to database
 await sequelize.authenticate();
-
+await syncDatabase();
 export const handler = async (
   event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyResult> => {

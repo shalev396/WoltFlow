@@ -27,13 +27,14 @@ RUN rm -rf /tmp/node-compile-cache
 ENV TMPDIR=/tmp
 
 # Copy both files
-COPY package.json package-lock.json ./
+COPY package.json ./
+#package-lock.json ./
 # Perform clean install
-RUN npm ci --production
+#RUN npm ci --production
 
-# Then copy the rest
-COPY dist/ ./dist/
-# (or your source files)
+# Then copy the webpack bundled handlers
+COPY build/ ./build/
+COPY templates/ ./templates/
 
 
 # No CMD specified - handler will be configured per function in serverless.yml

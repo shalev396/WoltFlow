@@ -6,10 +6,12 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "patch-package",
-    "build": "tsc",
-    "dev": "npm run build && serverless offline --stage local",
-    "deploy:dev": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage dev",
-    "deploy:prod": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage prod",
+    "build": "tsc && webpack",
+    "build:tsc": "tsc",
+    "build:webpack": "webpack",
+    "dev": "npm run build:webpack && serverless offline --stage local",
+    "deploy:dev": "npm run build:webpack && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage dev",
+    "deploy:prod": "npm run build:webpack && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage prod",
     "test:woltBuyGift": "serverless invoke -f woltBuyGift --path woltBuyGift.json"
   },
   "dependencies": {
@@ -42,10 +44,13 @@
     "@types/pg": "^8.15.4",
     "@types/selenium-webdriver": "^4.1.28",
     "@types/uuid": "^10.0.0",
+    "clean-webpack-plugin": "^4.0.0",
     "cross-env": "^7.0.3",
     "glob": "^11.0.3",
     "serverless-prune-plugin": "^2.1.0",
     "ts-loader": "^9.5.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
   }
 }

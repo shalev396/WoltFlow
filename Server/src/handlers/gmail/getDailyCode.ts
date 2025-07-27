@@ -9,7 +9,7 @@ import sequelize from "../../config/database.js";
 import User from "../../models/User.js";
 import Code from "../../models/Code.js";
 import Run from "../../models/Run.js";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 // Environment variables
 dotenv.config();
 
@@ -24,6 +24,7 @@ if (ENV === "prod") {
 }
 // Connect to database
 await sequelize.authenticate();
+await syncDatabase();
 
 dotenv.config();
 const lambdaClient = new LambdaClient({

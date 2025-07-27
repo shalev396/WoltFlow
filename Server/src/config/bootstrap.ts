@@ -6,14 +6,28 @@ import "../models/Screenshot.js";
 import "../models/Setting.js";
 import "../models/TwoFA.js";
 import "../models/User.js";
+
 // import any other models here
 dotenv.config();
-// Now that models are registered, sync them:
-if (
-  process.env["ENV"] === "Development" //|| true // uncomment to sync database on PROD
-) {
-  await sequelize
-    .sync({ alter: true })
-    .then(() => console.log("✅ Database synchronized"))
-    .catch((err) => console.error("❌ Sync error:", err));
+
+// Export a function to sync database instead of doing it at module load time
+export async function syncDatabase() {
+  if (
+    process.env["ENV"] === "local" //||true // uncomment to sync database on PROD
+  ) {
+    try {
+      await sequelize
+        .sync({ alter: true })
+        .then(() => {
+          console.log("✅ Database synchronized");
+        })
+        .catch((err) => {
+          console.error("❌ Sync error:", err);
+          throw err;
+        });
+    } catch (err) {
+      console.error("❌ Sync error:", err);
+      throw err;
+    }
+  }
 }

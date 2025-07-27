@@ -5,7 +5,6 @@ import {
   sendSmsBySharedNumber,
   formatPhoneNumber,
 } from "../../utils/smsUtil.js";
-import "../../config/bootstrap.js";
 
 export const handler = async (
   event: APIGatewayProxyEvent

@@ -3,7 +3,7 @@ import { authMiddleware } from "../../middlewares/auth.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
 import sequelize from "../../config/database.js";
-import "../../config/bootstrap.js";
+import { syncDatabase } from "../../config/bootstrap.js";
 interface SaveNotificationSettingsRequest {
   notificationMethod?: "sms" | "email" | null;
   phoneNumber?: string | null;
@@ -14,7 +14,7 @@ interface SaveNotificationSettingsRequest {
 
 // Connect to database
 await sequelize.authenticate();
-
+await syncDatabase();
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEvent) => {
     try {
