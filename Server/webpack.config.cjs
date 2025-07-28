@@ -5,7 +5,20 @@ const webpack = require("webpack");
 // Function to find all handler files recursively
 function findHandlers(dir) {
   const entries = {};
-  // list only immediate subdirectories of src/handlers
+
+  // First, check for .ts files directly in the handlers directory
+  fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
+    if (
+      dirent.isFile() &&
+      dirent.name.endsWith(".ts") &&
+      !dirent.name.endsWith(".d.ts")
+    ) {
+      const name = path.parse(dirent.name).name;
+      entries[name] = path.join(dir, dirent.name);
+    }
+  });
+
+  // Then, list immediate subdirectories of src/handlers
   fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
     if (!dirent.isDirectory()) return;
     const sub = dirent.name;
