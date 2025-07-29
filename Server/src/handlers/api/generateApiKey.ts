@@ -3,7 +3,7 @@ import sequelize from "../../config/database.js";
 import User from "../../models/User.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { randomBytes } from "crypto";
-import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
+import { ICustomAPIGatewayProxyEventAuth } from "../../typescript/interfaces/aws.js";
 import { syncDatabase } from "../../config/bootstrap.js";
 // Connect to database
 
@@ -11,7 +11,7 @@ await sequelize.authenticate();
 await syncDatabase();
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event: ICustomAPIGatewayProxyEvent) => {
+  async (event: ICustomAPIGatewayProxyEventAuth) => {
     try {
       // Generate a unique API key
       const apiKey = randomBytes(32).toString("hex");

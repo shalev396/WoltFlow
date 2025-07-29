@@ -1,5 +1,5 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { APIGatewayProxyResult } from "aws-lambda";
+import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
 import { gmail_v1 } from "@googleapis/gmail"; // Scoped Gmail client
 import { OAuth2Client } from "google-auth-library"; // Standalone auth library
 
@@ -26,19 +26,12 @@ if (ENV === "prod") {
 await sequelize.authenticate();
 await syncDatabase();
 
-dotenv.config();
-const lambdaClient = new LambdaClient({
-  region: process.env["AWS_REGION"] || "", // Use AWS_REGION (standard) or default to provider region
-});
-
 export const handler = async (
-  event: APIGatewayProxyEvent
+  event: ICustomAPIGatewayProxyEventStepFunction
 ): Promise<APIGatewayProxyResult> => {
   let run: Run | null = null;
 
   try {
-    const baseURL_LOCAL = "http://localhost:3000/api";
-
     const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
 
     await sequelize.authenticate();
@@ -47,7 +40,9 @@ export const handler = async (
       await Code.sync({ alter: true });
     }
 
-    const runId = event.queryStringParameters?.["runId"];
+    // Extract runId from event (Step Functions or API Gateway)
+    const runId = event.runId || event.queryStringParameters?.["runId"];
+
     if (!runId) {
       return {
         statusCode: 400,
@@ -244,67 +239,54 @@ export const handler = async (
     });
 
     console.log(
-      "Gift card code extracted successfully, triggering woltApplyGift function"
+      "Gift card code extracted successfully, Step Functions will handle next step"
     );
 
-    // Fire-and-forget trigger woltApplyGift function
+    // Step Functions will automatically trigger woltApplyGift next
+    // No need to manually invoke here
 
-    if (ENV === "local") {
-      // For serverless offline, make HTTP request without waiting
-      console.log(
-        "Running in offline mode, triggering woltApplyGift (fire-and-forget)"
-      );
+    // Check if this is a Step Functions call (has runId directly in event)
+    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
 
-      // Fire and forget - don't await the response
-      fetch(`${baseURL_LOCAL}/wolt/applyGift?runId=${runId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).catch((error) => {
-        console.error(
-          "HTTP request to woltApplyGift failed (but continuing):",
-          error
-        );
-      });
-
-      console.log(
-        "woltApplyGift HTTP request triggered (not waiting for completion)"
-      );
+    if (isStepFunctions) {
+      // Return raw data for Step Functions
+      return {
+        runId,
+        userId: uid,
+        success: true,
+        message: "Gift card code extracted successfully",
+        codeValue,
+      } as any;
     } else {
-      // For production, use Lambda invoke with fire-and-forget
-      const functionName = process.env["WOLT_APPLY_GIFT_FUNCTION_NAME"]!;
-      const invokeParams = {
-        FunctionName: functionName,
-        InvocationType: "Event" as const, // Fire and forget
-        Payload: JSON.stringify({
-          queryStringParameters: { runId },
+      // Return API Gateway format for HTTP calls
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          success: true,
+          message: "Gift card code extracted successfully",
+          runId,
+          userId: uid,
+          codeValue,
         }),
       };
-
-      // Fire and forget - don't await the response
-      const command = new InvokeCommand(invokeParams);
-      const result = await lambdaClient.send(command);
-
-      console.log(
-        `woltApplyGift Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`
-      );
     }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        success: true,
-      }),
-    };
   } catch (err: any) {
     console.error("getDailyCode error:", err);
     if (run) {
       await run.update({ status: "failed" });
     }
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message || "Internal error" }),
-    };
+
+    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
+
+    if (isStepFunctions) {
+      // Re-throw error for Step Functions to catch
+      throw err;
+    } else {
+      // Return API Gateway error format for HTTP calls
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: err.message || "Internal error" }),
+      };
+    }
   }
 };

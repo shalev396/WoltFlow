@@ -4,7 +4,8 @@ import sequelize from "../../config/database.js";
 import Setting from "../../models/Setting.js";
 import Code from "../../models/Code.js";
 import Run from "../../models/Run.js";
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
+import { APIGatewayProxyResult } from "aws-lambda";
 import {
   safeClick,
   waitForElement,
@@ -25,19 +26,24 @@ const ENV = process.env["ENV"];
 // Connect to database
 await sequelize.authenticate();
 await syncDatabase();
-export const handler: CustomAPIGatewayProxyHandler = async (event) => {
+export const handler = async (
+  event: ICustomAPIGatewayProxyEventStepFunction
+): Promise<APIGatewayProxyResult> => {
   let success = false;
   let run: Run | null = null;
   let driver: any = null;
-  try {
-    const runId = event.queryStringParameters?.["runId"];
-    if (!runId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing runId" }),
-      };
-    }
 
+  // Extract runId from event (Step Functions or API Gateway)
+  const runId = event.runId || event.queryStringParameters?.["runId"];
+
+  if (!runId) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: "Missing runId" }),
+    };
+  }
+
+  try {
     // Get the run and associated user
     run = await Run.findByPk(runId);
     if (!run) {
@@ -225,14 +231,36 @@ export const handler: CustomAPIGatewayProxyHandler = async (event) => {
       console.log("driver quit");
     }
     // await sleep(2000);
-    return {
-      statusCode: success ? 200 : 500,
-      body: JSON.stringify({
-        success,
-        message: success
-          ? "Gift card redemption completed"
-          : "Gift card redemption failed",
-      }),
-    };
+
+    // Check if this is a Step Functions call (has runId directly in event)
+    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
+
+    if (isStepFunctions) {
+      if (success) {
+        // Return raw data for Step Functions
+        return {
+          runId,
+          userId: run?.get("user_id"),
+          success: true,
+          message: "Gift card redemption completed",
+        } as any;
+      } else {
+        // Throw error for Step Functions to catch
+        throw new Error("Gift card redemption failed");
+      }
+    } else {
+      // Return API Gateway format for HTTP calls
+      return {
+        statusCode: success ? 200 : 500,
+        body: JSON.stringify({
+          success,
+          message: success
+            ? "Gift card redemption completed"
+            : "Gift card redemption failed",
+          runId,
+          userId: run?.get("user_id"),
+        }),
+      };
+    }
   }
 };

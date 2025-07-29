@@ -1,13 +1,13 @@
 import jwt from "jsonwebtoken";
 import { CustomAPIGatewayProxyHandler } from "../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEvent } from "../typescript/interfaces/aws.js";
+import { ICustomAPIGatewayProxyEventAuth } from "../typescript/interfaces/aws.js";
 import { APIGatewayProxyResult, Context } from "aws-lambda";
 console.log("authMiddleware");
 export const authMiddleware = (
   handler: CustomAPIGatewayProxyHandler
 ): CustomAPIGatewayProxyHandler => {
   return async (
-    event: ICustomAPIGatewayProxyEvent,
+    event: ICustomAPIGatewayProxyEventAuth,
     context: Context,
     callback: (error?: Error | null | string, result?: any) => void
   ): Promise<APIGatewayProxyResult> => {

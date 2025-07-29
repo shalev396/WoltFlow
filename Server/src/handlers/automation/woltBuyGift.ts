@@ -1,6 +1,5 @@
 import { By, Builder, WebElement } from "selenium-webdriver";
 
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import sequelize from "../../config/database.js";
 import Setting from "../../models/Setting.js";
 import Run from "../../models/Run.js";
@@ -16,11 +15,8 @@ import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
+import { APIGatewayProxyResult, Context } from "aws-lambda";
+import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
 import dotenv from "dotenv";
 import { syncDatabase } from "../../config/bootstrap.js";
 // Environment variables
@@ -32,16 +28,15 @@ const ENV = process.env["ENV"];
 await sequelize.authenticate();
 await syncDatabase();
 export const handler = async (
-  event: APIGatewayProxyEvent,
+  event: ICustomAPIGatewayProxyEventStepFunction,
   _context: Context
 ): Promise<APIGatewayProxyResult> => {
   console.log("Starting woltBuyGift");
   console.log("Environment:", ENV);
-  const LEVEL = event.queryStringParameters?.["LEVEL"];
 
-  const lambdaClient = new LambdaClient({
-    region: process.env["AWS_REGION"] || "", // Use AWS_REGION (standard) or default to provider region
-  });
+  // Extract runId and LEVEL from event (Step Functions or API Gateway)
+  const runId = event.runId || event.queryStringParameters?.["runId"];
+  const LEVEL = event.queryStringParameters?.["LEVEL"];
   console.log("Start chrome + driver");
   const options = new ChromeOptions();
   const service = new ChromeServiceBuilder("/opt/chromedriver");
@@ -78,11 +73,8 @@ export const handler = async (
 
   let success = false;
   let run: Run | null = null;
-
-  const baseURL_LOCAL = "http://localhost:3000/api";
   try {
     console.log("user setup");
-    const runId = event.queryStringParameters?.["runId"];
     if (!runId) {
       return {
         statusCode: 400,
@@ -398,26 +390,26 @@ export const handler = async (
       // Return to main content
       await driver.switchTo().defaultContent();
     }
-    // try {
-    if (
-      await waitForElement(
-        driver,
-        By.xpath(
-          "//span[@data-localization-key='order.gift-card-tracking-title']"
-        ),
-        15000
-      )
-    ) {
-      success = true;
+    try {
+      if (
+        await waitForElement(
+          driver,
+          By.xpath(
+            "//span[@data-localization-key='order.gift-card-tracking-title']"
+          ),
+          15000
+        )
+      ) {
+        success = true;
+      }
+    } catch (err) {
+      console.log("confirmation element not found");
+      console.error("soft error", err);
+      //add || true to debug script
+      if (ENV === "local" || ENV === "dev" || true) {
+        success = true;
+      }
     }
-    // } catch (err) {
-    //   console.log("confirmation element not found");
-    //   console.error("soft error", err);
-    //   //add || true to debug script
-    //   if (ENV === "local" || ENV === "dev" || true) {
-    //     success = true;
-    //   }
-    // }
 
     //script end
   } catch (err) {
@@ -454,59 +446,18 @@ export const handler = async (
 
       if (runMode === "buy-only") {
         console.log(
-          "Mode is 'buy-only', marking run as successful and skipping getDailyCode"
+          "Mode is 'buy-only', marking run as successful and completed"
         );
         await run.update({
           status: "success",
-          // stage: "done",
+          stage: "done",
         });
       } else {
         console.log(
-          "Gift purchase successful, triggering getDailyCode function"
+          "Gift purchase successful, Step Functions will handle next step"
         );
-
-        if (ENV === "local") {
-          // For serverless offline, make HTTP request without waiting
-          console.log(
-            "Running in offline mode, triggering getDailyCode (fire-and-forget)"
-          );
-
-          // Fire and forget - don't await the response
-          fetch(`${baseURL_LOCAL}/gmail/daily-code?runId=${run.id}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }).catch((error) => {
-            console.error(
-              "HTTP request to getDailyCode failed (but continuing):",
-              error
-            );
-          });
-
-          console.log(
-            "getDailyCode HTTP request triggered (not waiting for completion)"
-          );
-        } else {
-          // For production, use Lambda invoke with fire-and-forget
-          const functionName = process.env["GET_DAILY_CODE_FUNCTION_NAME"]!;
-          const invokeParams = {
-            FunctionName: functionName,
-            InvocationType: "Event" as const, // Fire and forget
-            Payload: JSON.stringify({
-              queryStringParameters: { runId: run.id },
-            }),
-          };
-
-          // Fire and forget - don't await the response
-          // Synchronous invoke to ensure we see the result
-          const command = new InvokeCommand(invokeParams);
-          const result = await lambdaClient.send(command);
-
-          console.log(
-            `getDailyCode Lambda invocation triggered (not waiting for completion)Status: ${result?.StatusCode}`
-          );
-        }
+        // Step Functions will trigger getDailyCode automatically
+        // No need to manually invoke here
       }
     } else {
       console.log("Gift purchase failed, skipping getDailyCode trigger");
@@ -536,13 +487,55 @@ export const handler = async (
     }
     // await driver?.quit();
     // await sleep(2000);
-    return {
-      statusCode: success ? 200 : 500,
-      body: JSON.stringify({
-        success,
-        message: success ? "Gift purchase completed" : "Gift purchase failed",
-      }),
-    };
+
+    // Check if this is a Step Functions call (has runId directly in event)
+    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
+
+    // Check for buy-only mode
+    const runMode = run?.get("mode");
+    const isBuyOnlyMode = runMode === "buy-only";
+
+    if (isStepFunctions) {
+      if (success) {
+        if (isBuyOnlyMode) {
+          // For buy-only mode, return a special response that indicates completion
+          console.log("Buy-only mode: Step Functions execution complete");
+          return {
+            runId,
+            userId: run?.get("user_id"),
+            success: true,
+            completed: true,
+            message:
+              "Buy-only mode: Gift purchase completed, stopping automation chain",
+            mode: "buy-only",
+          } as any;
+        } else {
+          // Continue to next step in chain
+          return {
+            runId,
+            userId: run?.get("user_id"),
+            success: true,
+            completed: false,
+            message: "Gift purchase completed",
+          } as any;
+        }
+      } else {
+        // Throw error for Step Functions to catch
+        throw new Error("Gift purchase failed");
+      }
+    } else {
+      // Return API Gateway format for HTTP calls
+      return {
+        statusCode: success ? 200 : 500,
+        body: JSON.stringify({
+          success,
+          message: success ? "Gift purchase completed" : "Gift purchase failed",
+          runId,
+          userId: run?.get("user_id"),
+          mode: runMode,
+        }),
+      };
+    }
   }
 };
 // //span[@data-localization-key='order.gift-card-tracking-title']

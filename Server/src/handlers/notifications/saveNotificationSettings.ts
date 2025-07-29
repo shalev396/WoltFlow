@@ -1,7 +1,7 @@
 import Setting from "../../models/Setting.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
+import { ICustomAPIGatewayProxyEventAuth } from "../../typescript/interfaces/aws.js";
 import sequelize from "../../config/database.js";
 import { syncDatabase } from "../../config/bootstrap.js";
 interface SaveNotificationSettingsRequest {
@@ -16,7 +16,7 @@ interface SaveNotificationSettingsRequest {
 await sequelize.authenticate();
 await syncDatabase();
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event: ICustomAPIGatewayProxyEvent) => {
+  async (event: ICustomAPIGatewayProxyEventAuth) => {
     try {
       // Parse request body
       if (!event.body) {

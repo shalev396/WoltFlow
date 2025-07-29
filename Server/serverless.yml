@@ -80,6 +80,10 @@ provider:
     GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-getDailyCode
     WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-woltApplyGift
 
+    # Step Functions Configuration
+    USER_AUTOMATION_STATE_MACHINE_ARN:
+      Fn::Sub: "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}-userAutomationChain"
+
     # CloudFront and Domain Configuration (Stage-specific)
     DOMAIN_NAME: ${self:custom.domainName.${self:provider.stage}}
     CLIENT_BUCKET_NAME: ${self:custom.clientBucketName.${self:provider.stage}}
@@ -105,6 +109,17 @@ provider:
             - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltBuyGift
             - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-getDailyCode
             - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltApplyGift
+
+        # Step Functions Permissions
+        - Effect: Allow
+          Action:
+            - states:StartExecution
+            - states:StopExecution
+            - states:DescribeExecution
+            - states:DescribeStateMachine
+            - states:ListExecutions
+          Resource:
+            - arn:aws:states:${self:provider.region}:*:stateMachine:${self:service}-${self:provider.stage}-userAutomationChain
 
         # S3 Permissions for all buckets
         - Effect: Allow
@@ -246,6 +261,7 @@ build:
 plugins:
   - serverless-offline
   - serverless-prune-plugin
+  - serverless-step-functions
 
 # Custom Configuration
 custom:
@@ -321,6 +337,106 @@ custom:
   dotenv:
     path: ./.env
 
+# Step Functions Configuration
+stepFunctions:
+  stateMachines:
+    userAutomationChain:
+      name: ${self:service}-${self:provider.stage, 'local'}-userAutomationChain
+      events:
+        - schedule:
+            rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *)
+            description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
+            enabled: true
+      definition:
+        Comment: "Run automation chain per user in parallel"
+        StartAt: ProcessAllUsers
+        States:
+          ProcessAllUsers:
+            Type: Map
+            ItemsPath: $.users
+            MaxConcurrency: 10
+            Iterator:
+              StartAt: RefreshTokens
+              States:
+                RefreshTokens:
+                  Type: Task
+                  Resource: arn:aws:states:::lambda:invoke
+                  Parameters:
+                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-refreshTokens
+                    Payload:
+                      runId.$: $.runId
+                  OutputPath: $.Payload
+                  Next: WoltBuyGift
+                  Catch:
+                    - ErrorEquals:
+                        - States.ALL
+                      Next: MarkRunFailed
+                      ResultPath: $.error
+
+                WoltBuyGift:
+                  Type: Task
+                  Resource: arn:aws:states:::lambda:invoke
+                  Parameters:
+                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-woltBuyGift
+                    Payload:
+                      runId.$: $.runId
+                  OutputPath: $.Payload
+                  Next: CheckBuyOnlyMode
+                  Catch:
+                    - ErrorEquals:
+                        - States.ALL
+                      Next: MarkRunFailed
+                      ResultPath: $.error
+
+                CheckBuyOnlyMode:
+                  Type: Choice
+                  Choices:
+                    - Variable: $.completed
+                      BooleanEquals: true
+                      Next: MarkRunSuccess
+                  Default: GetDailyCode
+
+                GetDailyCode:
+                  Type: Task
+                  Resource: arn:aws:states:::lambda:invoke
+                  Parameters:
+                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-getDailyCode
+                    Payload:
+                      runId.$: $.runId
+                  OutputPath: $.Payload
+                  Next: WoltApplyGift
+                  Catch:
+                    - ErrorEquals:
+                        - States.ALL
+                      Next: MarkRunFailed
+                      ResultPath: $.error
+
+                WoltApplyGift:
+                  Type: Task
+                  Resource: arn:aws:states:::lambda:invoke
+                  Parameters:
+                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-woltApplyGift
+                    Payload:
+                      runId.$: $.runId
+                  OutputPath: $.Payload
+                  Next: MarkRunSuccess
+                  Catch:
+                    - ErrorEquals:
+                        - States.ALL
+                      Next: MarkRunFailed
+                      ResultPath: $.error
+
+                MarkRunSuccess:
+                  Type: Pass
+                  Result: "Run completed successfully"
+                  End: true
+
+                MarkRunFailed:
+                  Type: Pass
+                  Result: "Run failed"
+                  End: true
+            End: true
+
 # Lambda Functions
 functions:
   #auth
@@ -384,26 +500,23 @@ functions:
         - "build/automation/refreshTokens.mjs"
 
         - "package.json"
-    events:
-      - httpApi:
-          path: /api/wolt/refreshTokens
-          method: get
+    # events:
+    #   - httpApi:
+    #       path: /api/wolt/refreshTokens
+    #       method: get
 
-  startAllRuns:
-    handler: ./build/automation/startAllRuns.handler
+  startUserAutomationChain:
+    handler: ./build/automation/startUserAutomationChain.handler
     package:
       patterns:
         - "!build/**"
-        - "build/automation/startAllRuns.mjs"
+        - "build/automation/startUserAutomationChain.mjs"
 
         - "package.json"
     events:
       - httpApi:
-          path: /api/automation/start-all-runs
+          path: /api/automation/start-chain
           method: get
-      - schedule:
-          rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *)
-          description: "Trigger startAllRuns on weekdays at 10:00 UTC (12:00 Israel time)"
 
   # gmail
 
@@ -415,10 +528,10 @@ functions:
         - "build/gmail/getDailyCode.mjs"
 
         - "package.json"
-    events:
-      - httpApi:
-          path: /api/gmail/daily-code
-          method: get
+    # events:
+    #   - httpApi:
+    #       path: /api/gmail/daily-code
+    #       method: get
   #runs
   getUserRuns:
     handler: ./build/runs/getUserRuns.handler
@@ -583,10 +696,10 @@ functions:
     memorySize: 1536
     ephemeralStorageSize: 1536
     timeout: 225
-    events:
-      - httpApi:
-          path: /api/wolt/buyGift
-          method: get
+    # events:
+    #   - httpApi:
+    #       path: /api/wolt/buyGift
+    #       method: get
 
   woltApplyGift:
     image:
@@ -601,10 +714,10 @@ functions:
     memorySize: 1536
     ephemeralStorageSize: 1536
     timeout: 120
-    events:
-      - httpApi:
-          path: /api/wolt/applyGift
-          method: get
+    # events:
+    #   - httpApi:
+    #       path: /api/wolt/applyGift
+    #       method: get
 
 # AWS Resources Configuration
 resources:

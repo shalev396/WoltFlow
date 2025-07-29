@@ -3,7 +3,7 @@ import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
 import sequelize from "../../config/database.js";
 import Setting from "../../models/Setting.js";
 import { authMiddleware } from "../../middlewares/auth.js";
-import { ICustomAPIGatewayProxyEvent } from "../../typescript/interfaces/aws.js";
+import { ICustomAPIGatewayProxyEventAuth } from "../../typescript/interfaces/aws.js";
 import { syncDatabase } from "../../config/bootstrap.js";
 // Connect to database
 await sequelize.authenticate();
@@ -24,7 +24,7 @@ interface UpdateBody {
 }
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event: ICustomAPIGatewayProxyEvent) => {
+  async (event: ICustomAPIGatewayProxyEventAuth) => {
     try {
       // Parse incoming fields
       const body: UpdateBody = JSON.parse(event.body || "{}");

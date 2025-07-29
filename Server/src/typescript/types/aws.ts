@@ -1,8 +1,8 @@
 import { APIGatewayProxyResult, Context } from "aws-lambda";
-import { ICustomAPIGatewayProxyEvent } from "../interfaces/aws.js";
+import { ICustomAPIGatewayProxyEventAuth } from "../interfaces/aws.js";
 
 export type CustomAPIGatewayProxyHandler = (
-  event: ICustomAPIGatewayProxyEvent,
+  event: ICustomAPIGatewayProxyEventAuth,
   context: Context,
   callback: (
     error?: Error | null | string,
