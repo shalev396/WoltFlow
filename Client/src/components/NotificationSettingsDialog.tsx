@@ -310,6 +310,17 @@ export function NotificationSettingsDialog({
 
   // Validate save requirements
   const validateSave = (): { isValid: boolean; error?: string } => {
+    // Check if at least one method is verified and has contact info
+    const hasVerifiedSms = state.sms.verified && state.sms.contact.trim();
+    const hasVerifiedEmail = state.email.verified && state.email.contact.trim();
+
+    if (!hasVerifiedSms && !hasVerifiedEmail) {
+      return {
+        isValid: false,
+        error: "Please verify at least one notification method (SMS or Email)",
+      };
+    }
+
     if (primaryMethod === "sms") {
       if (!state.sms.contact.trim()) {
         return {
@@ -317,10 +328,16 @@ export function NotificationSettingsDialog({
           error: "Please enter a phone number for SMS notifications",
         };
       }
+      if (!validatePhone(state.sms.contact)) {
+        return {
+          isValid: false,
+          error: "Please enter a valid phone number",
+        };
+      }
       if (!state.sms.verified) {
         return {
           isValid: false,
-          error: "Please verify your phone number before saving",
+          error: "Please verify your phone number before setting it as primary",
         };
       }
     } else if (primaryMethod === "email") {
@@ -330,14 +347,113 @@ export function NotificationSettingsDialog({
           error: "Please enter an email address for email notifications",
         };
       }
+      if (!validateEmail(state.email.contact)) {
+        return {
+          isValid: false,
+          error: "Please enter a valid email address",
+        };
+      }
       if (!state.email.verified) {
         return {
           isValid: false,
-          error: "Please verify your email address before saving",
+          error:
+            "Please verify your email address before setting it as primary",
         };
       }
     }
     return { isValid: true };
+  };
+
+  // Remove contact info and save immediately
+  const handleRemoveContact = async (method: "sms" | "email") => {
+    // Check if this would leave no verified methods
+    const otherMethod = method === "sms" ? "email" : "sms";
+    const otherMethodVerified =
+      state[otherMethod].verified && state[otherMethod].contact.trim();
+
+    if (!otherMethodVerified) {
+      toast.error(
+        "Cannot remove the last verified notification method. Please verify another method first."
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Clear the contact info and verification status
+      setState((prev) => ({
+        ...prev,
+        [method]: {
+          ...prev[method],
+          contact: "",
+          verified: false,
+          originalContact: "",
+        },
+      }));
+
+      // If removing the primary method, switch to the other method if available
+      let newPrimaryMethod = primaryMethod;
+      if (primaryMethod === method) {
+        if (state[otherMethod].verified) {
+          newPrimaryMethod = otherMethod;
+          setPrimaryMethod(otherMethod);
+        }
+      }
+
+      // Save immediately
+      const saveData: {
+        notificationMethod?: "sms" | "email" | null;
+        phoneNumber?: string | null;
+        phoneVerified?: boolean;
+        email?: string | null;
+        emailVerified?: boolean;
+      } = {};
+
+      // Set primary notification method
+      saveData.notificationMethod = newPrimaryMethod;
+
+      // Update the specific method being removed
+      if (method === "sms") {
+        saveData.phoneNumber = null;
+        saveData.phoneVerified = false;
+        // Keep email as is
+        saveData.email = state.email.contact.trim() || null;
+        saveData.emailVerified = state.email.verified;
+      } else {
+        saveData.email = null;
+        saveData.emailVerified = false;
+        // Keep SMS as is
+        saveData.phoneNumber = state.sms.contact.trim()
+          ? formatPhoneNumber(state.sms.contact)
+          : null;
+        saveData.phoneVerified = state.sms.verified;
+      }
+
+      await settingsService.saveNotificationSettings(saveData);
+      await refetch(); // Refresh settings
+      toast.success(`${method.toUpperCase()} contact removed successfully`);
+    } catch (error) {
+      console.error(`Failed to remove ${method} contact:`, error);
+      toast.error(`Failed to remove ${method} contact. Please try again.`);
+
+      // Revert the state change on error
+      if (settings) {
+        setState({
+          sms: {
+            contact: settings.phoneNumber || "",
+            verified: Boolean(settings.phoneVerified),
+            originalContact: settings.phoneNumber || "",
+          },
+          email: {
+            contact: settings.email || "",
+            verified: Boolean(settings.emailVerified),
+            originalContact: settings.email || "",
+          },
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Save settings
@@ -361,14 +477,14 @@ export function NotificationSettingsDialog({
       // Set primary notification method
       saveData.notificationMethod = primaryMethod;
 
-      // SMS settings - always save current state
-      saveData.phoneNumber = state.sms.verified
+      // SMS settings - always save current state (contact info regardless of verification)
+      saveData.phoneNumber = state.sms.contact.trim()
         ? formatPhoneNumber(state.sms.contact)
         : null;
       saveData.phoneVerified = state.sms.verified;
 
-      // Email settings - always save current state
-      saveData.email = state.email.verified ? state.email.contact : null;
+      // Email settings - always save current state (contact info regardless of verification)
+      saveData.email = state.email.contact.trim() || null;
       saveData.emailVerified = state.email.verified;
 
       await settingsService.saveNotificationSettings(saveData);
@@ -477,28 +593,36 @@ export function NotificationSettingsDialog({
                       className="flex-1"
                       disabled={isLoading}
                     />
-                    <Button
-                      onClick={() => handleStartVerification("sms")}
-                      disabled={
-                        isLoading ||
-                        !validatePhone(state.sms.contact) ||
-                        state.sms.verified
-                      }
-                      size="sm"
-                      variant={state.sms.verified ? "default" : "outline"}
-                    >
-                      {state.sms.verified ? (
-                        <Check className="h-4 w-4 text-green-600" />
-                      ) : isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Verify"
-                      )}
-                    </Button>
+                    {state.sms.verified ? (
+                      <Button
+                        onClick={() => handleRemoveContact("sms")}
+                        disabled={isLoading}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleStartVerification("sms")}
+                        disabled={
+                          isLoading || !validatePhone(state.sms.contact)
+                        }
+                        size="sm"
+                        variant="outline"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Verify"
+                        )}
+                      </Button>
+                    )}
                   </div>
                   {state.sms.verified && (
-                    <div className="flex items-center gap-1 text-sm text-green-600">
-                      <CheckCircle className="h-3 w-3" />
+                    <div className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                      <CheckCircle className="h-4 w-4" />
                       Verified
                     </div>
                   )}
@@ -531,28 +655,36 @@ export function NotificationSettingsDialog({
                       className="flex-1"
                       disabled={isLoading}
                     />
-                    <Button
-                      onClick={() => handleStartVerification("email")}
-                      disabled={
-                        isLoading ||
-                        !validateEmail(state.email.contact) ||
-                        state.email.verified
-                      }
-                      size="sm"
-                      variant={state.email.verified ? "default" : "outline"}
-                    >
-                      {state.email.verified ? (
-                        <Check className="h-4 w-4 text-green-600" />
-                      ) : isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Verify"
-                      )}
-                    </Button>
+                    {state.email.verified ? (
+                      <Button
+                        onClick={() => handleRemoveContact("email")}
+                        disabled={isLoading}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleStartVerification("email")}
+                        disabled={
+                          isLoading || !validateEmail(state.email.contact)
+                        }
+                        size="sm"
+                        variant="outline"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Verify"
+                        )}
+                      </Button>
+                    )}
                   </div>
                   {state.email.verified && (
-                    <div className="flex items-center gap-1 text-sm text-green-600">
-                      <CheckCircle className="h-3 w-3" />
+                    <div className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                      <CheckCircle className="h-4 w-4" />
                       Verified
                     </div>
                   )}

@@ -23,9 +23,9 @@ export const settingsService = {
   async saveNotificationSettings(settings: {
     notificationMethod?: "sms" | "email" | null;
     phoneNumber?: string | null;
-    // phoneVerified?: boolean;
+    phoneVerified?: boolean;
     email?: string | null;
-    // emailVerified?: boolean;
+    emailVerified?: boolean;
   }): Promise<UserSettings> {
     const response = await api.post<UserSettings>(
       "/setting/notification",

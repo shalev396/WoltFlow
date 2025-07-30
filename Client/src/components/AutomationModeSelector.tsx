@@ -80,7 +80,7 @@ export function AutomationModeSelector<
                     </div>
                   </div>
                 </SelectItem>
-                <SelectItem value="cross-account">
+                {/* <SelectItem value="cross-account">
                   <div className="flex items-center gap-2">
                     <span>⚡</span>
                     <div>
@@ -90,7 +90,7 @@ export function AutomationModeSelector<
                       </p>
                     </div>
                   </div>
-                </SelectItem>
+                </SelectItem> */}
               </SelectContent>
             </Select>
           </FormControl>

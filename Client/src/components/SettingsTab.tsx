@@ -296,7 +296,8 @@ export function SettingsTab() {
               <div className="space-y-1">
                 <p className="text-sm font-medium">SMS Forwarding API Key</p>
                 <p className="text-sm text-muted-foreground">
-                  Generate an API key to allow external services to forward SMS messages to your account
+                  Generate an API key to allow external services to forward SMS
+                  messages to your account
                 </p>
               </div>
               <ApiKeyButton />

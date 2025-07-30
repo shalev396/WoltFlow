@@ -342,11 +342,6 @@ stepFunctions:
   stateMachines:
     userAutomationChain:
       name: ${self:service}-${self:provider.stage, 'local'}-userAutomationChain
-      events:
-        - schedule:
-            rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *)
-            description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
-            enabled: true
       definition:
         Comment: "Run automation chain per user in parallel"
         StartAt: ProcessAllUsers
@@ -517,6 +512,10 @@ functions:
       - httpApi:
           path: /api/automation/start-chain
           method: get
+      - schedule:
+          rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *) # cron(30 17 ? * SUN,MON,TUE,WED,THU *)
+          description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
+          enabled: true
 
   # gmail
 
