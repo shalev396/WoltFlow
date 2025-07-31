@@ -43,6 +43,19 @@ export async function sendSmsBySenderID(
   options: SendSmsBySenderIDOptions
 ): Promise<SendSmsResult> {
   try {
+    // Check if SMS is enabled via environment variable
+    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    if (!enabledSMS) {
+      console.log(
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+      );
+      return {
+        success: false,
+        error: "SMS functionality is currently disabled",
+        method: "senderID",
+      };
+    }
+
     const {
       phoneNumber,
       message,
@@ -123,6 +136,19 @@ export async function sendSmsByLongCode(
   options: SendSmsByLongCodeOptions
 ): Promise<SendSmsResult> {
   try {
+    // Check if SMS is enabled via environment variable
+    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    if (!enabledSMS) {
+      console.log(
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+      );
+      return {
+        success: false,
+        error: "SMS functionality is currently disabled",
+        method: "longCode",
+      };
+    }
+
     const {
       phoneNumber,
       message,
@@ -214,6 +240,19 @@ export async function sendSmsBySharedNumber(
   options: SendSmsBySharedNumberOptions
 ): Promise<SendSmsResult> {
   try {
+    // Check if SMS is enabled via environment variable
+    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    if (!enabledSMS) {
+      console.log(
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+      );
+      return {
+        success: false,
+        error: "SMS functionality is currently disabled",
+        method: "sharedNumber",
+      };
+    }
+
     const { phoneNumber, message, smsType = "Transactional" } = options;
 
     // Format and validate phone number

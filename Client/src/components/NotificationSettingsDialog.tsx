@@ -71,6 +71,9 @@ export function NotificationSettingsDialog({
 }: NotificationSettingsDialogProps) {
   const { data: settings, refetch } = useSettingsQuery();
 
+  // Check if SMS is enabled from backend
+  const isSmsEnabled = settings?.enabledSMS ?? false;
+
   const [step, setStep] = useState<VerificationStep>("setup");
   const [isLoading, setIsLoading] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
@@ -108,13 +111,19 @@ export function NotificationSettingsDialog({
           originalContact: settings.email || "",
         },
       });
-      setPrimaryMethod(settings.notificationMethod || "sms");
+
+      // Set primary method, defaulting to email if SMS is disabled
+      const defaultMethod = !isSmsEnabled
+        ? "email"
+        : settings.notificationMethod || "sms";
+      setPrimaryMethod(defaultMethod);
+
       setStep("setup");
       setVerificationCode("");
       setActiveVerificationMethod(null);
       setCooldownSeconds(0);
     }
-  }, [settings, open]);
+  }, [settings, open, isSmsEnabled]);
 
   // Cooldown timer
   useEffect(() => {
@@ -181,6 +190,12 @@ export function NotificationSettingsDialog({
 
   // Start 2FA verification
   const handleStartVerification = async (method: "sms" | "email") => {
+    // Check if SMS is disabled
+    if (method === "sms" && !isSmsEnabled) {
+      toast.error("SMS functionality is currently disabled");
+      return;
+    }
+
     const contact = state[method].contact;
     const isValid =
       method === "sms" ? validatePhone(contact) : validateEmail(contact);
@@ -311,17 +326,26 @@ export function NotificationSettingsDialog({
   // Validate save requirements
   const validateSave = (): { isValid: boolean; error?: string } => {
     // Check if at least one method is verified and has contact info
-    const hasVerifiedSms = state.sms.verified && state.sms.contact.trim();
+    const hasVerifiedSms =
+      isSmsEnabled && state.sms.verified && state.sms.contact.trim();
     const hasVerifiedEmail = state.email.verified && state.email.contact.trim();
 
     if (!hasVerifiedSms && !hasVerifiedEmail) {
+      const availableMethods = isSmsEnabled ? "SMS or Email" : "Email";
       return {
         isValid: false,
-        error: "Please verify at least one notification method (SMS or Email)",
+        error: `Please verify at least one notification method (${availableMethods})`,
       };
     }
 
     if (primaryMethod === "sms") {
+      if (!isSmsEnabled) {
+        return {
+          isValid: false,
+          error:
+            "SMS functionality is currently disabled. Please select Email as primary method.",
+        };
+      }
       if (!state.sms.contact.trim()) {
         return {
           isValid: false,
@@ -366,14 +390,24 @@ export function NotificationSettingsDialog({
 
   // Remove contact info and save immediately
   const handleRemoveContact = async (method: "sms" | "email") => {
+    // Check if SMS is disabled and they're trying to remove SMS
+    if (method === "sms" && !isSmsEnabled) {
+      toast.error("SMS functionality is currently disabled");
+      return;
+    }
+
     // Check if this would leave no verified methods
     const otherMethod = method === "sms" ? "email" : "sms";
+    const otherMethodAvailable = otherMethod === "sms" ? isSmsEnabled : true;
     const otherMethodVerified =
-      state[otherMethod].verified && state[otherMethod].contact.trim();
+      otherMethodAvailable &&
+      state[otherMethod].verified &&
+      state[otherMethod].contact.trim();
 
     if (!otherMethodVerified) {
+      const availableMethods = isSmsEnabled ? "SMS or Email" : "Email";
       toast.error(
-        "Cannot remove the last verified notification method. Please verify another method first."
+        `Cannot remove the last verified notification method. Please verify another method first (${availableMethods}).`
       );
       return;
     }
@@ -551,10 +585,15 @@ export function NotificationSettingsDialog({
                     <SelectValue placeholder="Select notification method" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sms">
+                    <SelectItem value="sms" disabled={!isSmsEnabled}>
                       <div className="flex items-center gap-2">
                         <Smartphone className="h-4 w-4" />
                         SMS
+                        {!isSmsEnabled && (
+                          <Badge variant="secondary" className="text-xs ml-2">
+                            Disabled
+                          </Badge>
+                        )}
                       </div>
                     </SelectItem>
                     <SelectItem value="email">
@@ -568,18 +607,34 @@ export function NotificationSettingsDialog({
               </div>
 
               {/* SMS Notifications */}
-              <div className="rounded-lg border p-4 space-y-3">
+              <div
+                className={`rounded-lg border p-4 space-y-3 ${
+                  !isSmsEnabled ? "opacity-50" : ""
+                }`}
+              >
                 <div className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4" />
                   <Label className="text-base font-medium">
                     SMS Notifications
                   </Label>
-                  {primaryMethod === "sms" && (
+                  {primaryMethod === "sms" && isSmsEnabled && (
                     <Badge variant="default" className="text-xs">
                       Primary
                     </Badge>
                   )}
+                  {!isSmsEnabled && (
+                    <Badge variant="secondary" className="text-xs">
+                      Disabled
+                    </Badge>
+                  )}
                 </div>
+
+                {!isSmsEnabled && (
+                  <div className="text-sm text-muted-foreground">
+                    SMS functionality is currently disabled by the
+                    administrator.
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <div className="flex gap-2">
@@ -591,12 +646,12 @@ export function NotificationSettingsDialog({
                         handleContactChange("sms", e.target.value)
                       }
                       className="flex-1"
-                      disabled={isLoading}
+                      disabled={isLoading || !isSmsEnabled}
                     />
                     {state.sms.verified ? (
                       <Button
                         onClick={() => handleRemoveContact("sms")}
-                        disabled={isLoading}
+                        disabled={isLoading || !isSmsEnabled}
                         size="sm"
                         variant="outline"
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -607,7 +662,9 @@ export function NotificationSettingsDialog({
                       <Button
                         onClick={() => handleStartVerification("sms")}
                         disabled={
-                          isLoading || !validatePhone(state.sms.contact)
+                          isLoading ||
+                          !validatePhone(state.sms.contact) ||
+                          !isSmsEnabled
                         }
                         size="sm"
                         variant="outline"

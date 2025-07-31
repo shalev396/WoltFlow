@@ -12,6 +12,21 @@ export const handler = async (
   console.log("Test SMS Handler - Event:", JSON.stringify(event, null, 2));
 
   try {
+    // Check if SMS is enabled via environment variable
+    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    if (!enabledSMS) {
+      console.log(
+        `Test SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+      );
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          success: false,
+          error: "SMS functionality is currently disabled",
+        }),
+      };
+    }
+
     // Parse the request body to get the phone number and test method
     const body = event.body ? JSON.parse(event.body) : {};
     let phoneNumber = body.phoneNumber;

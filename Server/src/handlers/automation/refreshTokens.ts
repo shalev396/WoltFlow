@@ -4,6 +4,7 @@ import Run from "../../models/Run.js";
 import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
 import { APIGatewayProxyResult } from "aws-lambda";
 import { refreshTokens } from "../../utils/automation.js";
+import { notifyOnError } from "../../utils/notificationUtil.js";
 import dotenv from "dotenv";
 import "../../config/bootstrap.js";
 import { syncDatabase } from "../../config/bootstrap.js";
@@ -58,6 +59,18 @@ export const handler = async (
     try {
       // Check if we have a refresh token to work with
       if (!settings.get("wrtoken")) {
+        await run.update({ status: "failed" });
+
+        // Send error notification to user
+        try {
+          await notifyOnError(run.user_id, run.id, "No refresh token found");
+        } catch (notificationError) {
+          console.error(
+            "Failed to send error notification:",
+            notificationError
+          );
+        }
+
         return {
           statusCode: 400,
           body: JSON.stringify({ error: "No refresh token found in settings" }),
@@ -114,8 +127,17 @@ export const handler = async (
       console.error("Token refresh failed:", refreshError);
       if (run) {
         await run.update({ status: "failed" });
+
+        // Send error notification to user
+        try {
+          await notifyOnError(run.user_id, run.id, "Token refresh failed");
+        } catch (notificationError) {
+          console.error(
+            "Failed to send error notification:",
+            notificationError
+          );
+        }
       }
-      //TODO:send failed sms
 
       const isStepFunctions = !!event.runId || !!event.Payload?.runId;
 
@@ -137,6 +159,13 @@ export const handler = async (
     console.error("RefreshTokens handler error:", error);
     if (run) {
       await run.update({ status: "failed" });
+
+      // Send error notification to user
+      try {
+        await notifyOnError(run.user_id, run.id, "Automation error occurred");
+      } catch (notificationError) {
+        console.error("Failed to send error notification:", notificationError);
+      }
     }
 
     const isStepFunctions = !!event.runId || !!event.Payload?.runId;

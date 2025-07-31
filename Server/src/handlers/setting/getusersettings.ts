@@ -18,9 +18,17 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         body: JSON.stringify({ error: "Settings not found" }),
       };
     }
+
+    // Add SMS enablement status from environment variable
+    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    const settingsWithSmsStatus = {
+      ...settings.toJSON(),
+      enabledSMS,
+    };
+
     return {
       statusCode: 200,
-      body: JSON.stringify(settings),
+      body: JSON.stringify(settingsWithSmsStatus),
     };
   }
 );

@@ -10,6 +10,7 @@ import User from "../../models/User.js";
 import Code from "../../models/Code.js";
 import Run from "../../models/Run.js";
 import { syncDatabase } from "../../config/bootstrap.js";
+import { notifyOnError } from "../../utils/notificationUtil.js";
 // Environment variables
 dotenv.config();
 
@@ -53,6 +54,7 @@ export const handler = async (
     // Get the run and associated user
     run = await Run.findByPk(runId);
     if (!run) {
+      // Note: Cannot update run status since run is null
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "Run not found" }),
@@ -98,6 +100,14 @@ export const handler = async (
     if (!user) {
       console.error(`User not found for uid: ${uid}`);
       await run.update({ status: "failed" });
+
+      // Send error notification to user
+      try {
+        await notifyOnError(uid, run.id, "User not found");
+      } catch (notificationError) {
+        console.error("Failed to send error notification:", notificationError);
+      }
+
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "User not found" }),
@@ -179,6 +189,14 @@ export const handler = async (
         `All ${maxRetries} attempts failed. Final error: ${lastError}`
       );
       await run.update({ status: "failed" });
+
+      // Send error notification to user
+      try {
+        await notifyOnError(uid, run.id, "No Wolt email found");
+      } catch (notificationError) {
+        console.error("Failed to send error notification:", notificationError);
+      }
+
       return {
         statusCode: 404,
         body: JSON.stringify({
@@ -206,6 +224,14 @@ export const handler = async (
     }
     if (!attachmentId) {
       await run.update({ status: "failed" });
+
+      // Send error notification to user
+      try {
+        await notifyOnError(uid, run.id, "PDF attachment not found");
+      } catch (notificationError) {
+        console.error("Failed to send error notification:", notificationError);
+      }
+
       return {
         statusCode: 404,
         body: JSON.stringify({ error: "PDF attachment not found" }),
@@ -224,6 +250,14 @@ export const handler = async (
     const match = pdfData.text.match(/CODE:\s*([A-Z0-9]+)/);
     if (!match) {
       await run.update({ status: "failed" });
+
+      // Send error notification to user
+      try {
+        await notifyOnError(uid, run.id, "Code not found in PDF");
+      } catch (notificationError) {
+        console.error("Failed to send error notification:", notificationError);
+      }
+
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Code not found in PDF" }),
@@ -274,6 +308,13 @@ export const handler = async (
     console.error("getDailyCode error:", err);
     if (run) {
       await run.update({ status: "failed" });
+
+      // Send error notification to user
+      try {
+        await notifyOnError(run.user_id, run.id, "Email processing failed");
+      } catch (notificationError) {
+        console.error("Failed to send error notification:", notificationError);
+      }
     }
 
     const isStepFunctions = !!event.runId || !!event.Payload?.runId;

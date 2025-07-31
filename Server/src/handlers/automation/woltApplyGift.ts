@@ -13,6 +13,7 @@ import {
 } from "../../utils/automation.js";
 import { sleep } from "../../utils/general.js";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
+import { notifyOnError } from "../../utils/notificationUtil.js";
 import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
@@ -208,6 +209,20 @@ export const handler = async (
         await run.update({ status: "success", stage: "done" });
       } else {
         await run.update({ status: "failed" });
+
+        // Send error notification to user
+        try {
+          await notifyOnError(
+            run.user_id,
+            run.id,
+            "Gift card redemption failed"
+          );
+        } catch (notificationError) {
+          console.error(
+            "Failed to send error notification:",
+            notificationError
+          );
+        }
       }
     }
 

@@ -38,6 +38,7 @@ export interface UserSettings {
   phoneVerified?: boolean;
   email?: string | null;
   emailVerified?: boolean;
+  enabledSMS: boolean; // Whether SMS functionality is enabled via environment variable
   hasGmailAccess: boolean; // Whether user granted Gmail access during OAuth
   automationEnabled: boolean; // Whether automation is enabled
   automationMode: "full-run" | "buy-only" | "cross-account"; // Automation mode

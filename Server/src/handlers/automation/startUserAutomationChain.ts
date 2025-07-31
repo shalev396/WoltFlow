@@ -4,6 +4,7 @@ import User from "../../models/User.js";
 import Run from "../../models/Run.js";
 import Setting from "../../models/Setting.js";
 import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import { notifyOnError } from "../../utils/notificationUtil.js";
 import dotenv from "dotenv";
 import { syncDatabase } from "../../config/bootstrap.js";
 
@@ -92,6 +93,28 @@ export const handler: CustomAPIGatewayProxyHandler = async (_event?) => {
           userId: user.get("userId"),
           error: userError.message,
         });
+
+        // Send error notification to user if run was created
+        const userId = user.get("userId");
+        try {
+          const failedRun = await Run.findOne({
+            where: { user_id: userId },
+            order: [["created_at", "DESC"]],
+          });
+          if (failedRun) {
+            await failedRun.update({ status: "failed" });
+            await notifyOnError(
+              userId,
+              failedRun.id,
+              "Automation setup failed"
+            );
+          }
+        } catch (notificationError) {
+          console.error(
+            "Failed to send error notification:",
+            notificationError
+          );
+        }
       }
     }
 

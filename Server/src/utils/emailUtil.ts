@@ -8,8 +8,8 @@ import {
 const sesClient = new SESClient({ region: "il-central-1" });
 
 // Default sender email - must be verified in SES
-const DEFAULT_SENDER_EMAIL = "authenticator@woltflow.shalev396.com";
-const DEFAULT_SENDER_NAME = "WoltFlow Authenticator";
+const AUTHENTICATOR_SENDER_EMAIL = "authenticator@woltflow.shalev396.com";
+const AUTHENTICATOR_SENDER_NAME = "WoltFlow Authenticator";
 
 export interface SendEmailOptions {
   to: string | string[]; // Single email or array of emails
@@ -43,8 +43,8 @@ export async function sendEmail(
       subject,
       htmlBody,
       textBody,
-      from = DEFAULT_SENDER_EMAIL,
-      fromName = DEFAULT_SENDER_NAME,
+      from = AUTHENTICATOR_SENDER_EMAIL,
+      fromName = AUTHENTICATOR_SENDER_NAME,
       replyTo,
       cc,
       bcc,

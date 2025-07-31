@@ -58,6 +58,23 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         };
       }
 
+      // Check if SMS is enabled via environment variable
+      if (method === "sms") {
+        const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+        if (!enabledSMS) {
+          console.log(
+            `SMS 2FA was not allowed because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+          );
+          return {
+            statusCode: 400,
+            body: JSON.stringify({
+              success: false,
+              message: "SMS functionality is currently disabled",
+            }),
+          };
+        }
+      }
+
       // Validate and format contact
       let formattedContact: string;
       if (method === "sms") {

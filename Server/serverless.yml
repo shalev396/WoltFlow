@@ -68,6 +68,9 @@ provider:
     JWT_SECRET: ${env:JWT_SECRET}
     DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE, ""}
 
+    # SMS Configuration
+    enabledSMS: ${env:ENABLED_SMS, "false"}
+
     # AWS Configuration - AWS_REGION is automatically provided by AWS Lambda
 
     # S3 Bucket Configuration
@@ -600,30 +603,30 @@ functions:
           method: post
 
   testSms:
-    handler: ./build/sms/testSms.handler
+    handler: ./build/test/testSms.handler
     package:
       patterns:
         - "!build/**"
-        - "build/sms/testSms.mjs"
+        - "build/test/testSms.mjs"
 
         - "package.json"
     events:
       - httpApi:
-          path: /api/sms/test
+          path: /api/test/sms
           method: post
     # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
   testEmail:
-    handler: ./build/email/testEmail.handler
+    handler: ./build/test/testEmail.handler
     package:
       patterns:
         - "!build/**"
-        - "build/email/testEmail.mjs"
+        - "build/test/testEmail.mjs"
 
         - "package.json"
     events:
       - httpApi:
-          path: /api/email/test
+          path: /api/test/email
           method: post
     # Test Email function - send POST request with { "email": "test@example.com" }
 
