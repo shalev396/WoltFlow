@@ -151,6 +151,33 @@ export default function Landing() {
             </a>
           </div>
         </section>
+
+        {/* Footer */}
+        <footer className="bg-background border-t py-8">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                © 2025 WoltFlow. All rights reserved.
+              </div>
+              <div className="flex gap-6 text-sm">
+                <Button
+                  variant="link"
+                  asChild
+                  className="p-0 h-auto text-muted-foreground hover:text-foreground"
+                >
+                  <a href="/privacy">Privacy Policy</a>
+                </Button>
+                <Button
+                  variant="link"
+                  asChild
+                  className="p-0 h-auto text-muted-foreground hover:text-foreground"
+                >
+                  <a href="/terms">Terms of Service</a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   );
