@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { settingsService } from "@/services/settings";
 import { useSettingsQuery } from "@/queries/settings";
@@ -82,6 +83,8 @@ export function NotificationSettingsDialog({
     "sms" | "email" | null
   >(null);
   const [primaryMethod, setPrimaryMethod] = useState<"sms" | "email">("sms");
+  const [notificationOnSuccess, setNotificationOnSuccess] = useState(true);
+  const [notificationOnError, setNotificationOnError] = useState(true);
 
   const [state, setState] = useState<VerificationState>({
     sms: {
@@ -118,6 +121,10 @@ export function NotificationSettingsDialog({
         : settings.notificationMethod || "sms";
       setPrimaryMethod(defaultMethod);
 
+      // Set notification preferences
+      setNotificationOnSuccess(settings.notificationOnSuccess ?? true);
+      setNotificationOnError(settings.notificationOnError ?? true);
+
       setStep("setup");
       setVerificationCode("");
       setActiveVerificationMethod(null);
@@ -142,6 +149,8 @@ export function NotificationSettingsDialog({
       setVerificationCode("");
       setActiveVerificationMethod(null);
       setCooldownSeconds(0);
+      setNotificationOnSuccess(true);
+      setNotificationOnError(true);
     }
     onOpenChange(open);
   };
@@ -437,6 +446,8 @@ export function NotificationSettingsDialog({
       // Save immediately
       const saveData: {
         notificationMethod?: "sms" | "email" | null;
+        notificationOnSuccess?: boolean;
+        notificationOnError?: boolean;
         phoneNumber?: string | null;
         phoneVerified?: boolean;
         email?: string | null;
@@ -445,6 +456,10 @@ export function NotificationSettingsDialog({
 
       // Set primary notification method
       saveData.notificationMethod = newPrimaryMethod;
+
+      // Include notification preferences
+      saveData.notificationOnSuccess = notificationOnSuccess;
+      saveData.notificationOnError = notificationOnError;
 
       // Update the specific method being removed
       if (method === "sms") {
@@ -502,6 +517,8 @@ export function NotificationSettingsDialog({
     try {
       const saveData: {
         notificationMethod?: "sms" | "email" | null;
+        notificationOnSuccess?: boolean;
+        notificationOnError?: boolean;
         phoneNumber?: string | null;
         phoneVerified?: boolean;
         email?: string | null;
@@ -510,6 +527,10 @@ export function NotificationSettingsDialog({
 
       // Set primary notification method
       saveData.notificationMethod = primaryMethod;
+
+      // Include notification preferences
+      saveData.notificationOnSuccess = notificationOnSuccess;
+      saveData.notificationOnError = notificationOnError;
 
       // SMS settings - always save current state (contact info regardless of verification)
       saveData.phoneNumber = state.sms.contact.trim()
@@ -604,6 +625,69 @@ export function NotificationSettingsDialog({
                     </SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Notification Preferences */}
+              <div className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <Label className="text-base font-medium">
+                    Notification Preferences
+                  </Label>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className="text-sm font-medium">
+                        Success Notifications
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Get notified when automation runs complete successfully
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="success-notifications"
+                        checked={notificationOnSuccess}
+                        onCheckedChange={(checked) =>
+                          setNotificationOnSuccess(checked === true)
+                        }
+                      />
+                      {/* <Label
+                        htmlFor="success-notifications"
+                        className="text-sm cursor-pointer"
+                      >
+                        {notificationOnSuccess ? "Enabled" : "Disabled"}
+                      </Label> */}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className="text-sm font-medium">
+                        Error Notifications
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Get notified when automation runs fail or encounter
+                        errors
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="error-notifications"
+                        checked={notificationOnError}
+                        onCheckedChange={(checked) =>
+                          setNotificationOnError(checked === true)
+                        }
+                      />
+                      {/* <Label
+                        htmlFor="error-notifications"
+                        className="text-sm cursor-pointer"
+                      >
+                        {notificationOnError ? "Enabled" : "Disabled"}
+                      </Label> */}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* SMS Notifications */}

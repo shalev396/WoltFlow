@@ -409,7 +409,8 @@ export const handler = async (
       //add || true to debug script
       if (
         ENV === "local" ||
-        ENV === "dev" // || true
+        ENV === "dev"
+        // || true
       ) {
         success = true;
       } else {

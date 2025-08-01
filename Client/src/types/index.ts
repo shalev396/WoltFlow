@@ -33,6 +33,8 @@ export interface UserSettings {
   settingsId: number;
   userId: string;
   isNotification: boolean;
+  notificationOnSuccess?: boolean;
+  notificationOnError?: boolean;
   notificationMethod?: "sms" | "email" | null;
   phoneNumber?: string | null;
   phoneVerified?: boolean;

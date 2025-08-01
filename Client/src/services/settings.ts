@@ -22,6 +22,8 @@ export const settingsService = {
   // Save notification settings (both phone and email)
   async saveNotificationSettings(settings: {
     notificationMethod?: "sms" | "email" | null;
+    notificationOnSuccess?: boolean;
+    notificationOnError?: boolean;
     phoneNumber?: string | null;
     phoneVerified?: boolean;
     email?: string | null;

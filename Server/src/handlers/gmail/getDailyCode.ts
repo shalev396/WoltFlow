@@ -68,7 +68,11 @@ export const handler = async (
 
     let targetDate = new Date();
     //TODO: Remove || true
-    if (process.env["ENV"] === "Development") {
+    if (
+      process.env["ENV"] === "dev" ||
+      process.env["ENV"] === "local"
+      // ||true
+    ) {
       // First check if date parameter is provided
       // if (event.queryStringParameters?.date) {
       //   const d = new Date(event.queryStringParameters.date);

@@ -6,6 +6,8 @@ import sequelize from "../../config/database.js";
 import { syncDatabase } from "../../config/bootstrap.js";
 interface SaveNotificationSettingsRequest {
   notificationMethod?: "sms" | "email" | null;
+  notificationOnSuccess?: boolean;
+  notificationOnError?: boolean;
   phoneNumber?: string | null;
   phoneVerified?: boolean;
   email?: string | null;
@@ -43,6 +45,8 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         settings = await Setting.create({
           userId: event.userId!,
           isNotification: false,
+          notificationOnSuccess: true,
+          notificationOnError: true,
           hasGmailAccess: false,
           automationEnabled: false,
           automationMode: "full-run",
@@ -54,6 +58,14 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Update notification method if provided
       if (requestData.notificationMethod !== undefined) {
         settings.notificationMethod = requestData.notificationMethod;
+      }
+
+      // Update success and error notification preferences
+      if (requestData.notificationOnSuccess !== undefined) {
+        settings.notificationOnSuccess = requestData.notificationOnSuccess;
+      }
+      if (requestData.notificationOnError !== undefined) {
+        settings.notificationOnError = requestData.notificationOnError;
       }
 
       // Update phone number and verification status
@@ -77,6 +89,8 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
 
       console.log(`Notification settings updated for user ${event.userId}:`, {
         notificationMethod: settings.notificationMethod,
+        notificationOnSuccess: settings.notificationOnSuccess,
+        notificationOnError: settings.notificationOnError,
         phoneNumber: settings.phoneNumber,
         phoneVerified: settings.phoneVerified,
         email: settings.email,

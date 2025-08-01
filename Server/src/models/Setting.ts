@@ -6,6 +6,8 @@ export default class Setting extends Model {
   declare settingsId: number;
   declare userId: string;
   declare isNotification: boolean;
+  declare notificationOnSuccess: boolean; // Enable notifications for successful runs
+  declare notificationOnError: boolean; // Enable notifications for failed runs
   declare notificationMethod: "sms" | "email" | null;
   declare phoneNumber: string | null;
   declare phoneVerified: boolean;
@@ -43,6 +45,16 @@ Setting.init(
       onDelete: "CASCADE",
     },
     isNotification: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    notificationOnSuccess: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    notificationOnError: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
       allowNull: false,

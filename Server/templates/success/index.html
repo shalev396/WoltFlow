@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WoltFlow - Success Notification</title>
+    <style>
+      /* Reset and base styles matching app */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background-color: #ffffff; /* --background */
+        color: #0a0a0a; /* --foreground */
+        line-height: 1.6;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff; /* --card */
+        border-radius: 10px; /* --radius: 0.625rem */
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid #e5e7eb; /* --border */
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          #16a34a 0%,
+          #22c55e 100%
+        ); /* green gradient for success */
+        padding: 40px 30px;
+        text-align: center;
+        color: #ffffff;
+      }
+
+      .logo {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: -0.025em;
+        color: #ffffff;
+      }
+
+      .subtitle {
+        font-size: 16px;
+        opacity: 0.9;
+        margin: 0;
+        color: #bbf7d0;
+        font-weight: 400;
+      }
+
+      .success-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .content {
+        padding: 40px 30px;
+        background-color: #ffffff;
+      }
+
+      .greeting {
+        font-size: 18px;
+        margin-bottom: 24px;
+        color: #0a0a0a; /* --foreground */
+        font-weight: 600;
+      }
+
+      .message {
+        font-size: 16px;
+        margin-bottom: 32px;
+        color: #71717a; /* --muted-foreground */
+        line-height: 1.5;
+      }
+
+      .success-container {
+        background: #f0fdf4; /* green-50 */
+        border: 2px solid #bbf7d0; /* green-200 */
+        border-radius: 10px; /* --radius */
+        padding: 24px;
+        margin: 32px 0;
+      }
+
+      .success-title {
+        font-size: 18px;
+        color: #16a34a; /* green-600 */
+        margin-bottom: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .run-details {
+        background: #f8fafc; /* --secondary */
+        border: 1px solid #e5e7eb; /* --border */
+        border-radius: 8px;
+        padding: 20px;
+        margin: 24px 0;
+      }
+
+      .run-details h3 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        color: #0a0a0a;
+        font-weight: 600;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        font-weight: 500;
+        color: #71717a;
+        font-size: 14px;
+      }
+
+      .detail-value {
+        font-weight: 600;
+        color: #0a0a0a;
+        font-size: 14px;
+      }
+
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .status-success {
+        background-color: #f0fdf4;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+      }
+
+      .status-completed {
+        background-color: #f0fdf4;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+      }
+
+      .screenshots-section {
+        margin: 32px 0;
+      }
+
+      .screenshots-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #0a0a0a;
+        margin-bottom: 16px;
+      }
+
+      .screenshot-container {
+        margin-bottom: 24px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .screenshot-header {
+        background: #f8fafc;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #71717a;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .screenshot-success {
+        background: #f0fdf4;
+        color: #16a34a;
+      }
+
+      .screenshot-normal {
+        background: #f0f9ff;
+        color: #0369a1;
+      }
+
+      .screenshot-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        max-height: 400px;
+        object-fit: contain;
+      }
+
+      .footer {
+        background-color: #f8fafc; /* --secondary */
+        padding: 30px;
+        text-align: center;
+        border-top: 1px solid #e5e7eb; /* --border */
+      }
+
+      .footer-text {
+        font-size: 14px;
+        color: #71717a; /* --muted-foreground */
+        margin: 0 0 16px 0;
+        line-height: 1.4;
+      }
+
+      .support-link {
+        color: #16a34a; /* green for success theme */
+        text-decoration: underline;
+        font-weight: 500;
+      }
+
+      .support-link:hover {
+        color: #15803d;
+      }
+
+      .brand-footer {
+        font-size: 12px;
+        color: #a1a1aa; /* lighter muted */
+        margin-top: 16px;
+        font-weight: 400;
+      }
+
+      /* Responsive design */
+      @media (max-width: 600px) {
+        .container {
+          margin: 0;
+          border-radius: 0;
+          border-left: none;
+          border-right: none;
+        }
+
+        .header,
+        .content,
+        .footer {
+          padding: 30px 20px;
+        }
+
+        .detail-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+
+        .screenshot-image {
+          max-height: 300px;
+        }
+      }
+
+      /* Dark mode support for email clients that support it */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #0a0a0a !important;
+          color: #fafafa !important;
+        }
+
+        .container {
+          background-color: #171717 !important;
+          border-color: #262626 !important;
+        }
+
+        .content {
+          background-color: #171717 !important;
+        }
+
+        .greeting {
+          color: #fafafa !important;
+        }
+
+        .message {
+          color: #a1a1aa !important;
+        }
+
+        .run-details {
+          background-color: #262626 !important;
+          border-color: #404040 !important;
+        }
+
+        .footer {
+          background-color: #171717 !important;
+          border-color: #262626 !important;
+        }
+
+        .footer-text {
+          color: #a1a1aa !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="success-icon">✅</div>
+        <div class="logo">WoltFlow</div>
+        <p class="subtitle">Success Notification</p>
+      </div>
+
+      <div class="content">
+        <div class="greeting">Hello {{USER_NAME}}! 👋</div>
+
+        <div class="message">
+          Great news! Your WoltFlow automation run has completed successfully.
+          Your gift card has been redeemed and is now ready to use on Wolt.
+        </div>
+
+        <div class="success-container">
+          <div class="success-title">
+            <span>🎉</span>
+            <span>Run Completed Successfully</span>
+          </div>
+          <div class="message">
+            Your automation run has been completed successfully! Your gift card
+            has been redeemed and the credit has been added to your Wolt
+            account.
+          </div>
+        </div>
+
+        <div class="run-details">
+          <h3>Run Details</h3>
+          <div class="detail-row">
+            <span class="detail-label">Run ID:</span>
+            <span class="detail-value">#{{RUN_ID}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value">
+              <span class="status-badge status-{{RUN_STATUS_CLASS}}"
+                >{{RUN_STATUS}}</span
+              >
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Final Stage:</span>
+            <span class="detail-value">{{RUN_STAGE}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Mode:</span>
+            <span class="detail-value">{{RUN_MODE}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount:</span>
+            <span class="detail-value">₪{{RUN_AMOUNT}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Started:</span>
+            <span class="detail-value">{{RUN_CREATED_AT}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Completed:</span>
+            <span class="detail-value">{{RUN_UPDATED_AT}}</span>
+          </div>
+        </div>
+
+        {{#if HAS_SCREENSHOTS}}
+        <div class="screenshots-section">
+          <div class="screenshots-title">📸 Screenshots</div>
+          {{#each SCREENSHOTS}} {{/each}}
+        </div>
+        {{/if}}
+
+        <div class="message">
+          Your gift card credit is now available in your Wolt account. You can
+          start using it for your next orders right away!
+        </div>
+      </div>
+
+      <div class="footer">
+        <!-- <p class="footer-text">
+          Need help? Contact our support team at
+          <a href="mailto:support@woltflow.shalev396.com" class="support-link"
+            >support@woltflow.shalev396.com</a
+          >
+        </p> -->
+
+        <div class="brand-footer">
+          © 2025 WoltFlow. Streamlining your Wolt experience.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -13,7 +13,10 @@ import {
 } from "../../utils/automation.js";
 import { sleep } from "../../utils/general.js";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
-import { notifyOnError } from "../../utils/notificationUtil.js";
+import {
+  notifyOnError,
+  notifyOnSuccess,
+} from "../../utils/notificationUtil.js";
 import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
@@ -207,6 +210,20 @@ export const handler = async (
     if (run) {
       if (success) {
         await run.update({ status: "success", stage: "done" });
+
+        // Send success notification to user
+        try {
+          await notifyOnSuccess(
+            run.user_id,
+            run.id,
+            "Gift card redemption completed successfully"
+          );
+        } catch (notificationError) {
+          console.error(
+            "Failed to send success notification:",
+            notificationError
+          );
+        }
       } else {
         await run.update({ status: "failed" });
 

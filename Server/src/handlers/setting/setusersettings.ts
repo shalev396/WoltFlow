@@ -10,6 +10,8 @@ await sequelize.authenticate();
 await syncDatabase();
 interface UpdateBody {
   isNotification?: boolean;
+  notificationOnSuccess?: boolean;
+  notificationOnError?: boolean;
   hasGmailAccess?: boolean;
   automationEnabled?: boolean;
   automationMode?: "full-run" | "buy-only" | "cross-account";
