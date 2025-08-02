@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WoltFlow Token Reviewer</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>WoltFlow Token Reviewer</h1>
+        <div class="version">v1.0.0</div>
+      </header>
+
+      <div class="section">
+        <h2>Tokens</h2>
+        <div id="loading" class="hidden">
+          <div class="spinner"></div>
+          <span>Loading...</span>
+        </div>
+
+        <div id="tokenInfo">
+          <div class="token-item">
+            <label>Access Token:</label>
+            <div class="token-container">
+              <div id="accessToken" class="token-value">Not found</div>
+              <button
+                id="copyAccess"
+                class="btn-copy hidden"
+                title="Copy to clipboard"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="token-item">
+            <label>Refresh Token:</label>
+            <div class="token-container">
+              <div id="refreshToken" class="token-value">Not found</div>
+              <button
+                id="copyRefresh"
+                class="btn-copy hidden"
+                title="Copy to clipboard"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="status" class="status-message"></div>
+
+      <footer>
+        <div class="security-notice">
+          <strong>🔒 Security Notice:</strong> Tokens are sensitive credentials.
+          This extension only reads cookies locally and doesn't send data
+          anywhere.
+        </div>
+      </footer>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

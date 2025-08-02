@@ -35,12 +35,6 @@ export const handler = async (
   try {
     const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
 
-    await sequelize.authenticate();
-    // ensure Codes table exists (dev only)
-    if (process.env["ENV"] === "Development") {
-      await Code.sync({ alter: true });
-    }
-
     // Extract runId from event (Step Functions or API Gateway)
     const runId = event.runId || event.queryStringParameters?.["runId"];
 
@@ -85,6 +79,7 @@ export const handler = async (
         if (!isNaN(d.getTime())) targetDate = d;
       }
     }
+    //making dates param for gmail search
     const pad = (n: number) => String(n).padStart(2, "0");
     const y = targetDate.getFullYear();
     const m = pad(targetDate.getMonth() + 1);
