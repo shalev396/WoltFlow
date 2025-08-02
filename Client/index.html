@@ -4,13 +4,360 @@
     <meta charset="UTF-8" />
     <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WoltFlow</title>
+    <meta
+      name="description"
+      content="WoltFlow automates Wolt gift card purchases from Cibus daily, saving you time and ensuring maximum meal benefits through intelligent automation."
+    />
+    <title>WoltFlow - Automate Your Wolt Gift Card Purchases</title>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Pre-rendered content for Google verification - visible before React loads -->
+    <div
+      id="preload-info"
+      style="
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        color: var(--foreground);
+        background-color: var(--background);
+        min-height: 100vh;
+      "
+    >
+      <header
+        style="text-align: center; margin-bottom: 3rem; padding-top: 3rem"
+      >
+        <h1
+          style="
+            font-size: clamp(2rem, 5vw, 3.75rem);
+            font-weight: bold;
+            margin: 0 0 1.5rem 0;
+            background: linear-gradient(to right, #2563eb, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+          "
+        >
+          WoltFlow - Automate Your Wolt Gift Card Purchases
+        </h1>
+        <p
+          style="
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            color: var(--muted-foreground);
+            margin: 0 auto 2rem auto;
+            max-width: 48rem;
+          "
+        >
+          Never miss out on your meal benefits again. WoltFlow automatically
+          purchases Wolt gift cards from Cibus daily, saving you time and
+          ensuring maximum benefits.
+        </p>
+        <div
+          style="
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            display: inline-block;
+            font-weight: 500;
+            margin-top: 1rem;
+          "
+        >
+          Get Started with Google Sign-In
+        </div>
+      </header>
+
+      <!-- Features Section -->
+      <section
+        style="
+          background-color: var(--muted);
+          margin: 0 -1rem 3rem -1rem;
+          padding: 3rem 1rem;
+        "
+      >
+        <div style="max-width: 1200px; margin: 0 auto">
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              gap: 2rem;
+            "
+          >
+            <div
+              style="
+                background-color: var(--background);
+                padding: 1.5rem;
+                border-radius: 0.75rem;
+                border: 1px solid var(--border);
+              "
+            >
+              <div
+                style="
+                  width: 3rem;
+                  height: 3rem;
+                  border-radius: 0.5rem;
+                  background-color: #dbeafe;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin-bottom: 1rem;
+                "
+              >
+                <span style="color: #2563eb; font-size: 1.5rem">🤖</span>
+              </div>
+              <h3
+                style="
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  margin-bottom: 0.75rem;
+                  color: var(--foreground);
+                "
+              >
+                Automated Purchases
+              </h3>
+              <p style="color: var(--muted-foreground); margin: 0">
+                Set up once and let WoltFlow handle your daily gift card
+                purchases automatically. No more manual interventions needed.
+              </p>
+            </div>
+
+            <div
+              style="
+                background-color: var(--background);
+                padding: 1.5rem;
+                border-radius: 0.75rem;
+                border: 1px solid var(--border);
+              "
+            >
+              <div
+                style="
+                  width: 3rem;
+                  height: 3rem;
+                  border-radius: 0.5rem;
+                  background-color: #f3e8ff;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin-bottom: 1rem;
+                "
+              >
+                <span style="color: #9333ea; font-size: 1.5rem">🎁</span>
+              </div>
+              <h3
+                style="
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  margin-bottom: 0.75rem;
+                  color: var(--foreground);
+                "
+              >
+                Smart Benefits
+              </h3>
+              <p style="color: var(--muted-foreground); margin: 0">
+                Maximize your meal benefits with intelligent purchase timing and
+                amount optimization. Never leave money on the table.
+              </p>
+            </div>
+
+            <div
+              style="
+                background-color: var(--background);
+                padding: 1.5rem;
+                border-radius: 0.75rem;
+                border: 1px solid var(--border);
+              "
+            >
+              <div
+                style="
+                  width: 3rem;
+                  height: 3rem;
+                  border-radius: 0.5rem;
+                  background-color: #dcfce7;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin-bottom: 1rem;
+                "
+              >
+                <span style="color: #16a34a; font-size: 1.5rem">🛡️</span>
+              </div>
+              <h3
+                style="
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  margin-bottom: 0.75rem;
+                  color: var(--foreground);
+                "
+              >
+                Secure & Reliable
+              </h3>
+              <p style="color: var(--muted-foreground); margin: 0">
+                Built with security in mind. Your credentials are encrypted and
+                safely stored. Monitor all transactions in real-time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Automation Section -->
+      <section style="margin-bottom: 3rem">
+        <div style="max-width: 800px; margin: 0 auto">
+          <h2
+            style="
+              font-size: clamp(1.5rem, 4vw, 2.25rem);
+              font-weight: bold;
+              margin-bottom: 1.5rem;
+              text-align: center;
+              color: var(--foreground);
+            "
+          >
+            Powered by Selenium Automation
+          </h2>
+          <div
+            style="
+              background-color: var(--muted);
+              border-radius: 0.75rem;
+              padding: 2rem;
+              border: 1px solid var(--border);
+            "
+          >
+            <p
+              style="
+                font-size: 1.125rem;
+                margin-bottom: 1rem;
+                color: var(--foreground);
+              "
+            >
+              WoltFlow utilizes Selenium WebDriver technology to automate the
+              gift card purchase process:
+            </p>
+            <ul
+              style="
+                margin: 0;
+                padding-left: 1.5rem;
+                color: var(--muted-foreground);
+              "
+            >
+              <li style="margin-bottom: 0.75rem">
+                Automated browser control for seamless purchases
+              </li>
+              <li style="margin-bottom: 0.75rem">
+                Smart error handling and retry mechanisms
+              </li>
+              <li style="margin-bottom: 0.75rem">
+                Screenshot capture for transaction verification
+              </li>
+              <li style="margin-bottom: 0.75rem">
+                Real-time status monitoring and notifications
+              </li>
+              <li style="margin-bottom: 0.75rem">
+                Gmail integration for secure 2FA code retrieval
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Credits Section -->
+      <section
+        style="
+          background-color: var(--muted);
+          margin: 0 -1rem 0 -1rem;
+          padding: 3rem 1rem;
+          text-align: center;
+        "
+      >
+        <h2
+          style="
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--foreground);
+          "
+        >
+          Created by Shalev Ben Moshe
+        </h2>
+        <p
+          style="
+            color: var(--muted-foreground);
+            max-width: 32rem;
+            margin: 0 auto 1.5rem auto;
+          "
+        >
+          WoltFlow is developed and maintained by Shalev Ben Moshe, a software
+          developer passionate about automation and user experience. Feel free
+          to reach out for any questions or suggestions.
+        </p>
+        <a
+          href="https://www.shalev396.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="
+            display: inline-block;
+            border: 1px solid var(--border);
+            color: var(--foreground);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background-color: var(--background);
+          "
+        >
+          Visit My Website →
+        </a>
+      </section>
+
+      <!-- Footer -->
+      <footer
+        style="
+          background-color: var(--background);
+          border-top: 1px solid var(--border);
+          padding: 2rem 0;
+          margin-top: 2rem;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+          "
+        >
+          <div style="font-size: 0.875rem; color: var(--muted-foreground)">
+            © 2025 WoltFlow. All rights reserved.
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 1.5rem;
+              font-size: 0.875rem;
+              flex-wrap: wrap;
+              justify-content: center;
+            "
+          >
+            <a
+              href="/privacy-policy.html"
+              style="color: var(--muted-foreground); text-decoration: none"
+              >Privacy Policy</a
+            >
+            <a
+              href="/terms"
+              style="color: var(--muted-foreground); text-decoration: none"
+              >Terms of Service</a
+            >
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Fallback footer for minimal cases -->
     <footer
       id="fallback-footer"
-      style="font-size: 10px; text-align: center; padding: 4px"
+      style="font-size: 10px; text-align: center; padding: 4px; display: none"
     >
       <a href="/privacy-policy.html" aria-label="Privacy Policy"
         >Privacy Policy</a
@@ -18,23 +365,337 @@
     </footer>
 
     <noscript>
-      <div style="text-align: center; margin-top: 8px">
-        <a href="/privacy-policy.html">Privacy Policy</a> (JavaScript disabled)
+      <div
+        style="
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem 1rem;
+          font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+          line-height: 1.6;
+          color: var(--foreground);
+          background-color: var(--background);
+          min-height: 100vh;
+        "
+      >
+        <header
+          style="text-align: center; margin-bottom: 3rem; padding-top: 3rem"
+        >
+          <h1
+            style="
+              font-size: clamp(2rem, 5vw, 3.75rem);
+              font-weight: bold;
+              margin: 0 0 1.5rem 0;
+              background: linear-gradient(to right, #2563eb, #9333ea);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              line-height: 1.2;
+            "
+          >
+            Automate Your Wolt Gift Card Purchases
+          </h1>
+          <p
+            style="
+              font-size: clamp(1rem, 2.5vw, 1.25rem);
+              color: var(--muted-foreground);
+              margin: 0 auto 2rem auto;
+              max-width: 48rem;
+            "
+          >
+            Never miss out on your meal benefits again. WoltFlow automatically
+            purchases Wolt gift cards from Cibus daily, saving you time and
+            ensuring maximum benefits.
+          </p>
+          <div
+            style="
+              background-color: var(--muted);
+              color: var(--foreground);
+              padding: 1rem 1.5rem;
+              border-radius: 0.5rem;
+              display: inline-block;
+              font-weight: 500;
+              margin-top: 1rem;
+              border: 1px solid var(--border);
+            "
+          >
+            JavaScript Required - Enable JavaScript to Sign In
+          </div>
+        </header>
+
+        <!-- Features Section -->
+        <section
+          style="
+            background-color: var(--muted);
+            margin: 0 -1rem 3rem -1rem;
+            padding: 3rem 1rem;
+          "
+        >
+          <div style="max-width: 1200px; margin: 0 auto">
+            <h2
+              style="
+                font-size: 1.75rem;
+                font-weight: bold;
+                margin-bottom: 2rem;
+                text-align: center;
+                color: var(--foreground);
+              "
+            >
+              Key Features
+            </h2>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 2rem;
+              "
+            >
+              <div
+                style="
+                  background-color: var(--background);
+                  padding: 1.5rem;
+                  border-radius: 0.75rem;
+                  border: 1px solid var(--border);
+                "
+              >
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    margin-bottom: 0.75rem;
+                    color: var(--foreground);
+                  "
+                >
+                  🤖 Automated Purchases
+                </h3>
+                <p style="color: var(--muted-foreground); margin: 0">
+                  Set up once and let WoltFlow handle your daily gift card
+                  purchases automatically. No more manual interventions needed.
+                </p>
+              </div>
+
+              <div
+                style="
+                  background-color: var(--background);
+                  padding: 1.5rem;
+                  border-radius: 0.75rem;
+                  border: 1px solid var(--border);
+                "
+              >
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    margin-bottom: 0.75rem;
+                    color: var(--foreground);
+                  "
+                >
+                  🎁 Smart Benefits
+                </h3>
+                <p style="color: var(--muted-foreground); margin: 0">
+                  Maximize your meal benefits with intelligent purchase timing
+                  and amount optimization. Never leave money on the table.
+                </p>
+              </div>
+
+              <div
+                style="
+                  background-color: var(--background);
+                  padding: 1.5rem;
+                  border-radius: 0.75rem;
+                  border: 1px solid var(--border);
+                "
+              >
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    margin-bottom: 0.75rem;
+                    color: var(--foreground);
+                  "
+                >
+                  🛡️ Secure & Reliable
+                </h3>
+                <p style="color: var(--muted-foreground); margin: 0">
+                  Built with security in mind. Your credentials are encrypted
+                  and safely stored. Monitor all transactions in real-time.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Automation Section -->
+        <section style="margin-bottom: 3rem">
+          <div style="max-width: 800px; margin: 0 auto">
+            <h2
+              style="
+                font-size: clamp(1.5rem, 4vw, 2.25rem);
+                font-weight: bold;
+                margin-bottom: 1.5rem;
+                text-align: center;
+                color: var(--foreground);
+              "
+            >
+              Powered by Selenium Automation
+            </h2>
+            <div
+              style="
+                background-color: var(--muted);
+                border-radius: 0.75rem;
+                padding: 2rem;
+                border: 1px solid var(--border);
+              "
+            >
+              <p
+                style="
+                  font-size: 1.125rem;
+                  margin-bottom: 1rem;
+                  color: var(--foreground);
+                "
+              >
+                WoltFlow utilizes Selenium WebDriver technology to automate the
+                gift card purchase process with Gmail integration:
+              </p>
+              <ul
+                style="
+                  margin: 0;
+                  padding-left: 1.5rem;
+                  color: var(--muted-foreground);
+                "
+              >
+                <li style="margin-bottom: 0.75rem">
+                  Automated browser control for seamless purchases
+                </li>
+                <li style="margin-bottom: 0.75rem">
+                  Smart error handling and retry mechanisms
+                </li>
+                <li style="margin-bottom: 0.75rem">
+                  Screenshot capture for transaction verification
+                </li>
+                <li style="margin-bottom: 0.75rem">
+                  Real-time status monitoring and notifications
+                </li>
+                <li style="margin-bottom: 0.75rem">
+                  Gmail integration for secure 2FA code retrieval
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Credits Section -->
+        <section
+          style="
+            background-color: var(--muted);
+            margin: 0 -1rem 0 -1rem;
+            padding: 3rem 1rem;
+            text-align: center;
+          "
+        >
+          <h2
+            style="
+              font-size: clamp(1.25rem, 3vw, 1.5rem);
+              font-weight: 600;
+              margin-bottom: 1rem;
+              color: var(--foreground);
+            "
+          >
+            Created by Shalev Ben Moshe
+          </h2>
+          <p
+            style="
+              color: var(--muted-foreground);
+              max-width: 32rem;
+              margin: 0 auto 1.5rem auto;
+            "
+          >
+            WoltFlow is developed and maintained by Shalev Ben Moshe, a software
+            developer passionate about automation and user experience.
+          </p>
+          <a
+            href="https://www.shalev396.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="
+              display: inline-block;
+              border: 1px solid var(--border);
+              color: var(--foreground);
+              text-decoration: none;
+              padding: 0.5rem 1rem;
+              border-radius: 0.375rem;
+              background-color: var(--background);
+            "
+          >
+            Visit My Website →
+          </a>
+        </section>
+
+        <!-- Footer -->
+        <footer
+          style="
+            background-color: var(--background);
+            border-top: 1px solid var(--border);
+            padding: 2rem 0;
+            margin-top: 2rem;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 1rem;
+              text-align: center;
+            "
+          >
+            <div style="font-size: 0.875rem; color: var(--muted-foreground)">
+              © 2025 WoltFlow. All rights reserved.
+            </div>
+            <div
+              style="
+                display: flex;
+                gap: 1.5rem;
+                font-size: 0.875rem;
+                flex-wrap: wrap;
+                justify-content: center;
+              "
+            >
+              <a
+                href="/privacy-policy.html"
+                style="color: var(--muted-foreground); text-decoration: none"
+                >Privacy Policy</a
+              >
+              <a
+                href="/terms"
+                style="color: var(--muted-foreground); text-decoration: none"
+                >Terms of Service</a
+              >
+            </div>
+          </div>
+        </footer>
       </div>
     </noscript>
+
+    <div id="root"></div>
 
     <script type="module" src="/src/main.tsx"></script>
 
     <script>
-      // Remove fallback footer once React loads
-      function removeFooterWhenReactLoads() {
+      // Remove pre-rendered content once React loads
+      function removePreloadContentWhenReactLoads() {
         const checkReactLoaded = () => {
           const root = document.getElementById("root");
-          const footer = document.getElementById("fallback-footer");
+          const preloadInfo = document.getElementById("preload-info");
+          const fallbackFooter = document.getElementById("fallback-footer");
 
           // Check if React has rendered content in the root
-          if (root && root.children.length > 0 && footer) {
-            footer.remove();
+          if (root && root.children.length > 0) {
+            if (preloadInfo) {
+              preloadInfo.remove();
+            }
+            if (fallbackFooter) {
+              fallbackFooter.remove();
+            }
             return true;
           }
           return false;
@@ -69,10 +730,10 @@
       if (document.readyState === "loading") {
         document.addEventListener(
           "DOMContentLoaded",
-          removeFooterWhenReactLoads
+          removePreloadContentWhenReactLoads
         );
       } else {
-        removeFooterWhenReactLoads();
+        removePreloadContentWhenReactLoads();
       }
     </script>
   </body>
