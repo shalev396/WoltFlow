@@ -29,7 +29,10 @@ export default function Landing() {
           className="container mx-auto px-4 py-12 md:py-20"
         >
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
+              WoltFlow
+            </h1>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground leading-tight">
               Automate Your Wolt Gift Card Purchases
             </h2>
             <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
