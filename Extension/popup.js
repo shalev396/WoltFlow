@@ -73,9 +73,34 @@ class WoltFlowTokenReviewer {
 
         if (cookies && cookies.length > 0) {
           const cookie = cookies[0];
+          let decodedValue = decodeURIComponent(cookie.value);
+
+          // For access token, parse JSON and format nicely
+          if (
+            cookieName === this.accessTokenName &&
+            decodedValue.startsWith("{")
+          ) {
+            try {
+              const parsed = JSON.parse(decodedValue);
+              decodedValue = JSON.stringify(parsed);
+            } catch (e) {
+              // If JSON parsing fails, use raw decoded value
+              console.warn("Failed to parse access token JSON:", e);
+            }
+          }
+
+          // For refresh token, remove surrounding quotes if present
+          if (
+            cookieName === this.refreshTokenName &&
+            decodedValue.startsWith('"') &&
+            decodedValue.endsWith('"')
+          ) {
+            decodedValue = decodedValue.slice(1, -1);
+          }
+
           return {
             found: true,
-            value: cookie.value,
+            value: decodedValue,
             domain: cookie.domain,
             secure: cookie.secure,
             httpOnly: cookie.httpOnly,
