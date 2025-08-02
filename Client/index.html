@@ -23,6 +23,7 @@
         color: var(--foreground);
         background-color: var(--background);
         min-height: 100vh;
+        display: none;
       "
     >
       <header
@@ -681,6 +682,14 @@
     <script type="module" src="/src/main.tsx"></script>
 
     <script>
+      // Show preload content immediately when JavaScript is available
+      function showPreloadContent() {
+        const preloadInfo = document.getElementById("preload-info");
+        if (preloadInfo) {
+          preloadInfo.style.display = "block";
+        }
+      }
+
       // Remove pre-rendered content once React loads
       function removePreloadContentWhenReactLoads() {
         const checkReactLoaded = () => {
@@ -725,6 +734,9 @@
           observer.disconnect();
         }, 5000);
       }
+
+      // Show preload content immediately
+      showPreloadContent();
 
       // Start checking when DOM is ready
       if (document.readyState === "loading") {
