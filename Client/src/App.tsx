@@ -1,5 +1,10 @@
 // src/App.tsx
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -13,7 +18,6 @@ import Dashboard from "@/pages/Dashboard";
 import Runs from "@/pages/Runs";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -75,7 +79,10 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route
+              path="/privacy"
+              element={<Navigate to="/privacy-policy.html" replace />}
+            />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

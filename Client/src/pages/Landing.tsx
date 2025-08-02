@@ -165,7 +165,7 @@ export default function Landing() {
                   asChild
                   className="p-0 h-auto text-muted-foreground hover:text-foreground"
                 >
-                  <a href="/privacy">Privacy Policy</a>
+                  <a href="/privacy-policy.html">Privacy Policy</a>
                 </Button>
                 <Button
                   variant="link"

@@ -11,7 +11,13 @@ const protectedApiRoutes = [
 ];
 
 // Define public page routes that don't require authentication
-const publicPageRoutes = ["/", "/privacy", "/terms"];
+const publicPageRoutes = [
+  "/",
+  "/privacy",
+  "/extension-privacy-policy.html",
+  "/privacy-policy.html",
+  "/terms",
+];
 
 // Helper function to check if current page is public
 const isOnPublicRoute = (): boolean => {
