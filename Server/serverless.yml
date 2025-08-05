@@ -697,7 +697,7 @@ functions:
     #     - "templates/**"
     memorySize: 1536
     ephemeralStorageSize: 1536
-    timeout: 225
+    timeout: 250 # 225 old
     # events:
     #   - httpApi:
     #       path: /api/wolt/buyGift

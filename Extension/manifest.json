@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "WoltFlow Token Reviewer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Review access and refresh tokens from Wolt.com",
   "permissions": ["cookies"],
   "host_permissions": ["*://*.wolt.com/*"],

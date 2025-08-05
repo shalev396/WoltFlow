@@ -7,8 +7,7 @@
     "package": "zip -r woltflow-token-reviewer.zip . -x '*.DS_Store' '*/.git/*' '*/node_modules/*' '*.py' 'package.json' 'package-lock.json' '.env'",
     "package-windows": "powershell \"Get-ChildItem -Path . -Exclude @('*.py', 'package.json', 'package-lock.json', '.git', '.env', 'woltflow-token-reviewer.zip', 'temp-check') -Recurse | Where-Object { !$_.PSIsContainer -or $_.Name -eq 'icons' } | Compress-Archive -DestinationPath .\\woltflow-token-reviewer.zip -Force\"",
     "validate": "echo 'Validating extension files...' && node -e \"const manifest = require('./manifest.json'); console.log('✓ manifest.json is valid'); console.log('Extension name:', manifest.name); console.log('Version:', manifest.version);\"",
-    "build": "npm run create-icons && npm run validate",
-    "update-cookies": "echo 'Update cookie names in popup.js:' && echo 'this.accessTokenName = \"YOUR_ACCESS_TOKEN_COOKIE_NAME\";' && echo 'this.refreshTokenName = \"YOUR_REFRESH_TOKEN_COOKIE_NAME\";'"
+    "build": "npm run create-icons && npm run validate"
   },
   "keywords": [
     "chrome-extension",
