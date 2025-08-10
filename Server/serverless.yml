@@ -721,6 +721,34 @@ functions:
     #       path: /api/wolt/applyGift
     #       method: get
 
+  # # Temp functions for bulk code processing
+  # getAllWoltCodes:
+  #   handler: ./build/temp/getAllWoltCodes.handler
+  #   package:
+  #     patterns:
+  #       - "!build/**"
+  #       - "build/temp/getAllWoltCodes.mjs"
+  #       - "package.json"
+  #   timeout: 900 # 15 minutes for large email processing
+  #   events:
+  #     - httpApi:
+  #         path: /api/temp/get-all-codes
+  #         method: get
+  #   # Scan all Wolt emails from last 6 months and extract codes - GET /api/temp/get-all-codes?userId=USER_ID
+
+  # applyAllCodes:
+  #   image:
+  #     name: woltflow-selenium-image
+  #     command: ["build/temp/applyAllCodes.handler"]
+  #   memorySize: 1536
+  #   ephemeralStorageSize: 1536
+  #   timeout: 900 # 15 minutes for bulk code application
+  #   events:
+  #     - httpApi:
+  #         path: /api/temp/apply-all-codes
+  #         method: get
+  #   # Apply all unused codes for a user - GET /api/temp/apply-all-codes?userId=USER_ID
+  #
 # AWS Resources Configuration
 resources:
   Resources:
