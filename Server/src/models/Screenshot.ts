@@ -1,46 +1,77 @@
-import { Model, DataTypes } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import Run from "./Run.js";
 
-class Screenshot extends Model {
-  declare id: number;
-  declare run_id: number;
-  declare url: string;
-  declare is_error: boolean;
+export default class Screenshot extends Model {
+  declare id: string; // UUID for unique identification
+  declare runId: number; // Foreign key to Runs table
+  declare screenshotType: "error" | "success" | "step" | "debug" | "final"; // Type of screenshot
+  declare stage: string | null; // Stage when screenshot was taken
+  declare siteUrl: string; // Site URL for the screenshot
+  declare isError: boolean; // Whether this screenshot shows an error state
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Screenshot.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    run_id: {
+    runId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Run,
+        model: "Runs",
         key: "id",
       },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+      comment: "Reference to the run this screenshot belongs to",
     },
-    url: {
-      type: DataTypes.STRING(255),
+    screenshotType: {
+      type: DataTypes.ENUM("error", "success", "step", "debug", "final"),
       allowNull: false,
+      defaultValue: "step",
+      comment: "Type/purpose of the screenshot",
     },
-    is_error: {
+    stage: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Automation stage when screenshot was taken",
+    },
+    siteUrl: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: "Site URL for the screenshot",
+    },
+    isError: {
       type: DataTypes.BOOLEAN,
+      allowNull: false,
       defaultValue: false,
+      comment: "Whether this screenshot shows an error state",
     },
   },
   {
     sequelize,
     tableName: "Screenshots",
-    timestamps: false,
+    timestamps: true,
+    indexes: [
+      {
+        fields: ["runId"],
+      },
+      {
+        fields: ["screenshotType"],
+      },
+      {
+        fields: ["stage"],
+      },
+      {
+        fields: ["isError"],
+      },
+    ],
   }
 );
 
-Screenshot.belongsTo(Run, { foreignKey: "run_id" });
-Run.hasMany(Screenshot, { foreignKey: "run_id" });
-
-export default Screenshot;
+// Relationships are defined in models/index.ts to avoid circular dependencies

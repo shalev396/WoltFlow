@@ -1,13 +1,22 @@
 import sequelize from "./database.js";
 import dotenv from "dotenv";
-import "../models/Code.js";
-import "../models/Run.js";
-import "../models/Screenshot.js";
-import "../models/Setting.js";
-import "../models/TwoFA.js";
-import "../models/User.js";
+import { initializeModelRelationships } from "../models/index.js";
 
-// import any other models here
+// Import all new models
+import "../models/User.js";
+import "../models/NotificationSettings.js";
+import "../models/WoltSettings.js";
+import "../models/CibusSettings.js";
+import "../models/Settings.js";
+import "../models/TwoFactorAuthentication.js";
+import "../models/Cibus2FA.js";
+import "../models/Inbox.js";
+import "../models/Emails.js";
+import "../models/RunSettings.js";
+import "../models/Run.js";
+import "../models/Code.js";
+import "../models/Screenshot.js";
+
 dotenv.config();
 
 // Export a function to sync database instead of doing it at module load time
@@ -16,6 +25,9 @@ export async function syncDatabase() {
     process.env["ENV"] === "local" //||true // uncomment to sync database on PROD
   ) {
     try {
+      // Initialize model relationships before syncing
+      initializeModelRelationships();
+
       await sequelize
         .sync({ alter: true })
         .then(() => {

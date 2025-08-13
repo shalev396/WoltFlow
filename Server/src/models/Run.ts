@@ -1,23 +1,22 @@
-import { Model, DataTypes } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import User from "./User.js";
 
-class Run extends Model {
+export default class Run extends Model {
   declare id: number;
-  declare user_id: string;
-  declare created_at?: Date;
-  declare updated_at?: Date;
-  declare status: "failed" | "in progress" | "success";
+  declare userId: number; // Foreign key to Users table (using internal ID now)
+  declare status: "started" | "in_progress" | "completed" | "failed";
   declare stage:
     | "triggered"
-    | "refreshing tokens"
-    | "buying gift"
-    | "getting code from mail"
-    | "applying gift"
-    | "done";
-  declare amount: number;
-  declare is_notify: boolean;
-  declare mode: "full-run" | "buy-only" | "cross-account";
+    | "refreshing_tokens"
+    | "buying_gift"
+    | "getting_code_from_email"
+    | "applying_gift"
+    | "completed";
+
+  declare automationMode: "full-run" | "buy-only" | "cross-account"; // Copied from user settings at creation
+  declare errorMessage: string | null; // Error message if failed
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Run.init(
@@ -27,56 +26,71 @@ Run.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    user_id: {
-      type: DataTypes.STRING,
+    userId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: User,
-        key: "userId",
+        model: "Users",
+        key: "id",
       },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+      comment: "Reference to the user who owns this run",
     },
     status: {
-      type: DataTypes.ENUM("failed", "in progress", "success"),
+      type: DataTypes.ENUM("started", "in_progress", "completed", "failed"),
       allowNull: false,
-      defaultValue: "in progress",
+      defaultValue: "started",
+      comment: "Current status of the automation run",
     },
     stage: {
       type: DataTypes.ENUM(
         "triggered",
-        "refreshing tokens",
-        "buying gift",
-        "getting code from mail",
-        "applying gift",
-        "done"
+        "refreshing_tokens",
+        "buying_gift",
+        "getting_code_from_email",
+        "applying_gift",
+        "completed"
       ),
       allowNull: false,
       defaultValue: "triggered",
+      comment: "Current stage of the automation process",
     },
-    amount: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-      defaultValue: 0.0,
-    },
-    is_notify: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    mode: {
+    automationMode: {
       type: DataTypes.ENUM("full-run", "buy-only", "cross-account"),
       allowNull: false,
       defaultValue: "full-run",
+      comment: "Type of automation to execute",
+    },
+
+    errorMessage: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Error message if the run failed",
     },
   },
   {
     sequelize,
     tableName: "Runs",
     timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
+    indexes: [
+      {
+        fields: ["userId"],
+      },
+      {
+        fields: ["status"],
+      },
+      {
+        fields: ["stage"],
+      },
+      {
+        fields: ["automationMode"],
+      },
+      {
+        fields: ["createdAt"],
+      },
+    ],
   }
 );
 
-Run.belongsTo(User, { foreignKey: "user_id" });
-User.hasMany(Run, { foreignKey: "user_id" });
-
-export default Run;
+// Relationships are defined in models/index.ts to avoid circular dependencies

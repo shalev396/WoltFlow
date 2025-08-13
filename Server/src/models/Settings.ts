@@ -1,18 +1,17 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
-export default class Code extends Model {
+export default class Settings extends Model {
   declare id: number;
   declare userId: number; // Foreign key to Users table
-  declare runId: number | null; // Foreign key to Runs table (which run generated this code)
-  declare emailId: string | null; // Foreign key to Emails table (which email contained this code)
-  declare code: string; // The actual gift card code
-  declare isUsed: boolean; // Whether the code has been used/redeemed
+  declare notificationSettingsId: number | null; // Foreign key to NotificationSettings table
+  declare woltSettingsId: number | null; // Foreign key to WoltSettings table
+  declare cibusSettingsId: number | null; // Foreign key to CibusSettings table
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
 
-Code.init(
+Settings.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -22,69 +21,67 @@ Code.init(
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      unique: true, // One settings record per user
       references: {
         model: "Users",
         key: "id",
       },
       onUpdate: "CASCADE",
       onDelete: "CASCADE",
-      comment: "Reference to the user who owns this code",
+      comment: "Reference to the user",
     },
-    runId: {
+
+    notificationSettingsId: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "Runs",
+        model: "NotificationSettings",
         key: "id",
       },
       onUpdate: "CASCADE",
       onDelete: "SET NULL",
-      comment: "Reference to the run that generated this code",
+      comment: "Reference to NotificationSettings table",
     },
-    emailId: {
-      type: DataTypes.UUID,
+    woltSettingsId: {
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "Emails",
+        model: "WoltSettings",
         key: "id",
       },
       onUpdate: "CASCADE",
       onDelete: "SET NULL",
-      comment: "Reference to the email that contained this code",
+      comment: "Reference to WoltSettings table",
     },
-    code: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: false,
-      comment: "The actual gift card or promo code",
-    },
-    isUsed: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      comment: "Whether the code has been used/redeemed",
+    cibusSettingsId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "CibusSettings",
+        key: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+      comment: "Reference to CibusSettings table",
     },
   },
   {
     sequelize,
-    tableName: "Codes",
+    tableName: "Settings",
     timestamps: true,
     indexes: [
       {
         unique: true,
-        fields: ["code"],
-      },
-      {
         fields: ["userId"],
       },
       {
-        fields: ["runId"],
+        fields: ["notificationSettingsId"],
       },
       {
-        fields: ["emailId"],
+        fields: ["woltSettingsId"],
       },
       {
-        fields: ["isUsed"],
+        fields: ["cibusSettingsId"],
       },
     ],
   }
