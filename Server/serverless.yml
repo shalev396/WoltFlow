@@ -61,8 +61,6 @@ provider:
         - Set-Cookie
         - Cookie
         - X-API-Key
-        - X-Api-Key
-        - x-api-key
         - Accept
         - Origin
         - User-Agent
@@ -76,8 +74,6 @@ provider:
         - OPTIONS
         - HEAD
       allowCredentials: true
-      exposedHeaders:
-        - Set-Cookie
       maxAge: 86400
   environment:
     # Environment Configuration
@@ -174,6 +170,7 @@ provider:
             - s3:GetObject
             - s3:DeleteObject
             - s3:PutObjectAcl
+            - s3:CopyObject
           Resource:
             - "arn:aws:s3:::${self:custom.clientBucketName.${self:provider.stage}}/*"
             - "arn:aws:s3:::${self:custom.assetsBucketName.${self:provider.stage}}/*"
@@ -834,6 +831,36 @@ functions:
           path: /api/test/sms
           method: post
     # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
+
+    # ================================
+  # INBOX FUNCTIONS
+  # ================================
+
+  # Email ingestion function - triggered by SES
+  ingestEmail:
+    handler: ./build/inbox/ingestEmail.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/inbox/ingestEmail.mjs"
+        - "package.json"
+    timeout: 60
+    memorySize: 512
+    # No HTTP events - only triggered by SES
+
+  # Get user's inbox and emails
+  getInbox:
+    handler: ./build/inbox/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/inbox/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/inbox
+          method: get
+
 # AWS Resources Configuration
 resources:
   Resources:
@@ -1037,9 +1064,8 @@ resources:
       Type: AWS::SES::EmailIdentity
       Properties:
         EmailIdentity: ${self:custom.emailSubdomain.${self:provider.stage}}
-        DkimSigningEnabled: true
-        DkimSigningAttributes:
-          NextSigningKeyLength: RSA_2048_BIT
+        DkimAttributes:
+          SigningEnabled: true
         FeedbackAttributes:
           EmailForwardingEnabled: false
         ConfigurationSetAttributes:
@@ -1050,10 +1076,6 @@ resources:
       Type: AWS::SES::ConfigurationSet
       Properties:
         Name: ${self:service}-${self:provider.stage}-email-config
-        DeliveryOptions:
-          TlsPolicy: Require
-        TrackingOptions:
-          CustomRedirectDomain: ${self:custom.emailSubdomain.${self:provider.stage}}
 
     # SES Receipt Rule Set
     SESReceiptRuleSet:
@@ -1079,18 +1101,18 @@ resources:
             - S3Action:
                 BucketName: !Ref EmailBucket
                 ObjectKeyPrefix: raw/
-            # - LambdaAction:
-            #     FunctionArn: !GetAtt IngestEmailLambdaFunction.Arn
-            #     InvocationType: Event
+            - LambdaAction:
+                FunctionArn: !GetAtt IngestEmailLambdaFunction.Arn
+                InvocationType: Event
 
     # SES Lambda Permission
-    # SESLambdaInvokePermission:
-    #   Type: AWS::Lambda::Permission
-    #   Properties:
-    #     FunctionName: !Ref IngestEmailLambdaFunction
-    #     Action: lambda:InvokeFunction
-    #     Principal: ses.amazonaws.com
-    #     SourceAccount: !Ref AWS::AccountId
+    SESLambdaInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName: !Ref IngestEmailLambdaFunction
+        Action: lambda:InvokeFunction
+        Principal: ses.amazonaws.com
+        SourceAccount: !Ref AWS::AccountId
 
     # S3 Bucket Policy for SES Email Storage
     SESEmailBucketPolicy:
@@ -1107,7 +1129,12 @@ resources:
               Action:
                 - s3:PutObject
                 - s3:PutObjectAcl
-              Resource: !Sub "${EmailBucket}/*"
+              Resource:
+                Fn::Join:
+                  - ""
+                  - - "arn:aws:s3:::"
+                    - !Ref EmailBucket
+                    - "/*"
               Condition:
                 StringEquals:
                   "aws:Referer": !Ref AWS::AccountId

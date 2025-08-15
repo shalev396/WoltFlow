@@ -4,3 +4,4 @@ export { runsService } from "./runs";
 export { settingsService } from "./settings";
 export { twoFactorService } from "./twoFactor";
 export { forwardService } from "./forward";
+export { inboxService } from "./inbox";
