@@ -2,9 +2,9 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class Code extends Model {
-  declare id: number;
-  declare userId: number; // Foreign key to Users table
-  declare runId: number | null; // Foreign key to Runs table (which run generated this code)
+  declare id: string;
+  declare userId: string; // Foreign key to Users table
+  declare runId: string | null; // Foreign key to Runs table (which run generated this code)
   declare emailId: string | null; // Foreign key to Emails table (which email contained this code)
   declare code: string; // The actual gift card code
   declare isUsed: boolean; // Whether the code has been used/redeemed
@@ -15,12 +15,12 @@ export default class Code extends Model {
 Code.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "Users",
@@ -31,7 +31,7 @@ Code.init(
       comment: "Reference to the user who owns this code",
     },
     runId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
       references: {
         model: "Runs",

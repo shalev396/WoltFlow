@@ -2,7 +2,7 @@ import { DataTypes, Model, Op } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class User extends Model {
-  declare id: number; // Internal auto-incrementing ID
+  declare id: string; // UUID primary key
   declare googleId: string; // Google sub (unique external ID)
   declare googleRefreshToken: string; // Google refresh token
   declare name: string | null; // User's display name
@@ -16,14 +16,13 @@ export default class User extends Model {
 User.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     googleId: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
       comment: "Google OAuth sub (external unique identifier)",
     },
     googleRefreshToken: {
@@ -47,7 +46,6 @@ User.init(
     apiKey: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: true,
       comment: "API key for external integrations and SMS forwarding",
     },
     lastLoginAt: {

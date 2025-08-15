@@ -3,14 +3,13 @@ import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import sequelize from "../../config/database.js";
-import User from "../../models/User.js";
-import Setting from "../../models/Setting.js";
+import { User } from "../../models/index.js";
 import { oauth2_v2 } from "@googleapis/oauth2";
 import { syncDatabase } from "../../config/bootstrap.js";
+import { createErrorResponse } from "../../utils/responseUtil.js";
 
 // Environment variables
 dotenv.config();
-
 const ENV = process.env["ENV"];
 
 let ENV_OAUTH_REDIRECT_URI = "";
@@ -35,17 +34,11 @@ export const handler = async (
   console.log("Incoming event:", JSON.stringify(event));
   const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
 
-  // 2. Extract 'code', 'state', and 'scope'
+  // 2. Extract 'code' and 'state'
   const code = event.queryStringParameters?.["code"];
   const rawState = event.queryStringParameters?.["state"];
-  const scope = event.queryStringParameters?.["scope"] || "";
   if (!code || !rawState) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({
-        message: "Missing code or state",
-      }),
-    };
+    return createErrorResponse("Missing code or state", 400);
   }
 
   // 3. Parse our JSON-packed verifier out of state
@@ -53,7 +46,7 @@ export const handler = async (
   try {
     codeVerifier = JSON.parse(rawState).codeVerifier;
   } catch {
-    return { statusCode: 400, body: "Invalid state format" };
+    return createErrorResponse("Invalid state format", 400);
   }
 
   // 4. Exchange code + PKCE verifier for tokens
@@ -69,7 +62,7 @@ export const handler = async (
   } as any);
   const { access_token, refresh_token } = tokens;
   if (!refresh_token) {
-    return { statusCode: 400, body: "No refresh token returned" };
+    return createErrorResponse("No refresh token returned", 400);
   }
 
   // 5. Fetch user info
@@ -79,48 +72,35 @@ export const handler = async (
     // version: "v2"
   });
   const userInfo = await oauth2.userinfo.get();
-  const userId = userInfo.data.id!;
+  const googleId = userInfo.data.id!;
   const name = userInfo.data.name || null;
   const email = userInfo.data.email || null;
 
   // 6. Upsert user in PostgreSQL with name and email
   // This will create new users or update existing ones with fresh Google data
   await User.upsert({
-    userId,
-    refreshToken: refresh_token,
+    googleId: googleId,
+    googleRefreshToken: refresh_token,
     name,
     email,
   });
 
-  // 6.1. Check if user granted Gmail access and update settings
-  const hasGmailAccess = scope.includes(
-    "https://www.googleapis.com/auth/gmail.readonly"
-  );
-  console.log(`Gmail access granted: ${hasGmailAccess}`);
-
-  // Find existing settings record and update, or create new one
-  const [settings] = await Setting.findOrCreate({
-    where: { userId },
-    defaults: {
-      userId,
-      hasGmailAccess,
-      isNotification: false,
-      automationEnabled: false,
-      automationMode: "full-run",
-    },
-  });
-
-  // Update the hasGmailAccess field for existing records
-  if (settings.get("hasGmailAccess") !== hasGmailAccess) {
-    await settings.update({ hasGmailAccess });
+  // 7. Get the user record to retrieve internal UUID
+  const user = await User.findOne({ where: { googleId } });
+  if (!user) {
+    return createErrorResponse("Failed to create/find user", 500);
   }
 
-  // 7. Create 7-day session JWT
-  const sessionToken = jwt.sign({ userId }, process.env["JWT_SECRET"]!, {
-    expiresIn: "7d",
-  });
+  // 8. Create 7-day session JWT with internal UUID (not Google ID)
+  const sessionToken = jwt.sign(
+    { userId: user.id },
+    process.env["JWT_SECRET"]!,
+    {
+      expiresIn: "7d",
+    }
+  );
 
-  // 8. Redirect with HTTP-Only cookie
+  // 9. Redirect with HTTP-Only cookie
   return {
     statusCode: 302,
     headers: {

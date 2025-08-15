@@ -1,4 +1,4 @@
-import Setting from "../models/Setting.js";
+import { Settings, NotificationSettings } from "../models/index.js";
 import User from "../models/User.js";
 import Run from "../models/Run.js";
 import Screenshot from "../models/Screenshot.js";
@@ -37,13 +37,18 @@ export async function getUserNotificationDetails(
   userId: string
 ): Promise<UserNotificationDetails> {
   try {
-    // Get user settings
-    const setting = await Setting.findOne({
+    // Get user settings with notification settings included
+    const setting = await Settings.findOne({
       where: { userId },
       include: [
         {
           model: User,
           attributes: ["name", "email"],
+          as: "user",
+        },
+        {
+          model: NotificationSettings,
+          as: "notificationSettings",
         },
       ],
     });
@@ -63,21 +68,23 @@ export async function getUserNotificationDetails(
       };
     }
 
-    const user = (setting as any).User;
-    const userName = user?.name || setting.email || "User";
+    const user = (setting as any).user;
+    const notificationSettings = (setting as any).notificationSettings;
+    const userName = user?.name || user?.email || "User";
 
     // Check if notifications are enabled
-    if (!setting.isNotification) {
+    if (!notificationSettings?.isEnabled) {
       console.log(`Notifications disabled for user ${userId}`);
       return {
         hasNotifications: false,
-        notificationOnSuccess: setting.notificationOnSuccess || false,
-        notificationOnError: setting.notificationOnError || false,
+        notificationOnSuccess:
+          notificationSettings?.notificationOnSuccess || false,
+        notificationOnError: notificationSettings?.notificationOnError || false,
         preferredMethods: [],
-        phoneNumber: setting.phoneNumber,
-        phoneVerified: setting.phoneVerified,
-        email: setting.email || user?.email,
-        emailVerified: setting.emailVerified,
+        phoneNumber: notificationSettings?.phoneNumber,
+        phoneVerified: notificationSettings?.phoneVerified || false,
+        email: notificationSettings?.email || user?.email,
+        emailVerified: notificationSettings?.emailVerified || false,
         userName,
       };
     }
@@ -86,13 +93,16 @@ export async function getUserNotificationDetails(
     const preferredMethods: ("sms" | "email")[] = [];
 
     // Check SMS
-    if (setting.phoneNumber && setting.phoneVerified) {
+    if (
+      notificationSettings?.phoneNumber &&
+      notificationSettings.phoneVerified
+    ) {
       preferredMethods.push("sms");
     }
 
     // Check Email
-    const emailAddress = setting.email || user?.email;
-    if (emailAddress && setting.emailVerified) {
+    const emailAddress = notificationSettings?.email || user?.email;
+    if (emailAddress && notificationSettings?.emailVerified) {
       preferredMethods.push("email");
     }
 
@@ -104,13 +114,14 @@ export async function getUserNotificationDetails(
 
     return {
       hasNotifications: true,
-      notificationOnSuccess: setting.notificationOnSuccess || false,
-      notificationOnError: setting.notificationOnError || false,
+      notificationOnSuccess:
+        notificationSettings?.notificationOnSuccess || false,
+      notificationOnError: notificationSettings?.notificationOnError || false,
       preferredMethods,
-      phoneNumber: setting.phoneNumber,
-      phoneVerified: setting.phoneVerified,
+      phoneNumber: notificationSettings?.phoneNumber,
+      phoneVerified: notificationSettings?.phoneVerified || false,
       email: emailAddress,
-      emailVerified: setting.emailVerified,
+      emailVerified: notificationSettings?.emailVerified || false,
       userName,
     };
   } catch (error) {
@@ -141,7 +152,7 @@ export async function getUserNotificationDetails(
  */
 export async function notifyOnError(
   userId: string,
-  runId: number,
+  runId: string,
   errorMessage?: string
 ): Promise<NotifyOnResult> {
   const result: NotifyOnResult = {
@@ -253,7 +264,7 @@ export async function notifyOnError(
  */
 export async function notifyOnSuccess(
   userId: string,
-  runId: number,
+  runId: string,
   successMessage?: string
 ): Promise<NotifyOnResult> {
   const result: NotifyOnResult = {

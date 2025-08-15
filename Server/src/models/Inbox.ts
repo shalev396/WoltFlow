@@ -2,8 +2,8 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class Inbox extends Model {
-  declare id: number;
-  declare userId: number; // Foreign key to Users table
+  declare id: string;
+  declare userId: string; // Foreign key to Users table
   declare emailAddress: string; // The SES-created email address
   declare sesIdentityArn: string | null; // AWS SES identity ARN
   declare sesVerificationStatus:
@@ -18,14 +18,13 @@ export default class Inbox extends Model {
 Inbox.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
-      unique: true, // One inbox per user for now
       references: {
         model: "Users",
         key: "id",
@@ -37,7 +36,6 @@ Inbox.init(
     emailAddress: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
       validate: {
         isEmail: true,
       },
@@ -52,7 +50,6 @@ Inbox.init(
       type: DataTypes.ENUM("pending", "success", "failed", "temporary_failure"),
       allowNull: false,
       defaultValue: "pending",
-      comment: "SES verification status of the email address",
     },
   },
   {

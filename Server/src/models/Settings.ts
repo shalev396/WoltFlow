@@ -2,11 +2,11 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class Settings extends Model {
-  declare id: number;
-  declare userId: number; // Foreign key to Users table
-  declare notificationSettingsId: number | null; // Foreign key to NotificationSettings table
-  declare woltSettingsId: number | null; // Foreign key to WoltSettings table
-  declare cibusSettingsId: number | null; // Foreign key to CibusSettings table
+  declare id: string;
+  declare userId: string; // Foreign key to Users table
+  declare notificationSettingsId: string | null; // Foreign key to NotificationSettings table
+  declare woltSettingsId: string | null; // Foreign key to WoltSettings table
+  declare cibusSettingsId: string | null; // Foreign key to CibusSettings table
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -14,14 +14,13 @@ export default class Settings extends Model {
 Settings.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
-      unique: true, // One settings record per user
       references: {
         model: "Users",
         key: "id",
@@ -32,7 +31,7 @@ Settings.init(
     },
 
     notificationSettingsId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
       references: {
         model: "NotificationSettings",
@@ -43,7 +42,7 @@ Settings.init(
       comment: "Reference to NotificationSettings table",
     },
     woltSettingsId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
       references: {
         model: "WoltSettings",
@@ -54,7 +53,7 @@ Settings.init(
       comment: "Reference to WoltSettings table",
     },
     cibusSettingsId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
       references: {
         model: "CibusSettings",

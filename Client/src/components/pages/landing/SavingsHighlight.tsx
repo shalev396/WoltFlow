@@ -1,0 +1,98 @@
+import { TrendingUp, Calendar, Clock } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function SavingsHighlight() {
+  return (
+    <section className="container mx-auto px-4 py-12 md:py-20">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Maximum Savings, Zero Effort
+        </h2>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Users typically save their full meal allowance every month with
+          WoltFlow automation
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-4xl mx-auto">
+        {/* Main savings stat */}
+        <Card className="md:col-span-2 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border-green-200 dark:border-green-800">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+              <TrendingUp className="size-5" aria-hidden="true" />
+              Average Monthly Savings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="text-4xl md:text-5xl font-bold text-green-600 dark:text-green-400 mb-2">
+                  ₪1,200
+                </div>
+                <p className="text-green-700 dark:text-green-300 text-sm">
+                  Per user, per month in meal benefits automatically claimed
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-green-200 dark:border-green-800">
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Before WoltFlow:</strong>{" "}
+                  Users typically lose 30-40% of meal benefits due to forgotten
+                  claims or expired balances
+                </p>
+                <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                  <strong>With WoltFlow:</strong> 100% automated claiming means
+                  0% waste
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Time saved */}
+        <div className="space-y-6">
+          <Card className="bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-base">
+                <Clock className="size-4" aria-hidden="true" />
+                Time Saved
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                15 min
+              </div>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Per day that you would spend manually claiming benefits
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-purple-50 dark:bg-purple-950/50 border-purple-200 dark:border-purple-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200 text-base">
+                <Calendar className="size-4" aria-hidden="true" />
+                Reliability
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+                99.8%
+              </div>
+              <p className="text-sm text-purple-700 dark:text-purple-300">
+                Success rate for automated benefit claims
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <div className="text-center mt-12">
+        <p className="text-sm text-muted-foreground italic">
+          "I haven't manually claimed meal benefits in 6 months. WoltFlow just
+          works." - Real user
+        </p>
+      </div>
+    </section>
+  );
+}

@@ -3,7 +3,7 @@ import sequelize from "../config/database.js";
 
 export default class Screenshot extends Model {
   declare id: string; // UUID for unique identification
-  declare runId: number; // Foreign key to Runs table
+  declare runId: string; // Foreign key to Runs table
   declare screenshotType: "error" | "success" | "step" | "debug" | "final"; // Type of screenshot
   declare stage: string | null; // Stage when screenshot was taken
   declare siteUrl: string; // Site URL for the screenshot
@@ -20,7 +20,7 @@ Screenshot.init(
       primaryKey: true,
     },
     runId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "Runs",
@@ -34,7 +34,6 @@ Screenshot.init(
       type: DataTypes.ENUM("error", "success", "step", "debug", "final"),
       allowNull: false,
       defaultValue: "step",
-      comment: "Type/purpose of the screenshot",
     },
     stage: {
       type: DataTypes.STRING,

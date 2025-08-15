@@ -48,6 +48,37 @@ provider:
     shouldStartNameWithService: true
   logs:
     restApi: false
+  httpApi:
+    cors:
+      allowedOrigins:
+        - https://woltflow.shalev396.com
+        - https://dev.woltflow.shalev396.com
+        - http://localhost:5173
+        - http://localhost:3000
+      allowedHeaders:
+        - Authorization
+        - Content-Type
+        - Set-Cookie
+        - Cookie
+        - X-API-Key
+        - X-Api-Key
+        - x-api-key
+        - Accept
+        - Origin
+        - User-Agent
+        - Cache-Control
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+        - HEAD
+      allowCredentials: true
+      exposedHeaders:
+        - Set-Cookie
+      maxAge: 86400
   environment:
     # Environment Configuration
     ENV: ${opt:stage, 'local'}
@@ -82,6 +113,11 @@ provider:
     S3_EMAIL_BUCKET_NAME_LOCAL: ${env:S3_EMAIL_BUCKET_NAME_LOCAL}
     S3_EMAIL_BUCKET_NAME_DEV: ${env:S3_EMAIL_BUCKET_NAME_DEV}
     S3_EMAIL_BUCKET_NAME_PROD: ${env:S3_EMAIL_BUCKET_NAME_PROD}
+
+    # Email Subdomain Configuration
+    EMAIL_SUBDOMAIN_LOCAL: ${env:EMAIL_SUBDOMAIN_LOCAL}
+    EMAIL_SUBDOMAIN_DEV: ${env:EMAIL_SUBDOMAIN_DEV}
+    EMAIL_SUBDOMAIN_PROD: ${env:EMAIL_SUBDOMAIN_PROD}
 
     # Lambda Function Names
     REFRESH_TOKENS_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-refreshTokens
@@ -234,6 +270,19 @@ provider:
             - ses:ListVerifiedEmailAddresses
             - ses:VerifyEmailIdentity
             - ses:VerifyDomainIdentity
+            # Additional SES permissions for email receipt
+            - ses:CreateReceiptRule
+            - ses:CreateReceiptRuleSet
+            - ses:DeleteReceiptRule
+            - ses:DeleteReceiptRuleSet
+            - ses:DescribeReceiptRule
+            - ses:DescribeReceiptRuleSet
+            - ses:ListReceiptRuleSets
+            - ses:SetActiveReceiptRuleSet
+            - ses:UpdateReceiptRule
+            - ses:PutIdentityPolicy
+            - ses:GetIdentityPolicies
+            - ses:DeleteIdentityPolicy
           Resource: "*"
 
 # Package Configuration
@@ -242,7 +291,7 @@ package:
   excludeDevDependencies: true
   patterns:
     # Exclude source and development files
-    # - "!src/**"
+    - "!src/**"
     - "!dist/**"
     - "!.serverless/**"
     - "!tsconfig.json"
@@ -303,6 +352,12 @@ custom:
     local: ${env:S3_EMAIL_BUCKET_NAME_LOCAL}
     dev: ${env:S3_EMAIL_BUCKET_NAME_DEV}
     prod: ${env:S3_EMAIL_BUCKET_NAME_PROD}
+
+  # Email subdomain names for different stages
+  emailSubdomain:
+    local: ${env:EMAIL_SUBDOMAIN_LOCAL}
+    dev: ${env:EMAIL_SUBDOMAIN_DEV}
+    prod: ${env:EMAIL_SUBDOMAIN_PROD}
 
   # CloudFront aliases - enable custom domains for both stages
   aliases:
@@ -452,330 +507,333 @@ stepFunctions:
 
 # Lambda Functions
 functions:
-  # Bootstrap function - Hello World with Database Sync
-  bootstrap:
-    handler: ./src/handlers/bootstrap.handler
+  # ================================
+  # AUTH FUNCTIONS
+  # ================================
+  authMe:
+    handler: ./build/auth/authMeHandler.handler
     package:
       patterns:
-        - "src/handlers/bootstrap.js"
+        - "!build/**"
+        - "build/auth/authMeHandler.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/bootstrap
+          path: /api/auth/me
           method: get
 
-  # #auth
-  # authMe:
-  #   handler: ./build/auth/authMeHandler.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/auth/authMeHandler.mjs"
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/auth/me
-  #         method: get
+  logout:
+    handler: ./build/auth/logout.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/logout.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/logout
+          method: post
 
-  # logout:
-  #   handler: ./build/auth/logout.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/auth/logout.mjs"
+  oauthCallback:
+    handler: ./build/auth/oauthCallback.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/oauthCallback.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/oauth2/callback
+          method: get
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/auth/logout
-  #         method: post
+  oauthStart:
+    handler: ./build/auth/oauthStart.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/oauthStart.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/oauth2/start
+          method: get
 
-  # oauthCallback:
-  #   handler: ./build/auth/oauthCallback.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/auth/oauthCallback.mjs"
+  # ================================
+  # AUTOMATION FUNCTIONS
+  # ================================
+  # CRITICAL: Do not modify selenium automation functions - they are working after hours of fixing!
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/oauth2/callback
-  #         method: get
+  startUserAutomationChain:
+    handler: ./build/automation/A_startUserAutomationChain.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/automation/A_startUserAutomationChain.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/automation/start-chain
+          method: get
+      - schedule:
+          rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *) # cron(30 17 ? * SUN,MON,TUE,WED,THU *)
+          description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
+          enabled: true
 
-  # oauthStart:
-  #   handler: ./build/auth/oauthStart.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/auth/oauthStart.mjs"
+  # Non-selenium automation function
+  refreshTokens:
+    handler: ./build/automation/B_refreshTokens.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/automation/B_refreshTokens.mjs"
+        - "package.json"
+    # No HTTP events - only called by Step Functions
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/oauth2/start
-  #         method: get
+  # SELENIUM AUTOMATION FUNCTIONS - DO NOT MODIFY CONFIGURATION!
+  woltBuyGift:
+    image:
+      name: woltflow-selenium-image
+      command: ["build/automation/C_woltBuyGift.handler"]
+    memorySize: 1536
+    ephemeralStorageSize: 1536
+    timeout: 250
+    # No HTTP events - only called by Step Functions
 
-  # # automation no selenium
-  # refreshTokens:
-  #   handler: ./build/automation/refreshTokens.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/automation/refreshTokens.mjs"
+  # Non-selenium function for email processing
+  getDailyCode:
+    handler: ./build/automation/D_getDailyCode.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/automation/D_getDailyCode.mjs"
+        - "package.json"
+    # No HTTP events - only called by Step Functions
 
-  #       - "package.json"
-  #   # events:
-  #   #   - httpApi:
-  #   #       path: /api/wolt/refreshTokens
-  #   #       method: get
+  # SELENIUM AUTOMATION FUNCTIONS - DO NOT MODIFY CONFIGURATION!
+  woltApplyGift:
+    image:
+      name: woltflow-selenium-image
+      command: ["build/automation/E_woltApplyGift.handler"]
+    memorySize: 1536
+    ephemeralStorageSize: 1536
+    timeout: 150
+    # No HTTP events - only called by Step Functions
 
-  # startUserAutomationChain:
-  #   handler: ./build/automation/startUserAutomationChain.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/automation/startUserAutomationChain.mjs"
+  # ================================
+  # FORWARD FUNCTIONS
+  # ================================
+  generateApiKey:
+    handler: ./build/forward/api/Create.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/forward/api/Create.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/forward/api/generate
+          method: post
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/automation/start-chain
-  #         method: get
-  #     - schedule:
-  #         rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *) # cron(30 17 ? * SUN,MON,TUE,WED,THU *)
-  #         description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
-  #         enabled: true
+  smsForward:
+    handler: ./build/forward/sms/create.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/forward/sms/create.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/forward/sms
+          method: post
 
-  # # gmail
+  # ================================
+  # HEALTH FUNCTIONS
+  # ================================
+  healthCheck:
+    handler: ./build/health/get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/health/get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/health
+          method: get
 
-  # getDailyCode:
-  #   handler: ./build/gmail/getDailyCode.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/gmail/getDailyCode.mjs"
+  # ================================
+  # RUNS FUNCTIONS
+  # ================================
+  getUserRuns:
+    handler: ./build/runs/GetAll.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/runs/GetAll.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/runs
+          method: get
 
-  #       - "package.json"
-  #   # events:
-  #   #   - httpApi:
-  #   #       path: /api/gmail/daily-code
-  #   #       method: get
-  # #runs
-  # getUserRuns:
-  #   handler: ./build/runs/getUserRuns.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/runs/getUserRuns.mjs"
+  # ================================
+  # SETTINGS FUNCTIONS
+  # ================================
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/runs
-  #         method: get
-  # #setting
-  # getUserSettings:
-  #   handler: ./build/setting/getusersettings.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/setting/getusersettings.mjs"
+  # Cibus Settings
+  getCibusSettings:
+    handler: ./build/settings/cibus/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/cibus/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/cibus
+          method: get
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/setting
-  #         method: get
+  updateCibusSettings:
+    handler: ./build/settings/cibus/Update.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/cibus/Update.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/cibus
+          method: put
 
-  # setUserSettings:
-  #   handler: ./build/setting/setusersettings.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/setting/setusersettings.mjs"
+  # Notification Settings
+  getNotificationSettings:
+    handler: ./build/settings/notification/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/notification/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/notification
+          method: get
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/setting
-  #         method: post
+  updateNotificationSettings:
+    handler: ./build/settings/notification/Update.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/notification/Update.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/notification
+          method: put
 
-  # #api
-  # generateApiKey:
-  #   handler: ./build/api/generateApiKey.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/api/generateApiKey.mjs"
+  # 2FA Functions
+  start2FA:
+    handler: ./build/settings/notification/TwoFactorAuthentication/Create.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/notification/TwoFactorAuthentication/Create.mjs"
+        - "package.json"
+        - "templates/**"
+    events:
+      - httpApi:
+          path: /api/settings/notification/2fa/start
+          method: post
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/sms/generate-api-key
-  #         method: post
+  verify2FA:
+    handler: ./build/settings/notification/TwoFactorAuthentication/verify.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/notification/TwoFactorAuthentication/verify.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/notification/2fa/verify
+          method: post
 
-  # #sms
-  # smsForward:
-  #   handler: ./build/sms/smsForward.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/sms/smsForward.mjs"
+  # Run Settings
+  getRunSettings:
+    handler: ./build/settings/run/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/run/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/run
+          method: get
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/sms/forward
-  #         method: post
+  updateRunSettings:
+    handler: ./build/settings/run/Update.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/run/Update.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/run
+          method: put
 
-  # testSms:
-  #   handler: ./build/test/testSms.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/test/testSms.mjs"
+  # Wolt Settings
+  getWoltSettings:
+    handler: ./build/settings/wolt/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/wolt/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/wolt
+          method: get
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/test/sms
-  #         method: post
-  #   # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
+  updateWoltSettings:
+    handler: ./build/settings/wolt/Update.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/wolt/Update.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/wolt
+          method: put
 
-  # testEmail:
-  #   handler: ./build/test/testEmail.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/test/testEmail.mjs"
+  # ================================
+  # TEST FUNCTIONS
+  # ================================
+  testEmail:
+    handler: ./build/test/testEmail.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/test/testEmail.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/test/email
+          method: post
+    # Test Email function - send POST request with { "email": "test@example.com" }
 
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/test/email
-  #         method: post
-  #   # Test Email function - send POST request with { "email": "test@example.com" }
-
-  # # 2FA notification endpoints
-  # start2FA:
-  #   handler: ./build/notifications/start2FA.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/notifications/start2FA.mjs"
-
-  #       - "package.json"
-  #       - "templates/**"
-  #   events:
-  #     - httpApi:
-  #         path: /api/setting/2FA/start
-  #         method: post
-
-  # verify2FA:
-  #   handler: ./build/notifications/verify2FA.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/notifications/verify2FA.mjs"
-
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/setting/2FA/code
-  #         method: post
-
-  # saveNotificationSettings:
-  #   handler: ./build/notifications/saveNotificationSettings.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/notifications/saveNotificationSettings.mjs"
-
-  #       - "package.json"
-  #   events:
-  #     - httpApi:
-  #         path: /api/setting/notification
-  #         method: post
-
-  # # cleanup2FA:
-  # #   handler: ./build/notifications/cleanup2FA.handler
-  # #   package:
-  # #     patterns:
-  # #       - "!build/**"
-  # #       - "build/notifications/cleanup2FA.mjs"
-  # #       - "package.json"
-  # #   events:
-  # #     - schedule:
-  # #         rate: cron(0 0 * * ? *) # every day at 00:00
-  # #         description: "Clean up expired 2FA codes every day"
-
-  # #automation with selenium
-  # woltBuyGift:
-  #   image:
-  #     name: woltflow-selenium-image
-  #     command: ["build/automation/woltBuyGift.handler"]
-  #   # package:
-  #   #   patterns:
-  #   #     - "!build/**"
-  #   #     - "build/automation/woltBuyGift.mjs"
-
-  #   #     - "package.json"
-  #   #     - "templates/**"
-  #   memorySize: 1536
-  #   ephemeralStorageSize: 1536
-  #   timeout: 250 # 225 old
-  #   # events:
-  #   #   - httpApi:
-  #   #       path: /api/wolt/buyGift
-  #   #       method: get
-
-  # woltApplyGift:
-  #   image:
-  #     name: woltflow-selenium-image
-  #     command: ["build/automation/woltApplyGift.handler"]
-  #   # package:
-  #   #   patterns:
-  #   #     - "!build/**"
-  #   #     - "build/automation/woltApplyGift.mjs"
-  #   #     - "package.json"
-  #   #     - "templates/**"
-  #   memorySize: 1536
-  #   ephemeralStorageSize: 1536
-  #   timeout: 150
-  #   # events:
-  #   #   - httpApi:
-  #   #       path: /api/wolt/applyGift
-  #   #       method: get
-
-  # # # Temp functions for bulk code processing
-  # # getAllWoltCodes:
-  # #   handler: ./build/temp/getAllWoltCodes.handler
-  # #   package:
-  # #     patterns:
-  # #       - "!build/**"
-  # #       - "build/temp/getAllWoltCodes.mjs"
-  # #       - "package.json"
-  # #   timeout: 900 # 15 minutes for large email processing
-  # #   events:
-  # #     - httpApi:
-  # #         path: /api/temp/get-all-codes
-  # #         method: get
-  # #   # Scan all Wolt emails from last 6 months and extract codes - GET /api/temp/get-all-codes?userId=USER_ID
-
-  # # applyAllCodes:
-  # #   image:
-  # #     name: woltflow-selenium-image
-  # #     command: ["build/temp/applyAllCodes.handler"]
-  # #   memorySize: 1536
-  # #   ephemeralStorageSize: 1536
-  # #   timeout: 900 # 15 minutes for bulk code application
-  # #   events:
-  # #     - httpApi:
-  # #         path: /api/temp/apply-all-codes
-  # #         method: get
-  # #   # Apply all unused codes for a user - GET /api/temp/apply-all-codes?userId=USER_ID
-  # #
+  testSms:
+    handler: ./build/test/testSms.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/test/testSms.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/test/sms
+          method: post
+    # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 # AWS Resources Configuration
 resources:
   Resources:
@@ -969,6 +1027,90 @@ resources:
                     - - "arn:aws:s3:::"
                       - Ref: EmailBucket
                       - "/*"
+
+    # ================================
+    # SES EMAIL INFRASTRUCTURE
+    # ================================
+
+    # SES Domain Identity for Email Subdomain
+    SESEmailIdentity:
+      Type: AWS::SES::EmailIdentity
+      Properties:
+        EmailIdentity: ${self:custom.emailSubdomain.${self:provider.stage}}
+        DkimSigningEnabled: true
+        DkimSigningAttributes:
+          NextSigningKeyLength: RSA_2048_BIT
+        FeedbackAttributes:
+          EmailForwardingEnabled: false
+        ConfigurationSetAttributes:
+          ConfigurationSetName: !Ref SESConfigurationSet
+
+    # SES Configuration Set
+    SESConfigurationSet:
+      Type: AWS::SES::ConfigurationSet
+      Properties:
+        Name: ${self:service}-${self:provider.stage}-email-config
+        DeliveryOptions:
+          TlsPolicy: Require
+        TrackingOptions:
+          CustomRedirectDomain: ${self:custom.emailSubdomain.${self:provider.stage}}
+
+    # SES Receipt Rule Set
+    SESReceiptRuleSet:
+      Type: AWS::SES::ReceiptRuleSet
+      Properties:
+        RuleSetName: ${self:service}-${self:provider.stage}-email-rules
+
+    # SES Receipt Rule for User Emails
+    SESReceiptRule:
+      Type: AWS::SES::ReceiptRule
+      DependsOn:
+        - SESReceiptRuleSet
+        - EmailBucket
+      Properties:
+        RuleSetName: !Ref SESReceiptRuleSet
+        Rule:
+          Name: capture-user-emails
+          Recipients:
+            - ${self:custom.emailSubdomain.${self:provider.stage}}
+          Enabled: true
+          ScanEnabled: true
+          Actions:
+            - S3Action:
+                BucketName: !Ref EmailBucket
+                ObjectKeyPrefix: raw/
+            # - LambdaAction:
+            #     FunctionArn: !GetAtt IngestEmailLambdaFunction.Arn
+            #     InvocationType: Event
+
+    # SES Lambda Permission
+    # SESLambdaInvokePermission:
+    #   Type: AWS::Lambda::Permission
+    #   Properties:
+    #     FunctionName: !Ref IngestEmailLambdaFunction
+    #     Action: lambda:InvokeFunction
+    #     Principal: ses.amazonaws.com
+    #     SourceAccount: !Ref AWS::AccountId
+
+    # S3 Bucket Policy for SES Email Storage
+    SESEmailBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref EmailBucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: AllowSESPuts
+              Effect: Allow
+              Principal:
+                Service: ses.amazonaws.com
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+              Resource: !Sub "${EmailBucket}/*"
+              Condition:
+                StringEquals:
+                  "aws:Referer": !Ref AWS::AccountId
 
     # ================================
     # CLOUDFRONT DISTRIBUTION

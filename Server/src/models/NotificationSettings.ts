@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class NotificationSettings extends Model {
-  declare id: number;
+  declare id: string;
   declare isEnabled: boolean; // Master switch for notifications
   declare notificationOnSuccess: boolean; // Enable notifications for successful runs
   declare notificationOnError: boolean; // Enable notifications for failed runs
@@ -18,14 +18,14 @@ export default class NotificationSettings extends Model {
 NotificationSettings.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     isEnabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: true,
+      defaultValue: false,
       comment: "Master switch for all notifications",
     },
     notificationOnSuccess: {
@@ -43,13 +43,21 @@ NotificationSettings.init(
     notificationMethod: {
       type: DataTypes.ENUM("sms", "email", "both"),
       allowNull: true,
-      comment: "Preferred notification delivery method",
     },
     phoneNumber: {
       type: DataTypes.STRING,
       allowNull: true,
       validate: {
-        is: /^\+[1-9]\d{1,14}$/, // E.164 format
+        isValidPhone(value: string | null) {
+          // Only validate if value is not null/empty
+          if (value && value.trim() !== "") {
+            if (!/^\+[1-9]\d{1,14}$/.test(value)) {
+              throw new Error(
+                "Phone number must be in E.164 format (e.g., +1234567890)"
+              );
+            }
+          }
+        },
       },
       comment: "Phone number for SMS notifications (E.164 format)",
     },
@@ -63,7 +71,15 @@ NotificationSettings.init(
       type: DataTypes.STRING,
       allowNull: true,
       validate: {
-        isEmail: true,
+        isValidEmail(value: string | null) {
+          // Only validate if value is not null/empty
+          if (value && value.trim() !== "") {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+              throw new Error("Please provide a valid email address");
+            }
+          }
+        },
       },
       comment: "Email address for notifications",
     },

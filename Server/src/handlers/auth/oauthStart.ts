@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 
 // Environment variables
 dotenv.config();
-
 const ENV = process.env["ENV"];
 
 let ENV_OAUTH_REDIRECT_URI = "";

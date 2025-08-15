@@ -1,5 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { sendEmail, normalizeEmail } from "../../utils/emailUtil.js";
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  getErrorMessage,
+} from "../../utils/responseUtil.js";
+
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
@@ -11,26 +17,16 @@ export const handler = async (
     let recipientEmail = body.email || body.recipientEmail;
 
     if (!recipientEmail) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          success: false,
-          error: "Email address is required",
-        }),
-      };
+      return createErrorResponse("Email address is required", 400);
     }
 
     // Normalize and validate email address
     const normalizedEmail = normalizeEmail(recipientEmail);
     if (!normalizedEmail) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          success: false,
-          error:
-            "Invalid email address format. Please provide a valid email address.",
-        }),
-      };
+      return createErrorResponse(
+        "Invalid email address format. Please provide a valid email address.",
+        400
+      );
     }
 
     // Prepare email content
@@ -71,34 +67,15 @@ The WoltFlow Team`;
     });
 
     if (!result.success) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({
-          success: false,
-          error: result.error || "Failed to send email",
-        }),
-      };
+      return createErrorResponse(result.error || "Failed to send email");
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        success: true,
-        message: "Test email sent successfully!",
-        messageId: result.messageId,
-        recipientEmail: normalizedEmail,
-      }),
-    };
+    return createSuccessResponse("Test email sent successfully!", {
+      messageId: result.messageId,
+      recipientEmail: normalizedEmail,
+    });
   } catch (error) {
     console.error("Error sending test email:", error);
-
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        success: false,
-        error: "Failed to send email",
-        details: error instanceof Error ? error.message : "Unknown error",
-      }),
-    };
+    return createErrorResponse(getErrorMessage(error));
   }
 };

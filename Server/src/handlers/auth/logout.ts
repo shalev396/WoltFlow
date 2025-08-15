@@ -1,9 +1,13 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import dotenv from "dotenv";
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  getErrorMessage,
+} from "../../utils/responseUtil.js";
 
 // Environment variables
 dotenv.config();
-
 const ENV = process.env["ENV"];
 
 export const handler = async (
@@ -16,23 +20,15 @@ export const handler = async (
         ? "HttpOnly; SameSite=Lax; Path=/"
         : "HttpOnly; Secure; SameSite=Strict; Path=/";
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
-
-        "Access-Control-Allow-Credentials": "true",
-      },
-      body: JSON.stringify({ message: "Logged out successfully" }),
+    const successResponse = createSuccessResponse("Logged out successfully");
+    // Add cookie clearing header
+    successResponse.headers = {
+      ...successResponse.headers,
+      "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
     };
+    return successResponse;
   } catch (error) {
     console.error("Logout error:", error);
-    return {
-      statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Credentials": "true",
-      },
-      body: JSON.stringify({ error: "Failed to logout" }),
-    };
+    return createErrorResponse(getErrorMessage(error));
   }
 };

@@ -1,4 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import type { GoogleUser } from "@/types";
 
@@ -25,8 +29,12 @@ export const checkAuth = createAsyncThunk(
     try {
       // Dynamic import to avoid circular dependency
       const { api } = await import("@/api/api");
-      const response = await api.get<GoogleUser>("/auth/me");
-      return response.data;
+      const response = await api.get("/auth/me");
+      // Handle the API response structure: { success, message, data: { user } }
+      if (response.data && response.data.success && response.data.data) {
+        return response.data.data.user;
+      }
+      return rejectWithValue("Invalid response format");
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         return rejectWithValue(

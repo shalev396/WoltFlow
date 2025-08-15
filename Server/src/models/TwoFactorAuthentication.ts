@@ -3,7 +3,7 @@ import sequelize from "../config/database.js";
 
 export default class TwoFactorAuthentication extends Model {
   declare id: string; // UUID
-  declare notificationSettingsId: number; // Foreign key to NotificationSettings
+  declare notificationSettingsId: string; // Foreign key to NotificationSettings
   declare method: "sms" | "email"; // Verification method
   declare contact: string; // E.164 phone number or email address
   declare code: string; // 6-digit verification code
@@ -26,7 +26,7 @@ TwoFactorAuthentication.init(
       primaryKey: true,
     },
     notificationSettingsId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "NotificationSettings",
@@ -39,7 +39,6 @@ TwoFactorAuthentication.init(
     method: {
       type: DataTypes.ENUM("sms", "email"),
       allowNull: false,
-      comment: "Method used for 2FA delivery",
     },
     contact: {
       type: DataTypes.STRING,
@@ -62,7 +61,6 @@ TwoFactorAuthentication.init(
         "sensitive_action"
       ),
       allowNull: false,
-      comment: "Purpose of the 2FA verification",
     },
     expiresAt: {
       type: DataTypes.DATE,
@@ -103,6 +101,13 @@ TwoFactorAuthentication.init(
         fields: ["createdAt"],
       },
     ],
+    hooks: {
+      beforeCreate: (instance: TwoFactorAuthentication) => {
+        // Automatically set expiration to 10 minutes after receivedAt
+        const createdAt = instance.createdAt || new Date();
+        instance.expiresAt = new Date(createdAt.getTime() + 10 * 60 * 1000); // 10 minutes
+      },
+    },
   }
 );
 

@@ -1,8 +1,8 @@
 import axios from "axios";
 import { responseInterceptor, errorInterceptor } from "@/utils/authInterceptor";
 
-const isDev = import.meta.env.VITE_ENV === "Development";
-const baseURL = isDev
+const isLocal = import.meta.env.VITE_ENV === "local";
+const baseURL = isLocal
   ? "http://localhost:3000/api"
   : `${window.location.origin}/api`;
 

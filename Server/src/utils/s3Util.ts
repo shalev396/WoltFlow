@@ -130,7 +130,7 @@ export async function uploadImageToS3(
  */
 export async function uploadImageToS3AndSaveToDb(
   base64Image: string,
-  runId: number,
+  runId: string,
   isError: boolean = false,
   folder: string = "images"
 ): Promise<Screenshot> {
@@ -163,7 +163,7 @@ export async function uploadImageToS3AndSaveToDb(
  */
 export async function uploadImageFileToS3AndSaveToDb(
   imagePath: string,
-  runId: number,
+  runId: string,
   isError: boolean = false,
   folder: string = "images"
 ): Promise<Screenshot | null> {

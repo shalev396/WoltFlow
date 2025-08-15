@@ -3,7 +3,7 @@ import sequelize from "../config/database.js";
 
 export default class Cibus2FA extends Model {
   declare id: string; // UUID
-  declare userId: number; // Foreign key to Users table
+  declare userId: string; // Foreign key to Users table
   declare code: string; // 6-digit verification code from SMS
   declare message: string | null; // Original SMS message content
   declare receivedAt: Date; // When the SMS was received
@@ -22,7 +22,7 @@ Cibus2FA.init(
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "Users",

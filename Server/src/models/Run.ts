@@ -2,8 +2,8 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class Run extends Model {
-  declare id: number;
-  declare userId: number; // Foreign key to Users table (using internal ID now)
+  declare id: string;
+  declare userId: string; // Foreign key to Users table
   declare status: "started" | "in_progress" | "completed" | "failed";
   declare stage:
     | "triggered"
@@ -22,12 +22,12 @@ export default class Run extends Model {
 Run.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "Users",
@@ -41,7 +41,6 @@ Run.init(
       type: DataTypes.ENUM("started", "in_progress", "completed", "failed"),
       allowNull: false,
       defaultValue: "started",
-      comment: "Current status of the automation run",
     },
     stage: {
       type: DataTypes.ENUM(
@@ -54,13 +53,11 @@ Run.init(
       ),
       allowNull: false,
       defaultValue: "triggered",
-      comment: "Current stage of the automation process",
     },
     automationMode: {
       type: DataTypes.ENUM("full-run", "buy-only", "cross-account"),
       allowNull: false,
       defaultValue: "full-run",
-      comment: "Type of automation to execute",
     },
 
     errorMessage: {

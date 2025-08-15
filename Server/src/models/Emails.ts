@@ -3,7 +3,7 @@ import sequelize from "../config/database.js";
 
 export default class Emails extends Model {
   declare id: string; // UUID for unique identification
-  declare inboxId: number; // Foreign key to Inbox table (user's email address)
+  declare inboxId: string; // Foreign key to Inbox table (user's email address)
   declare messageId: string; // Email message ID from headers
   declare s3EmailUrl: string; // S3 URL to the email file
   declare s3PdfUrls: string[] | null; // Array of S3 URLs to PDF attachments
@@ -26,7 +26,7 @@ Emails.init(
       primaryKey: true,
     },
     inboxId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: "Inbox",
@@ -69,7 +69,6 @@ Emails.init(
       ),
       allowNull: false,
       defaultValue: "pending",
-      comment: "Status of email processing",
     },
   },
   {

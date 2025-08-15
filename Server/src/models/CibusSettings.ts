@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class CibusSettings extends Model {
-  declare id: number;
+  declare id: string;
   declare cibusUsername: string | null; // Cibus username
   declare cibusPassword: string | null; // Cibus password (encrypted)
   declare cibusCompany: string | null; // Cibus company name
@@ -13,8 +13,8 @@ export default class CibusSettings extends Model {
 CibusSettings.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     cibusUsername: {

@@ -1,64 +1,90 @@
 import { api } from "@/api/api";
-import type { UserSettings, UserSettingsUpdate } from "@/types";
+import type {
+  ApiResponse,
+  NotificationSettings,
+  NotificationSettingsUpdate,
+  WoltSettings,
+  WoltSettingsUpdate,
+  CibusSettings,
+  CibusSettingsUpdate,
+  RunSettings,
+  RunSettingsUpdate,
+} from "@/types";
 
 export const settingsService = {
-  async getSettings(): Promise<UserSettings> {
-    const response = await api.get<UserSettings>("/setting");
-    return response.data;
+  // ============================================================================
+  // NOTIFICATION SETTINGS
+  // ============================================================================
+  async getNotificationSettings(): Promise<NotificationSettings | null> {
+    const response = await api.get<
+      ApiResponse<{ notificationSettings: NotificationSettings | null }>
+    >("/settings/notification");
+    return response.data.data!.notificationSettings;
   },
 
-  async updateSettings(settings: UserSettingsUpdate): Promise<UserSettings> {
-    const response = await api.post<UserSettings>("/setting", settings);
-    return response.data;
+  async updateNotificationSettings(
+    settings: NotificationSettingsUpdate
+  ): Promise<NotificationSettings> {
+    const response = await api.put<
+      ApiResponse<{ notificationSettings: NotificationSettings }>
+    >("/settings/notification", settings);
+    return response.data.data!.notificationSettings;
   },
 
-  async generateApiKey(): Promise<{ apiKey: string; message: string }> {
-    const response = await api.post<{ apiKey: string; message: string }>(
-      "/sms/generate-api-key"
-    );
-    return response.data;
+  // ============================================================================
+  // WOLT SETTINGS
+  // ============================================================================
+  async getWoltSettings(): Promise<WoltSettings | null> {
+    const response = await api.get<
+      ApiResponse<{ woltSettings: WoltSettings | null }>
+    >("/settings/wolt");
+    return response.data.data!.woltSettings;
   },
 
-  // Save notification settings (both phone and email)
-  async saveNotificationSettings(settings: {
-    notificationMethod?: "sms" | "email" | null;
-    notificationOnSuccess?: boolean;
-    notificationOnError?: boolean;
-    phoneNumber?: string | null;
-    phoneVerified?: boolean;
-    email?: string | null;
-    emailVerified?: boolean;
-  }): Promise<UserSettings> {
-    const response = await api.post<UserSettings>(
-      "/setting/notification",
+  async updateWoltSettings(
+    settings: WoltSettingsUpdate
+  ): Promise<WoltSettings> {
+    const response = await api.put<ApiResponse<{ woltSettings: WoltSettings }>>(
+      "/settings/wolt",
       settings
     );
-    return response.data;
+    return response.data.data!.woltSettings;
   },
 
-  // Start 2FA verification for phone or email
-  async start2FA(settings: {
-    method: "sms" | "email";
-    contact: string; // phone number or email
-  }): Promise<{ success: boolean; message: string }> {
-    const response = await api.post<{
-      success: boolean;
-      message: string;
-      // sessionId?: string;
-    }>("/setting/2FA/start", settings);
-    return response.data;
+  // ============================================================================
+  // CIBUS SETTINGS
+  // ============================================================================
+  async getCibusSettings(): Promise<CibusSettings | null> {
+    const response = await api.get<
+      ApiResponse<{ cibusSettings: CibusSettings | null }>
+    >("/settings/cibus");
+    return response.data.data!.cibusSettings;
   },
 
-  // Verify 2FA code
-  async verify2FA(settings: {
-    method: "sms" | "email";
-    code: string;
-    // sessionId?: string;
-  }): Promise<{ success: boolean; message: string }> {
-    const response = await api.post<{ success: boolean; message: string }>(
-      "/setting/2FA/code",
+  async updateCibusSettings(
+    settings: CibusSettingsUpdate
+  ): Promise<CibusSettings> {
+    const response = await api.put<
+      ApiResponse<{ cibusSettings: CibusSettings }>
+    >("/settings/cibus", settings);
+    return response.data.data!.cibusSettings;
+  },
+
+  // ============================================================================
+  // RUN SETTINGS
+  // ============================================================================
+  async getRunSettings(): Promise<RunSettings | null> {
+    const response = await api.get<
+      ApiResponse<{ runSettings: RunSettings | null }>
+    >("/settings/run");
+    return response.data.data!.runSettings;
+  },
+
+  async updateRunSettings(settings: RunSettingsUpdate): Promise<RunSettings> {
+    const response = await api.put<ApiResponse<{ runSettings: RunSettings }>>(
+      "/settings/run",
       settings
     );
-    return response.data;
+    return response.data.data!.runSettings;
   },
 };

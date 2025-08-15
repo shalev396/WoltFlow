@@ -1,15 +1,19 @@
 import { APIGatewayProxyEventV2 } from "aws-lambda";
 import jwt from "jsonwebtoken";
-import User from "../../models/User.js";
+import { User } from "../../models/index.js";
 import sequelize from "../../config/database.js";
 import { OAuth2Client } from "google-auth-library"; // Standalone auth library
 import { oauth2_v2 } from "@googleapis/oauth2";
 import dotenv from "dotenv";
 import { syncDatabase } from "../../config/bootstrap.js";
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  getErrorMessage,
+} from "../../utils/responseUtil.js";
 
 // Environment variables
 dotenv.config();
-
 const ENV = process.env["ENV"];
 
 let ENV_OAUTH_REDIRECT_URI = "";
@@ -39,13 +43,13 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     const token = cookies["sessionToken"];
     if (!token) throw new Error("No session token");
 
-    // 3. Verify JWT and extract userId
+    // 3. Verify JWT and extract internal userId (UUID)
     const payload = jwt.verify(token, process.env["JWT_SECRET"]!) as {
       userId: string;
     };
     const userId = payload.userId;
 
-    // 4. Fetch refresh_token from PostgreSQL
+    // 4. Fetch user by internal UUID from PostgreSQL
     const user = await User.findByPk(userId);
     console.log("user", user);
     if (!user) throw new Error("User not found");
@@ -58,7 +62,7 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     );
 
     oauth2Client.setCredentials({
-      refresh_token: user.get("refreshToken"),
+      refresh_token: user.get("googleRefreshToken"),
     });
     const newTokenResponse = await oauth2Client.getAccessToken();
     const newAccessToken = newTokenResponse.token;
@@ -67,7 +71,7 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     // 6. If Google rotated the refresh_token, update it
     if (newTokenResponse.res?.data?.refresh_token) {
       const rotatedRT = newTokenResponse.res.data.refresh_token;
-      user.set("refreshToken", rotatedRT);
+      user.set("googleRefreshToken", rotatedRT);
       await user.save();
     }
 
@@ -80,17 +84,13 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     const userInfo = await oauth2Service.userinfo.get();
 
     // 8. Return user info in JSON with CORS headers
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Credentials": "true",
-      },
-      body: JSON.stringify({
+    return createSuccessResponse("User authenticated successfully", {
+      user: {
         email: userInfo.data.email,
         name: userInfo.data.name,
         picture: userInfo.data.picture,
-      }),
-    };
+      },
+    });
   } catch (err) {
     console.error("authMe error:", err);
     // 9. Clear session cookie on failure
@@ -100,15 +100,12 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
         ? "HttpOnly; SameSite=Lax"
         : "HttpOnly; Secure; SameSite=Strict";
 
-    return {
-      statusCode: 401,
-      headers: {
-        "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
-        "Access-Control-Allow-Credentials": "true",
-      },
-      body: JSON.stringify({
-        error: "Not authenticated",
-      }),
+    const errorResponse = createErrorResponse(getErrorMessage(err), 401);
+    // Add cookie clearing header
+    errorResponse.headers = {
+      ...errorResponse.headers,
+      "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
     };
+    return errorResponse;
   }
 };

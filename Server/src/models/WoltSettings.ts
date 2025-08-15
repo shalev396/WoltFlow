@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class WoltSettings extends Model {
-  declare id: number;
+  declare id: string;
   declare woltRefreshToken: string | null; // Wolt refresh token (wrtoken)
   declare woltAccessToken: string | null; // Wolt access token (wtoken)
   declare readonly createdAt: Date;
@@ -12,8 +12,8 @@ export default class WoltSettings extends Model {
 WoltSettings.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     woltRefreshToken: {

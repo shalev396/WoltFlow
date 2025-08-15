@@ -31,7 +31,7 @@ export const authMiddleware = (
         userId: string;
       };
 
-      // Add userId to both event and context
+      // Add internal userId (UUID) to event for use throughout the app
       event.userId = payload.userId;
 
       return await handler(event, context, callback);
