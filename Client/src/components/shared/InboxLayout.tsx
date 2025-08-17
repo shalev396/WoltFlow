@@ -10,7 +10,7 @@ import InboxList from "@/components/pages/inbox/InboxList";
 import InboxViewer from "@/components/pages/inbox/InboxViewer";
 import InboxToolbar from "@/components/pages/inbox/InboxToolbar";
 import { useInboxQuery } from "@/queries/inbox";
-import { inboxService } from "@/services/inbox";
+import { inboxService, type InboxFilters } from "@/services/inbox";
 import type { Email } from "@/data/dummyEmails";
 
 interface InboxLayoutFilters {
@@ -28,7 +28,7 @@ export default function InboxLayout() {
 
   // Build API filters based on UI state
   const apiFilters = useMemo(() => {
-    const result: any = { page, limit: 20 };
+    const result: InboxFilters = { page, limit: 20 };
 
     if (filters.status) result.status = filters.status;
     // Note: Search filtering is done on frontend for now

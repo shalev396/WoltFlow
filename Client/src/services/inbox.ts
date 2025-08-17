@@ -151,7 +151,7 @@ class InboxService {
       labels: [email.processingStatus, "inbox"],
       hasAttachments: email.attachmentCount > 0,
       attachments: email.s3PdfUrls
-        ? email.s3PdfUrls.map((pdfUrl, index) => ({
+        ? email.s3PdfUrls.map((_pdfUrl, index) => ({
             id: `att_${email.id}_${index}`,
             name: `attachment_${index + 1}.pdf`,
             size: 0, // Size not available from backend yet
