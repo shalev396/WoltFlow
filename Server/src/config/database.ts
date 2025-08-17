@@ -21,7 +21,7 @@ const sequelize = new Sequelize(databaseUrl, {
   dialectModule: pg,
   dialectOptions: {
     ssl:
-      ENV === "prod"
+      ENV !== "local"
         ? {
             require: true,
             rejectUnauthorized: false,

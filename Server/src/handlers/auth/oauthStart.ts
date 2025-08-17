@@ -36,7 +36,7 @@ export const handler = async (): Promise<APIGatewayProxyResultV2> => {
     access_type: "offline",
     prompt: "consent",
     scope: [
-      "https://www.googleapis.com/auth/gmail.readonly",
+      // "https://www.googleapis.com/auth/gmail.readonly", //remove this
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
     ],
