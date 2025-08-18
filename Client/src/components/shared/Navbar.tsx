@@ -150,7 +150,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex lg:hidden items-center gap-2">
             <ModeToggle />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger className="px-2">
@@ -238,7 +238,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           {isAuthenticated && (
-            <nav className="hidden md:flex gap-1">
+            <nav className="hidden lg:flex gap-1">
               {routeList.map((route) => {
                 const Icon = route.icon;
                 return (
@@ -261,7 +261,7 @@ export default function Navbar() {
           )}
 
           {/* Right side - Auth buttons and theme toggle */}
-          <div className="hidden md:flex gap-2 items-center">
+          <div className="hidden lg:flex gap-2 items-center">
             <AuthButtons />
             <ModeToggle />
           </div>

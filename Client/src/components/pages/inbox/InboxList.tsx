@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Star } from "lucide-react";
+import { Star, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { AvatarSimple } from "@/components/ui/avatar-simple";
-import type { Email } from "@/data/dummyEmails";
+import type { Email } from "@/types/inbox";
 
 interface InboxListProps {
   emails: Email[];
@@ -139,6 +139,9 @@ export default function InboxList({
                       <div className="text-sm font-medium text-foreground truncate">
                         {email.from.name}
                       </div>
+                      {email.hasAttachments && (
+                        <Paperclip className="h-3 w-3 text-gray-500 flex-shrink-0" />
+                      )}
                       {email.isStarred && (
                         <Star className="h-3 w-3 text-yellow-500 fill-current flex-shrink-0" />
                       )}

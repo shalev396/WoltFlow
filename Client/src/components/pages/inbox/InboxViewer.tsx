@@ -9,6 +9,10 @@ import {
   MoreHorizontal,
   Mail,
   MailOpen,
+  Paperclip,
+  Download,
+  FileText,
+  File,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { Email } from "@/data/dummyEmails";
+import { inboxService } from "@/services/inbox";
+import type { Email } from "@/types/inbox";
 
 interface InboxViewerProps {
   email: Email | undefined;
@@ -66,10 +71,42 @@ export default function InboxViewer({
     onEmailAction(action, email.id);
   };
 
+  const handleDownloadAttachment = async (
+    attachmentIndex: number,
+    filename: string
+  ) => {
+    try {
+      await inboxService.downloadAndSaveAttachment(
+        email.id,
+        attachmentIndex,
+        filename
+      );
+    } catch (error) {
+      console.error("Failed to download attachment:", error);
+      alert(`Download failed: ${error}`);
+    }
+  };
+
+  const getFileIcon = (filename: string) => {
+    const extension = filename.toLowerCase().split(".").pop();
+    switch (extension) {
+      case "pdf":
+        return FileText;
+      case "doc":
+      case "docx":
+        return FileText;
+      case "xls":
+      case "xlsx":
+        return FileText;
+      default:
+        return File;
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 border-b bg-background p-4">
+      <div className="flex-shrink-0 border-b bg-background p-3 sm:p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -103,7 +140,7 @@ export default function InboxViewer({
               </div>
             )}
 
-            {/* Sender and date info */}
+            {/* Email details - traditional layout */}
             <div className="space-y-1 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">From:</span>
@@ -118,7 +155,7 @@ export default function InboxViewer({
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">To:</span>
-                <span>{email.to}</span>
+                <span className="truncate">{email.to}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">Date:</span>
@@ -210,6 +247,56 @@ export default function InboxViewer({
           </div>
         </div>
       </div>
+
+      {/* Attachments Section */}
+      {email.hasAttachments && email.attachments && (
+        <div className="flex-shrink-0 border-b bg-muted/20 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Paperclip className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium text-muted-foreground">
+              {email.attachments.length} Attachment
+              {email.attachments.length > 1 ? "s" : ""}
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {email.attachments.map((attachment, index) => {
+              const FileIcon = getFileIcon(attachment.name);
+              return (
+                <div
+                  key={attachment.id}
+                  className="flex items-center gap-2 bg-background border rounded-lg p-2 min-w-0 max-w-xs"
+                >
+                  <FileIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="text-sm font-medium truncate"
+                      title={attachment.name}
+                    >
+                      {attachment.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {attachment.type.split("/").pop()?.toUpperCase()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 flex-shrink-0"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDownloadAttachment(index, attachment.name);
+                    }}
+                    title={`Download ${attachment.name}`}
+                  >
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Email body */}
       <div className="flex-1 overflow-y-auto p-6">

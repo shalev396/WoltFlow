@@ -4,16 +4,18 @@ import sequelize from "../config/database.js";
 export default class Emails extends Model {
   declare id: string; // UUID for unique identification
   declare inboxId: string; // Foreign key to Inbox table (user's email address)
-  declare messageId: string; // Email message ID from headers
   declare s3EmailUrl: string; // S3 URL to the email file
-  declare s3PdfUrls: string[] | null; // Array of S3 URLs to PDF attachments
-  declare attachmentCount: number; // Number of PDF attachments
-  declare processingStatus:
-    | "pending"
-    | "processing"
-    | "completed"
-    | "failed"
-    | "skipped"; // Processing status
+  declare attachmentUrls: string[] | null; // Array of S3 URLs to attachments
+
+  // Email content fields
+  declare fromEmail: string; // Sender email address
+  declare fromName: string | null; // Sender display name
+  declare toEmail: string; // Recipient email address
+  declare toName: string | null; // Recipient display name
+  declare subject: string; // Email subject
+  declare body: string | null; // Email body content
+  declare emailDate: Date; // Original email date
+
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -36,39 +38,52 @@ Emails.init(
       onDelete: "CASCADE",
       comment: "Reference to the inbox that received this email",
     },
-    messageId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      comment: "Email message ID from headers for deduplication",
-    },
-
     s3EmailUrl: {
       type: DataTypes.STRING,
       allowNull: false,
       comment: "S3 URL to the email file",
     },
-    s3PdfUrls: {
+    attachmentUrls: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: true,
-      comment: "Array of S3 URLs to PDF attachments",
+      comment: "Array of S3 URLs to attachments (PDFs, images, docs, etc.)",
     },
 
-    attachmentCount: {
-      type: DataTypes.INTEGER,
+    // Email content fields
+    fromEmail: {
+      type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 0,
-      comment: "Number of PDF attachments",
+      comment: "Sender email address",
     },
-    processingStatus: {
-      type: DataTypes.ENUM(
-        "pending",
-        "processing",
-        "completed",
-        "failed",
-        "skipped"
-      ),
+    fromName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Sender display name",
+    },
+    toEmail: {
+      type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "pending",
+      comment: "Recipient email address",
+    },
+    toName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Recipient display name",
+    },
+    subject: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: "Email subject line",
+    },
+    body: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Email body content",
+    },
+    emailDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment: "Original email timestamp",
     },
   },
   {
@@ -80,15 +95,13 @@ Emails.init(
         fields: ["inboxId"],
       },
       {
-        fields: ["messageId"],
+        fields: ["emailDate"],
       },
       {
-        unique: true,
-        fields: ["inboxId", "messageId"],
-        name: "unique_email_per_inbox",
+        fields: ["fromEmail"],
       },
       {
-        fields: ["processingStatus"],
+        fields: ["toEmail"],
       },
     ],
   }

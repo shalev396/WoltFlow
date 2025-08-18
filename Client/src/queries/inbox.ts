@@ -25,16 +25,17 @@ export function useInboxQuery(
 }
 
 /**
- * Get emails with specific status filter
+ * Get emails with date range filter
  */
-export function useEmailsByStatusQuery(
-  status?: "pending" | "processing" | "completed" | "failed" | "skipped",
+export function useEmailsByDateQuery(
+  startDate?: string,
+  endDate?: string,
   options?: {
     refetchInterval?: number;
     enabled?: boolean;
   }
 ) {
-  const filters = status ? { status } : undefined;
+  const filters = startDate || endDate ? { startDate, endDate } : undefined;
 
   return useInboxQuery(filters, {
     refetchInterval: options?.refetchInterval,
@@ -77,19 +78,14 @@ export function useRecentEmailsQuery() {
 }
 
 /**
- * Get failed emails only
+ * Get recent emails with higher refresh rate
  */
-export function useFailedEmailsQuery() {
-  return useEmailsByStatusQuery("failed", {
-    refetchInterval: 30000, // Check failed emails more frequently
-  });
-}
-
-/**
- * Get pending emails only
- */
-export function usePendingEmailsQuery() {
-  return useEmailsByStatusQuery("pending", {
-    refetchInterval: 15000, // Check pending emails very frequently
-  });
+export function useActiveInboxQuery() {
+  return useInboxQuery(
+    { limit: 50, page: 1 },
+    {
+      staleTime: 10000, // Consider data stale after 10 seconds
+      refetchInterval: 30000, // Refetch every 30 seconds for active use
+    }
+  );
 }

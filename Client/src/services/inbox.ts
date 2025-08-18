@@ -2,17 +2,18 @@ import { api } from "@/api/api";
 
 export interface InboxEmail {
   id: string;
-  inboxId: string;
-  messageId: string;
   s3EmailUrl: string;
-  s3PdfUrls: string[] | null;
-  attachmentCount: number;
-  processingStatus:
-    | "pending"
-    | "processing"
-    | "completed"
-    | "failed"
-    | "skipped";
+  attachmentUrls: string[] | null;
+
+  // Email content fields
+  fromEmail: string;
+  fromName: string | null;
+  toEmail: string;
+  toName: string | null;
+  subject: string;
+  body: string | null;
+  emailDate: string;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -48,7 +49,6 @@ export interface InboxResponse {
       prevPage: number | null;
     };
     filters: {
-      status: string | null;
       startDate: string | null;
       endDate: string | null;
     };
@@ -58,7 +58,6 @@ export interface InboxResponse {
 export interface InboxFilters {
   page?: number;
   limit?: number;
-  status?: "pending" | "processing" | "completed" | "failed" | "skipped";
   startDate?: string;
   endDate?: string;
 }
@@ -72,7 +71,6 @@ class InboxService {
 
     if (filters?.page) params.append("page", filters.page.toString());
     if (filters?.limit) params.append("limit", filters.limit.toString());
-    if (filters?.status) params.append("status", filters.status);
     if (filters?.startDate) params.append("startDate", filters.startDate);
     if (filters?.endDate) params.append("endDate", filters.endDate);
 
@@ -81,6 +79,51 @@ class InboxService {
 
     const response = await api.get<InboxResponse>(url);
     return response.data;
+  }
+
+  /**
+   * Download attachment securely
+   */
+  async downloadAttachment(
+    emailId: string,
+    attachmentIndex: number
+  ): Promise<Blob> {
+    const response = await api.get(
+      `/inbox/${emailId}/attachment/${attachmentIndex}`,
+      {
+        responseType: "blob",
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Download attachment and trigger file download in browser
+   */
+  async downloadAndSaveAttachment(
+    emailId: string,
+    attachmentIndex: number,
+    filename: string
+  ): Promise<void> {
+    try {
+      const blob = await this.downloadAttachment(emailId, attachmentIndex);
+
+      // Create download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download attachment:", error);
+      throw new Error(`Failed to download attachment: ${error}`);
+    }
   }
 
   /**
@@ -102,64 +145,123 @@ class InboxService {
       name: string;
       size: number;
       type: string;
+      url?: string;
     }>;
     priority: "high" | "normal" | "low";
   } {
+    const attachmentCount = email.attachmentUrls?.length || 0;
+
     return {
       id: email.id,
-      subject: email.messageId, // For now, use messageId as subject
-      from: { name: "System", email: "system@woltflow.com" },
-      to: "", // Will be populated from inbox data
-      date: new Date(email.createdAt),
-      isRead: email.processingStatus === "completed",
+      subject: email.subject || "No Subject",
+      from: {
+        name: email.fromName || email.fromEmail.split("@")[0],
+        email: email.fromEmail,
+      },
+      to: email.toEmail || "",
+      date: new Date(email.emailDate || email.createdAt),
+      isRead: true, // All emails are considered read since we don't track read status
       isStarred: false,
-      body: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2>Email Processing Status: ${email.processingStatus.toUpperCase()}</h2>
-          <p><strong>Message ID:</strong> ${email.messageId}</p>
-          <p><strong>Processing Status:</strong> ${email.processingStatus}</p>
-          <p><strong>Attachments:</strong> ${
-            email.attachmentCount
-          } PDF files</p>
-          <p><strong>Received:</strong> ${new Date(
-            email.createdAt
-          ).toLocaleString()}</p>
-          ${
-            email.s3EmailUrl
-              ? `<p><strong>Email File:</strong> <a href="${email.s3EmailUrl}" target="_blank">View Email</a></p>`
-              : ""
-          }
-          ${
-            email.s3PdfUrls && email.s3PdfUrls.length > 0
-              ? `<div>
-              <h3>PDF Attachments:</h3>
-              <ul>
-                ${email.s3PdfUrls
-                  .map(
-                    (pdfUrl, index) =>
-                      `<li><a href="${pdfUrl}" target="_blank">PDF Attachment ${
-                        index + 1
-                      }</a></li>`
-                  )
-                  .join("")}
-              </ul>
-            </div>`
-              : ""
-          }
-        </div>
-      `,
-      labels: [email.processingStatus, "inbox"],
-      hasAttachments: email.attachmentCount > 0,
-      attachments: email.s3PdfUrls
-        ? email.s3PdfUrls.map((_pdfUrl, index) => ({
+      body: email.body || this.generateEmailBodyFallback(email),
+      labels: ["inbox"],
+      hasAttachments: attachmentCount > 0,
+      attachments: email.attachmentUrls
+        ? email.attachmentUrls.map((attachmentUrl, index) => ({
             id: `att_${email.id}_${index}`,
-            name: `attachment_${index + 1}.pdf`,
+            name:
+              this.getFileNameFromS3Url(attachmentUrl) ||
+              `attachment_${index + 1}`,
             size: 0, // Size not available from backend yet
-            type: "application/pdf",
+            type: this.getFileTypeFromName(attachmentUrl),
+            url: attachmentUrl,
           }))
         : undefined,
-      priority: email.processingStatus === "failed" ? "high" : "normal",
+      priority: "normal",
     };
+  }
+
+  /**
+   * Generate fallback email body when body is not available
+   */
+  private generateEmailBodyFallback(email: InboxEmail): string {
+    const attachmentCount = email.attachmentUrls?.length || 0;
+
+    return `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #333; font-size: 18px; margin-bottom: 16px;">📧 Email Content</h2>
+        
+        <div style="background: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
+          <p style="margin: 8px 0;"><strong>From:</strong> ${
+            email.fromName || email.fromEmail
+          }</p>
+          <p style="margin: 8px 0;"><strong>To:</strong> ${email.toEmail}</p>
+          <p style="margin: 8px 0;"><strong>Received:</strong> ${new Date(
+            email.emailDate || email.createdAt
+          ).toLocaleString()}</p>
+        </div>
+
+        ${
+          attachmentCount > 0
+            ? `
+          <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; border-left: 4px solid #2196f3;">
+            <p style="margin: 0; color: #1976d2;"><strong>📎 ${attachmentCount} attachment${
+                attachmentCount > 1 ? "s" : ""
+              } available</strong></p>
+            <p style="margin: 4px 0 0 0; font-size: 14px; color: #666;">Use the attachment buttons above to download files.</p>
+          </div>
+        `
+            : ""
+        }
+        
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #666;">
+          <p style="margin: 0;">Email content is being loaded...</p>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Extract filename from S3 URL
+   */
+  private getFileNameFromS3Url(s3Url: string): string | null {
+    try {
+      // Extract filename from S3 path: s3://bucket/path/to/filename.ext
+      const parts = s3Url.split("/");
+      return parts[parts.length - 1] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get file type from filename
+   */
+  private getFileTypeFromName(filename: string): string {
+    const extension = filename.toLowerCase().split(".").pop();
+    switch (extension) {
+      case "pdf":
+        return "application/pdf";
+      case "doc":
+      case "docx":
+        return "application/msword";
+      case "xls":
+      case "xlsx":
+        return "application/vnd.ms-excel";
+      case "ppt":
+      case "pptx":
+        return "application/vnd.ms-powerpoint";
+      case "txt":
+        return "text/plain";
+      case "jpg":
+      case "jpeg":
+        return "image/jpeg";
+      case "png":
+        return "image/png";
+      case "gif":
+        return "image/gif";
+      default:
+        return "application/octet-stream";
+    }
   }
 }
 

@@ -861,6 +861,21 @@ functions:
           path: /api/inbox
           method: get
 
+  # Download email attachment securely
+  downloadAttachment:
+    handler: ./build/inbox/DownloadAttachment.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/inbox/DownloadAttachment.mjs"
+        - "package.json"
+    timeout: 30
+    memorySize: 512
+    events:
+      - httpApi:
+          path: /api/inbox/{emailId}/attachment/{attachmentIndex}
+          method: get
+
 # AWS Resources Configuration
 resources:
   Resources:
@@ -1278,3 +1293,29 @@ resources:
               - DomainName
           HostedZoneId: Z2FDTNDATAQYW2 # CloudFront hosted zone ID (global)
           EvaluateTargetHealth: false
+
+    # ================================
+    # SES EMAIL DNS RECORDS
+    # ================================
+
+    # MX Record for SES Email Receiving - Points email subdomain to SES
+    SESMXRecord:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneId: ${env:HOSTED_ZONE_ID}
+        Name: ${self:custom.emailSubdomain.${self:provider.stage}}
+        Type: MX
+        TTL: 300
+        ResourceRecords:
+          - "10 inbound-smtp.il-central-1.amazonaws.com"
+
+    # TXT Record for SES Domain Verification (if needed)
+    SESTXTRecord:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneId: ${env:HOSTED_ZONE_ID}
+        Name: ${self:custom.emailSubdomain.${self:provider.stage}}
+        Type: TXT
+        TTL: 300
+        ResourceRecords:
+          - '"v=spf1 include:amazonses.com ~all"'

@@ -49,10 +49,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Build where conditions for email filtering
       const whereConditions: any = {};
 
-      if (queryParams["status"]) {
-        whereConditions.processingStatus = queryParams["status"];
-      }
-
       if (queryParams["startDate"] || queryParams["endDate"]) {
         whereConditions.createdAt = {};
         if (queryParams["startDate"]) {
@@ -110,11 +106,18 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         offset,
         attributes: [
           "id",
-          "messageId",
           "s3EmailUrl",
-          "s3PdfUrls",
-          "attachmentCount",
-          "processingStatus",
+          "attachmentUrls",
+
+          // Email content fields
+          "fromEmail",
+          "fromName",
+          "toEmail",
+          "toName",
+          "subject",
+          "body",
+          "emailDate",
+
           "createdAt",
           "updatedAt",
         ],
@@ -143,7 +146,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           hasPrevPage: page > 1,
         },
         filters: {
-          status: queryParams["status"] || null,
           startDate: queryParams["startDate"] || null,
           endDate: queryParams["endDate"] || null,
         },

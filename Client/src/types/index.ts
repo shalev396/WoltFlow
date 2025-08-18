@@ -21,3 +21,6 @@ export type * from "./twoFactor";
 
 // Forward/API key types
 export type * from "./forward";
+
+// Inbox and email types
+export type * from "./inbox";
