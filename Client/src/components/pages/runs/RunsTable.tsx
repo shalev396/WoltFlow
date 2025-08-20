@@ -84,6 +84,7 @@ export default function RunsTable() {
     error,
     isPlaceholderData,
     isFetching,
+    refetch,
   } = useRunsQuery(
     currentPage, // API uses 1-based pagination
     pageSize,
@@ -124,7 +125,7 @@ export default function RunsTable() {
               <p className="text-red-500">
                 {error instanceof Error ? error.message : "Failed to load runs"}
               </p>
-              <Button onClick={() => window.location.reload()} className="mt-4">
+              <Button onClick={() => refetch()} className="mt-4">
                 Try Again
               </Button>
             </div>

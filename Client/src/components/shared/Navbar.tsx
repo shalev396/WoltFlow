@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Menu, Home, Activity, Settings, Mail, LogOut } from "lucide-react";
+import {
+  Menu,
+  Home,
+  Activity,
+  Settings,
+  Mail,
+  LogOut,
+  BookOpen,
+} from "lucide-react";
 
 import type { RootState } from "@/store/store";
 import { ModeToggle } from "@/components/shared/mode-toggle";
@@ -67,7 +75,13 @@ export default function Navbar() {
     },
   ];
 
-  const isActivePage = (path: string) => location.pathname === path;
+  const isActivePage = (path: string) => {
+    // For docs pages, check if we're on any docs route
+    if (path === "/docs") {
+      return location.pathname.startsWith("/docs");
+    }
+    return location.pathname === path;
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -192,6 +206,21 @@ export default function Navbar() {
 
                 <div className="flex flex-col h-full">
                   <nav className="flex flex-col gap-2 mt-6 flex-1">
+                    {/* Public Docs Link - Always Visible */}
+                    <Link
+                      to="/docs"
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        buttonVariants({ variant: "ghost" }),
+                        "justify-start h-12 px-4",
+                        isActivePage("/docs") &&
+                          "bg-accent text-accent-foreground"
+                      )}
+                    >
+                      <BookOpen className="mr-3 h-5 w-5" />
+                      Documentation
+                    </Link>
+
                     {isAuthenticated ? (
                       <>
                         {routeList.map((route) => {
@@ -237,9 +266,23 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          {isAuthenticated && (
-            <nav className="hidden lg:flex gap-1">
-              {routeList.map((route) => {
+          <nav className="hidden lg:flex gap-1">
+            {/* Public Documentation Link */}
+            <Link
+              to="/docs"
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-9 px-4 py-2",
+                isActivePage("/docs") && "bg-accent text-accent-foreground"
+              )}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Documentation
+            </Link>
+
+            {/* Authenticated User Routes */}
+            {isAuthenticated &&
+              routeList.map((route) => {
                 const Icon = route.icon;
                 return (
                   <Link
@@ -257,8 +300,7 @@ export default function Navbar() {
                   </Link>
                 );
               })}
-            </nav>
-          )}
+          </nav>
 
           {/* Right side - Auth buttons and theme toggle */}
           <div className="hidden lg:flex gap-2 items-center">

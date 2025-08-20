@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 export function WoltCredentialsHelp() {
   const handleOpenExtension = () => {
     window.open(
-      "https://chromewebstore.google.com/detail/ghlbloemllihpoephjhmimdodfodnmcf?utm_source=item-share-cb",
+      "https://chromewebstore.google.com/detail/woltflow-token-reviewer/ghlbloemllihpoephjhmimdodfodnmcf?authuser=0&hl=iw",
       "_blank"
     );
   };
@@ -73,7 +73,7 @@ export function WoltCredentialsHelp() {
                   </Badge>
                   <div className="flex-1">
                     <p className="font-medium">
-                      Install WoltFlow Token Reviewer Extension
+                      Install WoltFlow Token Reviewer
                     </p>
                     <p className="text-sm text-muted-foreground mb-3">
                       First, you need to install our browser extension that will

@@ -272,6 +272,7 @@ export function RunsDataTable({
     isLoading,
     error,
     isFetching,
+    refetch,
   } = useRunsQuery(
     pagination.pageIndex + 1, // API uses 1-based pagination
     pagination.pageSize,
@@ -330,7 +331,7 @@ export function RunsDataTable({
             <p className="text-red-500 mb-4">
               {error instanceof Error ? error.message : "Failed to load runs"}
             </p>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <Button onClick={() => refetch()}>Try Again</Button>
           </div>
         </CardContent>
       </Card>

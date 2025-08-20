@@ -7,13 +7,13 @@ import Layout from "@/components/shared/Layout";
 export default function ExtensionPrivacyPage() {
   return (
     <Layout
-      title="WoltFlow Extension Privacy Policy"
-      description="Privacy policy for the WoltFlow browser extension"
+      title="WoltFlow Token Reviewer Privacy Policy"
+      description="Privacy policy for the WoltFlow Token Reviewer browser extension"
     >
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="text-3xl font-bold text-center">
-            WoltFlow Extension Privacy Policy
+            WoltFlow Token Reviewer Privacy Policy
           </CardTitle>
           <p className="text-center text-muted-foreground">
             Last Updated: January 15, 2025

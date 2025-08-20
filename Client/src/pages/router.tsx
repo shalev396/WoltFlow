@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { DocsRouter } from "@/components/pages/docs";
 
 // Page imports
 import LandingPage from "./LandingPage";
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
   {
     path: "/terms-of-service",
     element: <TermsOfService />,
+  },
+  {
+    path: "/docs/*",
+    element: <DocsRouter />,
   },
   {
     path: "*",
