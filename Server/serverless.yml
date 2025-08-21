@@ -832,6 +832,21 @@ functions:
           method: post
     # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
+  # VPC Connectivity Test - Debug Lambda VPC issues
+  testConnectivity:
+    handler: ./build/test/testConnectivity.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/test/testConnectivity.mjs"
+        - "package.json"
+    timeout: 30
+    events:
+      - httpApi:
+          path: /api/test/connectivity
+          method: get
+    # Test connectivity: DNS, HTTP, Database connections
+
     # ================================
   # INBOX FUNCTIONS
   # ================================

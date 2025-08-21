@@ -57,20 +57,49 @@ export const handler = async (event: SESEvent) => {
  */
 async function processEmailRecord(record: any) {
   const sesMessage = record.ses.mail;
-  const recipients = sesMessage.destination;
 
-  // Process each recipient
+  // Combine both actual recipients and destinations to handle both scenarios:
+  // 1. Direct emails: destination = recipients = UUID@domain
+  // 2. Forwarded emails: destination = original email, recipients = UUID@domain
+  const actualRecipients = record.ses.receipt?.recipients || [];
+  const originalDestinations = sesMessage.destination || [];
+
+  // Create a unique list of all possible recipients
+  const allPossibleRecipients = [
+    ...new Set([...actualRecipients, ...originalDestinations]),
+  ];
+
+  console.log("Email processing details:", {
+    originalDestination: sesMessage.destination,
+    actualRecipients: record.ses.receipt?.recipients,
+    allPossibleRecipients: allPossibleRecipients,
+    messageId: sesMessage.messageId,
+    fromEmail: sesMessage.commonHeaders?.from?.[0] || "unknown",
+  });
+
+  // Process each recipient, but only process valid UUID-based emails once
   const results = [];
-  for (const userEmail of recipients) {
+  const processedUserIds = new Set(); // Track processed user IDs to avoid duplicates
+
+  for (const userEmail of allPossibleRecipients) {
     try {
       console.log(`Processing email for: ${userEmail}`);
 
       // Extract user ID from email (format: {userId}@{subdomain})
       const userId = extractUserIdFromEmail(userEmail);
       if (!userId) {
-        console.warn(`Could not extract user ID from email: ${userEmail}`);
+        console.log(
+          `Skipping non-UUID email: ${userEmail} (likely original destination)`
+        );
         continue;
       }
+
+      // Skip if we've already processed this user ID in this batch
+      if (processedUserIds.has(userId)) {
+        console.log(`Skipping duplicate processing for user ID: ${userId}`);
+        continue;
+      }
+      processedUserIds.add(userId);
 
       // Find user's inbox
       const inbox = await Inbox.findOne({ where: { userId } });
