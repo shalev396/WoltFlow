@@ -217,7 +217,7 @@ export const handler = async (
     // Update run status and stage based on success
     if (run) {
       if (success) {
-        await run.update({ status: "success", stage: "done" });
+        await run.update({ status: "completed", stage: "completed" });
 
         // Send success notification to user
         try {

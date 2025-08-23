@@ -491,17 +491,17 @@ export const handler = async (
       }
     }
 
-    // Check if mode is "buy-only" and set success status if purchase was successful
+    // Check if automation mode is "buy-only" and set success status if purchase was successful
     if ((success || process.env["ENV"] === "dev") && run) {
-      const runMode = run.get("mode");
+      const automationMode = run.automationMode;
 
-      if (runMode === "buy-only") {
+      if (automationMode === "buy-only") {
         console.log(
-          "Mode is 'buy-only', marking run as successful and completed"
+          "Automation mode is 'buy-only', marking run as successful and completed"
         );
         await run.update({
-          status: "success",
-          stage: "done",
+          status: "completed",
+          stage: "completed",
         });
       } else {
         console.log(
@@ -556,9 +556,9 @@ export const handler = async (
     // Check if this is a Step Functions call (has runId directly in event)
     const isStepFunctions = !!event.runId || !!event.Payload?.runId;
 
-    // Check for buy-only mode
-    const runMode = run?.get("mode");
-    const isBuyOnlyMode = runMode === "buy-only";
+    // Check for buy-only automation mode
+    const automationMode = run?.automationMode;
+    const isBuyOnlyMode = automationMode === "buy-only";
 
     if (isStepFunctions) {
       if (success) {
@@ -572,7 +572,7 @@ export const handler = async (
             completed: true,
             message:
               "Buy-only mode: Gift purchase completed, stopping automation chain",
-            mode: "buy-only",
+            automationMode: "buy-only",
           } as any;
         } else {
           // Continue to next step in chain
@@ -597,7 +597,7 @@ export const handler = async (
           message: success ? "Gift purchase completed" : "Gift purchase failed",
           runId,
           userId: run?.userId,
-          mode: runMode,
+          automationMode: automationMode,
         }),
       };
     }

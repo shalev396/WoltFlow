@@ -9,7 +9,6 @@ import { syncDatabase } from "../../config/bootstrap.js";
 import {
   createSuccessResponse,
   createErrorResponse,
-  createSuccessData,
   getErrorMessage,
 } from "../../utils/responseUtil.js";
 
@@ -124,11 +123,13 @@ export const handler = async (
       const isStepFunctions = !!event.runId || !!event.Payload?.runId;
 
       if (isStepFunctions) {
-        // Return raw data for Step Functions
-        return createSuccessData("Tokens refreshed successfully", {
+        // Return raw data for Step Functions - at root level for JSONPath
+        return {
           runId,
           userId: run.userId,
-        }) as any;
+          success: true,
+          message: "Tokens refreshed successfully",
+        } as any;
       } else {
         // Return API Gateway format for HTTP calls
         return createSuccessResponse("Tokens refreshed successfully", {

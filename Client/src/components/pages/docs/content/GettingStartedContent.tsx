@@ -4,7 +4,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Settings,
-  Chrome,
+  Globe,
   CreditCard,
   Mail,
   MessageCircle,
@@ -50,7 +50,7 @@ export function GettingStartedContent() {
 
           <div className="grid gap-3">
             <div className="flex items-center gap-3 p-3 bg-white dark:bg-background rounded border">
-              <Chrome className="h-4 w-4 text-muted-foreground" />
+              <Globe className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Get Wolt credentials</span>
               <Badge variant="secondary" className="ml-auto">
                 2 options
@@ -101,7 +101,7 @@ export function GettingStartedContent() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Chrome className="h-5 w-5 text-blue-600" />
+                <Globe className="h-5 w-5 text-blue-600" />
                 Wolt Account Setup
               </CardTitle>
             </CardHeader>
@@ -116,7 +116,7 @@ export function GettingStartedContent() {
 
                 <div className="p-3 border rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Chrome className="h-4 w-4" />
+                    <Globe className="h-4 w-4" />
                     <span className="font-medium text-sm">
                       WoltFlow Token Reviewer
                     </span>
@@ -263,7 +263,7 @@ export function GettingStartedContent() {
                     <div className="w-full">
                       <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2 mb-1">
                         <div className="flex items-center gap-2">
-                          <Chrome className="h-4 w-4 flex-shrink-0" />
+                          <Globe className="h-4 w-4 flex-shrink-0" />
                           <span className="font-medium text-xs sm:text-sm">
                             Extension Method
                           </span>

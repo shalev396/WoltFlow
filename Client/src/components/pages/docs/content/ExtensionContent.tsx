@@ -1,4 +1,4 @@
-import { Chrome, Download, AlertCircle, Info } from "lucide-react";
+import { Globe, Download, AlertCircle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -6,7 +6,7 @@ export function ExtensionContent() {
   return (
     <section id="extension" className="space-y-8 scroll-mt-32">
       <div className="flex items-center gap-3">
-        <Chrome className="h-8 w-8" />
+        <Globe className="h-8 w-8" />
         <div>
           <h2 className="text-3xl font-bold">WoltFlow Token Reviewer</h2>
           <div className="flex items-center gap-2 mt-1">

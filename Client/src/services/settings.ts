@@ -87,4 +87,14 @@ export const settingsService = {
     );
     return response.data.data!.runSettings;
   },
+
+  // ============================================================================
+  // API KEY
+  // ============================================================================
+  async generateApiKey(): Promise<{ apiKey: string }> {
+    const response = await api.post<ApiResponse<{ apiKey: string }>>(
+      "/forward/api/generate"
+    );
+    return response.data.data!;
+  },
 };

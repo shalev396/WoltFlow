@@ -1,5 +1,5 @@
 import {
-  Chrome,
+  Globe,
   Copy,
   CheckCircle,
   AlertCircle,
@@ -17,7 +17,7 @@ export function WoltFlowExtensionContent() {
   return (
     <section id="woltflow-extension" className="space-y-8">
       <div className="flex items-center gap-3">
-        <Chrome className="h-8 w-8 text-blue-600" />
+        <Globe className="h-8 w-8 text-blue-600" />
         <div>
           <h1 className="text-4xl font-bold">WoltFlow Token Reviewer</h1>
           <div className="flex items-center gap-2 mt-1">
@@ -83,7 +83,7 @@ export function WoltFlowExtensionContent() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Chrome className="h-4 w-4" />
+                    <Globe className="h-4 w-4" />
                     Chrome Web Store
                   </a>
                 </Button>
@@ -109,7 +109,7 @@ export function WoltFlowExtensionContent() {
 
               <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="flex items-start gap-2">
-                  <Chrome className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                       Browser Support

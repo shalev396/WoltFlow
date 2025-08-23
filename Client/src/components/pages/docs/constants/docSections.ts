@@ -1,7 +1,7 @@
 import {
   BookOpen,
   Play,
-  Chrome,
+  Globe,
   Settings,
   MessageCircle,
   Mail,
@@ -33,7 +33,7 @@ export const docSections: DocSection[] = [
   {
     id: "woltflow-extension",
     title: "WoltFlow Token Reviewer",
-    icon: Chrome,
+    icon: Globe,
     subsections: [
       { id: "extension-installation", title: "Installation" },
       { id: "extracting-credentials", title: "Extracting Credentials" },
