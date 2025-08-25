@@ -72,7 +72,13 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           {
             model: Screenshot,
             as: "screenshots",
-            attributes: ["id", "siteUrl", "isError", "screenshotType"],
+            attributes: [
+              "id",
+              "siteUrl",
+              "screenshotUrl",
+              "isError",
+              "screenshotType",
+            ],
             required: false,
           },
         ],

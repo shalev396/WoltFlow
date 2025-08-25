@@ -6,7 +6,8 @@ export default class Screenshot extends Model {
   declare runId: string; // Foreign key to Runs table
   declare screenshotType: "error" | "success" | "step" | "debug" | "final"; // Type of screenshot
   declare stage: string | null; // Stage when screenshot was taken
-  declare siteUrl: string; // Site URL for the screenshot
+  declare siteUrl: string | null; // URL of the site where screenshot was taken
+  declare screenshotUrl: string; // S3 URL for the screenshot image
   declare isError: boolean; // Whether this screenshot shows an error state
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -42,8 +43,13 @@ Screenshot.init(
     },
     siteUrl: {
       type: DataTypes.STRING,
+      allowNull: true,
+      comment: "URL of the site where screenshot was taken",
+    },
+    screenshotUrl: {
+      type: DataTypes.STRING,
       allowNull: false,
-      comment: "Site URL for the screenshot",
+      comment: "S3 URL for the screenshot image",
     },
     isError: {
       type: DataTypes.BOOLEAN,

@@ -250,7 +250,7 @@ export function RunDetailsDialog({
                           )}
                         </div>
                         <img
-                          src={sc.siteUrl}
+                          src={sc.screenshotUrl}
                           alt={`Screenshot ${idx + 1} for run ${run.id}`}
                           loading="lazy"
                           className="max-w-full h-auto rounded-lg border shadow-sm"

@@ -125,6 +125,9 @@ export async function uploadImageToS3(
  * @param base64Image Base64 image string: "data:image/jpeg;base64,<data>"
  * @param runId The run ID to associate with this screenshot
  * @param isError Whether this screenshot represents an error state
+ * @param siteUrl The site URL where the screenshot was taken
+ * @param screenshotType The type of screenshot (default: "step")
+ * @param stage The automation stage when screenshot was taken (optional)
  * @param folder Folder (key prefix) in S3 bucket (default: "screenshots")
  * @returns Screenshot database record
  */
@@ -132,17 +135,26 @@ export async function uploadImageToS3AndSaveToDb(
   base64Image: string,
   runId: string,
   isError: boolean = false,
+  siteUrl?: string,
+  screenshotType: "error" | "success" | "step" | "debug" | "final" = "step",
+  stage?: string,
   folder: string = "images"
 ): Promise<Screenshot> {
   try {
     // 1. Upload image to S3
     const imageUrl = await uploadImageToS3(base64Image, folder);
 
-    // 2. Save screenshot record to database
+    // 2. Determine screenshot type based on isError
+    const actualScreenshotType = isError ? "error" : screenshotType;
+
+    // 3. Save screenshot record to database
     const screenshot = await Screenshot.create({
-      run_id: runId,
-      url: imageUrl,
-      is_error: isError,
+      runId: runId,
+      screenshotUrl: imageUrl, // The actual S3 URL for the screenshot
+      siteUrl: siteUrl, // The site URL where the screenshot was taken
+      screenshotType: actualScreenshotType,
+      stage: stage,
+      isError: isError,
     });
 
     console.log(`Screenshot saved to database with ID: ${screenshot.id}`);
@@ -158,6 +170,9 @@ export async function uploadImageToS3AndSaveToDb(
  * @param imagePath Path to the image file
  * @param runId The run ID to associate with this screenshot
  * @param isError Whether this screenshot represents an error state
+ * @param siteUrl The site URL where the screenshot was taken
+ * @param screenshotType The type of screenshot (default: "step")
+ * @param stage The automation stage when screenshot was taken (optional)
  * @param folder Folder (key prefix) in S3 bucket (default: "screenshots")
  * @returns Screenshot database record or null if conversion fails
  */
@@ -165,6 +180,9 @@ export async function uploadImageFileToS3AndSaveToDb(
   imagePath: string,
   runId: string,
   isError: boolean = false,
+  siteUrl?: string,
+  screenshotType: "error" | "success" | "step" | "debug" | "final" = "step",
+  stage?: string,
   folder: string = "images"
 ): Promise<Screenshot | null> {
   try {
@@ -180,6 +198,9 @@ export async function uploadImageFileToS3AndSaveToDb(
       base64Image,
       runId,
       isError,
+      siteUrl,
+      screenshotType,
+      stage,
       folder
     );
   } catch (error) {

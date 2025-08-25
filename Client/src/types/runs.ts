@@ -25,7 +25,8 @@ export interface Screenshot {
   runId: string;
   screenshotType: "error" | "success" | "step" | "debug" | "final";
   stage: string | null;
-  siteUrl: string;
+  siteUrl: string | null; // URL of the site where screenshot was taken
+  screenshotUrl: string; // S3 URL for the screenshot image
   isError: boolean;
   createdAt: Date;
   updatedAt: Date;

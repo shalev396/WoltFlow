@@ -7,7 +7,8 @@ import { sendSmsBySenderID, SendSmsResult } from "./smsUtil.js";
 import fs from "fs/promises";
 import path from "path";
 
-const ALERT_SENDER_EMAIL = "alert@woltflow.shalev396.com";
+const ALERT_SENDER_EMAIL_PROD = "alert@woltflow.shalev396.com";
+const ALERT_SENDER_EMAIL_DEV = "alert@dev.woltflow.shalev396.com";
 const ALERT_SENDER_NAME = "WoltFlow Alert System";
 
 export interface UserNotificationDetails {
@@ -188,7 +189,7 @@ export async function notifyOnError(
       include: [
         {
           model: Screenshot,
-          attributes: ["url", "is_error"],
+          attributes: ["screenshotUrl", "isError"],
         },
       ],
     });
@@ -300,7 +301,7 @@ export async function notifyOnSuccess(
       include: [
         {
           model: Screenshot,
-          attributes: ["url", "is_error"],
+          attributes: ["screenshotUrl", "isError"],
         },
       ],
     });
@@ -461,16 +462,14 @@ async function sendEmailErrorNotification(
         const screenshotHtml = `
           <div class="screenshot-container">
             <div class="screenshot-header ${
-              screenshot.is_error ? "screenshot-error" : "screenshot-normal"
+              screenshot.isError ? "screenshot-error" : "screenshot-normal"
             }">
               ${
-                screenshot.is_error
-                  ? "❌ Error Screenshot"
-                  : "📋 Run Screenshot"
+                screenshot.isError ? "❌ Error Screenshot" : "📋 Run Screenshot"
               }
             </div>
-            <img src="${screenshot.url}" alt="${
-          screenshot.is_error ? "Error Screenshot" : "Run Screenshot"
+            <img src="${screenshot.screenshotUrl}" alt="${
+          screenshot.isError ? "Error Screenshot" : "Run Screenshot"
         }" class="screenshot-image">
           </div>`;
         screenshotsHtml += screenshotHtml;
@@ -541,7 +540,10 @@ Support: support@woltflow.shalev396.com
       htmlBody: htmlTemplate,
       textBody,
       fromName: ALERT_SENDER_NAME,
-      from: ALERT_SENDER_EMAIL,
+      from:
+        process.env["ENV"] === "prod"
+          ? ALERT_SENDER_EMAIL_PROD
+          : ALERT_SENDER_EMAIL_DEV,
     });
   } catch (error) {
     console.error("Error creating email notification:", error);
@@ -643,16 +645,16 @@ async function sendEmailSuccessNotification(
         const screenshotHtml = `
           <div class="screenshot-container">
             <div class="screenshot-header ${
-              screenshot.is_error ? "screenshot-normal" : "screenshot-success"
+              screenshot.isError ? "screenshot-normal" : "screenshot-success"
             }">
               ${
-                screenshot.is_error
+                screenshot.isError
                   ? "📋 Run Screenshot"
                   : "✅ Success Screenshot"
               }
             </div>
-            <img src="${screenshot.url}" alt="${
-          screenshot.is_error ? "Run Screenshot" : "Success Screenshot"
+            <img src="${screenshot.screenshotUrl}" alt="${
+          screenshot.isError ? "Run Screenshot" : "Success Screenshot"
         }" class="screenshot-image">
           </div>`;
         screenshotsHtml += screenshotHtml;
@@ -724,7 +726,10 @@ Dashboard: app.woltflow.shalev396.com
       htmlBody: htmlTemplate,
       textBody,
       fromName: ALERT_SENDER_NAME,
-      from: ALERT_SENDER_EMAIL,
+      from:
+        process.env["ENV"] === "prod"
+          ? ALERT_SENDER_EMAIL_PROD
+          : ALERT_SENDER_EMAIL_DEV,
     });
   } catch (error) {
     console.error("Error creating success email notification:", error);

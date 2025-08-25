@@ -187,7 +187,15 @@ export const handler = async (
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         const base64WithPrefix = `data:image/png;base64,${screenshotBase64}`;
-        await uploadImageToS3AndSaveToDb(base64WithPrefix, run.id, false);
+        const currentUrl = await driver.getCurrentUrl();
+        await uploadImageToS3AndSaveToDb(
+          base64WithPrefix,
+          run.id,
+          false,
+          currentUrl,
+          "success",
+          "applying_gift"
+        );
         console.log("Success screenshot uploaded to S3 and saved to database");
       } catch (screenshotError) {
         console.error("Failed to upload success screenshot:", screenshotError);
@@ -202,7 +210,15 @@ export const handler = async (
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         const base64WithPrefix = `data:image/png;base64,${screenshotBase64}`;
-        await uploadImageToS3AndSaveToDb(base64WithPrefix, run.id, true);
+        const currentUrl = await driver.getCurrentUrl();
+        await uploadImageToS3AndSaveToDb(
+          base64WithPrefix,
+          run.id,
+          true,
+          currentUrl,
+          "error",
+          "applying_gift"
+        );
         console.log("Error screenshot uploaded to S3 and saved to database");
       } catch (screenshotError) {
         console.error("Failed to upload error screenshot:", screenshotError);
