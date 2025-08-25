@@ -16,17 +16,8 @@ import {
 } from "../../utils/responseUtil.js";
 // Environment variables
 dotenv.config();
-const ENV = process.env["ENV"];
 
-// S3 configuration for email attachments
-let S3_EMAIL_BUCKET_NAME = "";
-if (ENV === "prod") {
-  S3_EMAIL_BUCKET_NAME = process.env["S3_EMAIL_BUCKET_NAME_PROD"] || "";
-} else if (ENV === "dev") {
-  S3_EMAIL_BUCKET_NAME = process.env["S3_EMAIL_BUCKET_NAME_DEV"] || "";
-} else if (ENV === "local") {
-  S3_EMAIL_BUCKET_NAME = process.env["S3_EMAIL_BUCKET_NAME_LOCAL"] || "";
-}
+// S3 configuration removed - bucket name is parsed from attachment URLs
 
 // Initialize S3 client
 const s3Client = new S3Client({
@@ -234,16 +225,43 @@ export const handler = async (
       return createErrorResponse("PDF attachment not found", 404);
     }
 
-    // Extract S3 key from URL - assuming URL format like https://bucket.s3.region.amazonaws.com/path/file.pdf
-    const urlParts = pdfUrl.replace(/^https?:\/\//, "").split("/");
-    urlParts.shift(); // Remove bucket domain
-    const s3Key = urlParts.join("/");
+    // Parse S3 URL (format: s3://bucket-name/key/path/file.pdf)
+    let bucketName: string;
+    let s3Key: string;
 
-    console.log(`Downloading PDF from S3: ${s3Key}`);
+    if (pdfUrl.startsWith("s3://")) {
+      // Parse s3:// URL format
+      const s3UrlMatch = pdfUrl.match(/^s3:\/\/([^\/]+)\/(.+)$/);
+      if (!s3UrlMatch || !s3UrlMatch[1] || !s3UrlMatch[2]) {
+        await run.update({ status: "failed" });
+        return createErrorResponse("Invalid S3 URL format", 400);
+      }
+      bucketName = s3UrlMatch[1];
+      s3Key = s3UrlMatch[2]; // No leading slash for S3 keys
+    } else {
+      // Fallback for HTTPS URLs (legacy format)
+      const urlParts = pdfUrl.replace(/^https?:\/\//, "").split("/");
+      const domainPart = urlParts.shift();
+      if (!domainPart) {
+        await run.update({ status: "failed" });
+        return createErrorResponse("Invalid URL format", 400);
+      }
+      const bucketPart = domainPart.split(".")[0];
+      if (!bucketPart) {
+        await run.update({ status: "failed" });
+        return createErrorResponse("Invalid domain format in URL", 400);
+      }
+      bucketName = bucketPart; // Extract bucket name from domain
+      s3Key = urlParts.join("/");
+    }
+
+    console.log(
+      `Downloading PDF from S3 - Bucket: ${bucketName}, Key: ${s3Key}`
+    );
 
     // Download PDF from S3
     const getObjectCommand = new GetObjectCommand({
-      Bucket: S3_EMAIL_BUCKET_NAME,
+      Bucket: bucketName,
       Key: s3Key,
     });
 

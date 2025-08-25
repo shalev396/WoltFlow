@@ -3,7 +3,6 @@ import sequelize from "../config/database.js";
 
 export default class RunSettings extends Model {
   declare id: string;
-  declare settingsId: string; // Foreign key to Settings table (1:1)
   declare automationMode: "full-run" | "buy-only" | "cross-account";
   declare giftAmount: number | null; // Default gift card amount
   declare readonly createdAt: Date;
@@ -17,17 +16,7 @@ RunSettings.init(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    settingsId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: "Settings",
-        key: "id",
-      },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
-      comment: "Reference to the main settings (1:1 relationship)",
-    },
+
     automationMode: {
       type: DataTypes.ENUM("full-run", "buy-only", "cross-account"),
       allowNull: false,
@@ -47,10 +36,6 @@ RunSettings.init(
     tableName: "RunSettings",
     timestamps: true,
     indexes: [
-      {
-        unique: true,
-        fields: ["settingsId"],
-      },
       {
         fields: ["automationMode"],
       },

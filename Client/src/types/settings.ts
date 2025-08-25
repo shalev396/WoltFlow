@@ -70,7 +70,6 @@ export interface CibusSettingsUpdate {
 // ============================================================================
 export interface RunSettings {
   id: string; // UUID
-  settingsId: string;
   automationMode: "full-run" | "buy-only" | "cross-account";
   giftAmount: number | null;
   createdAt: Date;

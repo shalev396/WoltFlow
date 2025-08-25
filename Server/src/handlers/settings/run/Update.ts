@@ -50,9 +50,13 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       } else {
         // Create new run settings
         runSettings = await RunSettings.create({
-          settingsId: settings.id,
           automationMode: "full-run",
           giftAmount: null,
+        });
+
+        // Link it to the settings
+        await settings.update({
+          runSettingsId: runSettings.id,
         });
       }
 

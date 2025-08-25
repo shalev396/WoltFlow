@@ -7,6 +7,7 @@ export default class Settings extends Model {
   declare notificationSettingsId: string | null; // Foreign key to NotificationSettings table
   declare woltSettingsId: string | null; // Foreign key to WoltSettings table
   declare cibusSettingsId: string | null; // Foreign key to CibusSettings table
+  declare runSettingsId: string | null; // Foreign key to RunSettings table
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -63,6 +64,17 @@ Settings.init(
       onDelete: "SET NULL",
       comment: "Reference to CibusSettings table",
     },
+    runSettingsId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: "RunSettings",
+        key: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+      comment: "Reference to RunSettings table",
+    },
   },
   {
     sequelize,
@@ -81,6 +93,9 @@ Settings.init(
       },
       {
         fields: ["cibusSettingsId"],
+      },
+      {
+        fields: ["runSettingsId"],
       },
     ],
   }

@@ -104,12 +104,12 @@ function initializeModelRelationships() {
   });
 
   // Settings -> RunSettings (1:1)
-  Settings.hasOne(RunSettings, {
-    foreignKey: "settingsId",
+  Settings.belongsTo(RunSettings, {
+    foreignKey: "runSettingsId",
     as: "runSettings",
   });
-  RunSettings.belongsTo(Settings, {
-    foreignKey: "settingsId",
+  RunSettings.hasOne(Settings, {
+    foreignKey: "runSettingsId",
     as: "settings",
   });
 
@@ -169,10 +169,10 @@ function initializeModelRelationships() {
     as: "generatedByRun",
   });
 
-  // Emails -> Code (extracted from emails) (1:N) - Each email can contain multiple codes
-  Emails.hasMany(Code, {
+  // Emails -> Code (extracted from emails) (1:1) - Each email contains exactly one code
+  Emails.hasOne(Code, {
     foreignKey: "emailId",
-    as: "extractedCodes",
+    as: "extractedCode",
   });
   Code.belongsTo(Emails, {
     foreignKey: "emailId",
