@@ -8,7 +8,10 @@ import {
 const sesClient = new SESClient({ region: "il-central-1" });
 
 // Default sender email - must be verified in SES
-const AUTHENTICATOR_SENDER_EMAIL = "authenticator@woltflow.shalev396.com";
+const AUTHENTICATOR_SENDER_EMAIL =
+  process.env["ENV"] === "prod"
+    ? "authenticator@woltflow.shalev396.com"
+    : "authenticator@dev.woltflow.shalev396.com";
 const AUTHENTICATOR_SENDER_NAME = "WoltFlow Authenticator";
 
 export interface SendEmailOptions {

@@ -116,7 +116,10 @@ export async function uploadImageToS3(
   }
 
   // 4. Return the CloudFront or direct S3 URL
-  const url = `https://woltflow.shalev396.com/${key}`;
+  const url =
+    process.env["ENV"] === "prod"
+      ? `https://woltflow.shalev396.com/${key}`
+      : `https://dev.woltflow.shalev396.com/${key}`;
   return url;
 }
 

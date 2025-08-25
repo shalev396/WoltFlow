@@ -15,10 +15,7 @@ import { ICustomAPIGatewayProxyEventAuth } from "../../../../typescript/interfac
 import sequelize from "../../../../config/database.js";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { syncDatabase } from "../../../../config/bootstrap.js";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 interface Start2FARequest {
   method: "sms" | "email";
@@ -172,9 +169,12 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           }
         } else {
           // Send email using template
+          // In serverless, templates are included in the package root
           const templatePath = path.join(
-            __dirname,
-            "../../../../../templates/2FA/index.html"
+            process.cwd(),
+            "templates",
+            "2FA",
+            "index.html"
           );
           let emailTemplate = fs.readFileSync(templatePath, "utf8");
 
