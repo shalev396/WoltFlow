@@ -1,6 +1,12 @@
 import path from "path";
 import fs from "fs";
-import { By, until, WebDriver, WebElement } from "selenium-webdriver";
+import {
+  By,
+  type IWebDriverOptionsCookie,
+  until,
+  WebDriver,
+  WebElement,
+} from "selenium-webdriver";
 import { PAGE_LOAD_TIME, sleep } from "./general.js";
 
 export function getGiftCardUrl(amount: number): string | null {
@@ -222,8 +228,9 @@ export function safeClick(
         // If the element is not clickable due to an overlay/backdrop, fall back to JS click
         const intercepted =
           err?.name === "ElementClickInterceptedError" ||
-          /intercepted/i.test(err?.message ?? "");
+          /intercepted/i.test(err?.message);
 
+        console.log("intercepted err.name=", err.name);
         if (intercepted) {
           try {
             await driver.executeScript("arguments[0].click();", element);
@@ -265,11 +272,11 @@ export async function waitForElement(
     // Ensure element is visible before returning
     await driver.wait(until.elementIsVisible(element), timeoutMs);
     return element;
-  } catch (err: any) {
+  } catch (err) {
     console.log(`Element not found within ${timeoutMs}ms: ${locator}`);
 
     // Only save screenshot to filesystem in development mode
-    if (process.env["ENV"] === "local") {
+    if (process.env.ENV === "local") {
       const base64 = await driver.takeScreenshot();
       const dir = path.resolve(process.cwd(), "screenshots");
       fs.mkdirSync(dir, { recursive: true });
@@ -283,7 +290,9 @@ export async function waitForElement(
         "By(xpath, //*[normalize-space(text())='אשמח להמשיך'])" ||
       locator.toString() === "By(xpath, //button[@aria-label='מחיקה'])" ||
       locator.toString() ===
-        `//button[@data-test-id="PaymentMethodsList.PaymentMethod"and @data-payment-method-id="cibus"]`
+        `//button[@data-test-id="PaymentMethodsList.PaymentMethod"and @data-payment-method-id="cibus"]` ||
+      locator.toString() ===
+        "/html/body/div[4]/div[10]/div/div[2]/div/aside/div[2]/div/div[1]/div/div[2]/div[2]/div[1]/button/div[2]"
     ) {
       return null;
     }
@@ -344,9 +353,9 @@ export async function refreshTokens(
   }
 }
 
-export const sanitize = (cookie: any) => {
+export const sanitize = (cookie: IWebDriverOptionsCookie) => {
   const c = { ...cookie };
-  if (!["Lax", "Strict", "None"].includes(c.sameSite)) {
+  if (!["Lax", "Strict", "None"].includes(c.sameSite || "")) {
     c.sameSite = "None";
   }
   if (c.sameSite === "None") {

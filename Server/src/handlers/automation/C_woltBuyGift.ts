@@ -1,6 +1,6 @@
 import { By, Builder, WebElement } from "selenium-webdriver";
-
-import sequelize from "../../config/database.js";
+import { Op } from "sequelize";
+import dotenv from "dotenv";
 import {
   Settings,
   WoltSettings,
@@ -10,7 +10,7 @@ import {
   User,
   Cibus2FA,
 } from "../../models/index.js";
-import { Op } from "sequelize";
+
 import {
   safeClick,
   getGiftCardUrl,
@@ -24,28 +24,25 @@ import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
-import { APIGatewayProxyResult, Context } from "aws-lambda";
-import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
-import dotenv from "dotenv";
-import { syncDatabase } from "../../config/bootstrap.js";
-import { createErrorResponse } from "../../utils/responseUtil.js";
+import {
+  type RunWithUserWithWoltSettingsAndCibusSettingsAndRunSettings,
+  type ICustomAPIGatewayProxyEventStepFunction,
+  type ICustomStepFunctionResult,
+} from "../../types/index.js";
+import { initDB } from "../../config/bootstrap.js";
 // Environment variables
 dotenv.config();
-const ENV = process.env["ENV"];
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 export const handler = async (
-  event: ICustomAPIGatewayProxyEventStepFunction,
-  _context: Context
-): Promise<APIGatewayProxyResult> => {
+  event: ICustomAPIGatewayProxyEventStepFunction
+): Promise<ICustomStepFunctionResult> => {
   console.log("Starting woltBuyGift");
-  console.log("Environment:", ENV);
 
-  // Extract runId and LEVEL from event (Step Functions or API Gateway)
-  const runId = event.runId || event.queryStringParameters?.["runId"];
-  const LEVEL = event.queryStringParameters?.["LEVEL"];
+  // Extract runId and LEVEL from event (Step Functions or API Gateway(Debug))
+  const runId = event.runId || event.queryStringParameters?.runId;
+  const LEVEL = event.queryStringParameters?.LEVEL;
   console.log("Start chrome + driver");
   const options = new ChromeOptions();
   const service = new ChromeServiceBuilder("/opt/chromedriver");
@@ -81,17 +78,23 @@ export const handler = async (
   console.log("End chrome + driver");
 
   let success = false;
-  let run: Run | null = null;
+  let run = null;
   try {
     console.log("user setup");
     if (!runId) {
-      return createErrorResponse("Missing runId", 400);
+      return {
+        runId: runId || "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Missing runId",
+      };
     }
     console.log("start db");
     console.log("end db");
     // Get the run with user and all settings in one optimized query
     console.log("start get run");
-    run = await Run.findByPk(runId, {
+    run = (await Run.findByPk(runId, {
       include: [
         {
           model: User,
@@ -118,9 +121,15 @@ export const handler = async (
           ],
         },
       ],
-    });
+    })) as RunWithUserWithWoltSettingsAndCibusSettingsAndRunSettings;
     if (!run) {
-      return createErrorResponse("Run not found", 404);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Run not found",
+      };
     }
     console.log("end get run");
     console.log("start get user id");
@@ -131,7 +140,7 @@ export const handler = async (
     await run.update({ stage: "buying_gift" });
     console.log("end update run");
     console.log("start get settings");
-    const userWithSettings = (run as any).user;
+    const userWithSettings = run.user;
     const settings = userWithSettings?.settings;
     const woltSettings = settings?.woltSettings;
     const cibusSettings = settings?.cibusSettings;
@@ -139,7 +148,13 @@ export const handler = async (
 
     if (!settings || !woltSettings || !cibusSettings || !runSettings) {
       await run.update({ status: "failed" });
-      return createErrorResponse("Settings not found", 404);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Settings not found",
+      };
     }
     console.log("end get settings");
     console.log("start setup wolt cookies");
@@ -224,7 +239,7 @@ export const handler = async (
     const addOrderButton = await waitForElement(
       driver,
       By.xpath("//span[normalize-space(text())='להוסיף להזמנה']"),
-      8000
+      13000
     );
     await safeClick(driver, addOrderButton as WebElement);
     console.log("end step 3");
@@ -288,15 +303,15 @@ export const handler = async (
       await sleep(1000);
     }
     //FIX use the cibus one
-    const modalButtons = await waitForElement(
-      driver,
-      By.xpath(
-        "/html[1]/body[1]/div[4]/div[9]/div[1]/div[2]/div[1]/aside[1]/div[1]/button[1]/div[2]"
-      )
-    );
-    if (modalButtons) {
-      await safeClick(driver, modalButtons);
-    }
+    // const modalButtons = await waitForElement(
+    //   driver,
+    //   By.xpath(
+    //     "/html/body/div[4]/div[10]/div/div[2]/div/aside/div[2]/div/div[1]/div/div[2]/div[2]/div[1]/button/div[2]"
+    //   )
+    // );
+    // if (modalButtons) {
+    //   await safeClick(driver, modalButtons);
+    // }
     console.log("end step 7");
     if (LEVEL === "7") {
       await sleep(1000);
@@ -452,7 +467,7 @@ export const handler = async (
       console.error("soft error", err);
       //add || true to debug script
       if (
-        ENV === "local"
+        process.env.ENV === "local"
         //||ENV === "dev"
         // || true
       ) {
@@ -500,7 +515,7 @@ export const handler = async (
     }
 
     // Check if automation mode is "buy-only" and set success status if purchase was successful
-    if ((success || process.env["ENV"] === "dev") && run) {
+    if ((success || process.env.ENV === "dev") && run) {
       const automationMode = run.automationMode;
 
       if (automationMode === "buy-only") {
@@ -538,21 +553,6 @@ export const handler = async (
         }
       }
     }
-
-    // Take final screenshot and return it only in development mode
-    if (process.env["ENV"] === "Development" && driver) {
-      try {
-        const screenshotBase64 = await driver.takeScreenshot();
-        return {
-          statusCode: 200,
-          headers: { "Content-Type": "image/png" },
-          body: screenshotBase64,
-          isBase64Encoded: true,
-        };
-      } catch (screenshotError) {
-        console.error("Failed to take final screenshot:", screenshotError);
-      }
-    }
     if (driver) {
       await sleep(1000);
       await driver.quit();
@@ -561,53 +561,36 @@ export const handler = async (
     // await driver?.quit();
     // await sleep(2000);
 
-    // Check if this is a Step Functions call (has runId directly in event)
-    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
-
     // Check for buy-only automation mode
     const automationMode = run?.automationMode;
     const isBuyOnlyMode = automationMode === "buy-only";
 
-    if (isStepFunctions) {
-      if (success) {
-        if (isBuyOnlyMode) {
-          // For buy-only mode, return a special response that indicates completion
-          console.log("Buy-only mode: Step Functions execution complete");
-          return {
-            runId,
-            userId: run?.userId,
-            success: true,
-            completed: true,
-            message:
-              "Buy-only mode: Gift purchase completed, stopping automation chain",
-            automationMode: "buy-only",
-          } as any;
-        } else {
-          // Continue to next step in chain
-          return {
-            runId,
-            userId: run?.userId,
-            success: true,
-            completed: false,
-            message: "Gift purchase completed",
-          } as any;
-        }
+    if (success) {
+      if (isBuyOnlyMode) {
+        // For buy-only mode, return a special response that indicates completion
+        console.log("Buy-only mode: Step Functions execution complete");
+        return {
+          runId: runId || "",
+          userId: run?.userId || "",
+          success: true,
+          completed: true,
+          message:
+            "Buy-only mode: Gift purchase completed, stopping automation chain",
+          automationMode: "buy-only",
+        };
       } else {
-        // Throw error for Step Functions to catch
-        throw new Error("Gift purchase failed");
+        // Continue to next step in chain
+        return {
+          runId: runId || "",
+          userId: run?.userId || "",
+          success: true,
+          completed: false,
+          message: "Gift purchase completed",
+        };
       }
     } else {
-      // Return API Gateway format for HTTP calls
-      return {
-        statusCode: success ? 200 : 500,
-        body: JSON.stringify({
-          success,
-          message: success ? "Gift purchase completed" : "Gift purchase failed",
-          runId,
-          userId: run?.userId,
-          automationMode: automationMode,
-        }),
-      };
+      // Throw error for Step Functions to catch
+      throw new Error("Gift purchase failed");
     }
   }
 };

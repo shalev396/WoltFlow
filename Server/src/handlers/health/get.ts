@@ -1,10 +1,11 @@
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
+import { type CustomAPIGatewayProxyHandler } from "../../types/aws.js";
+import { initDB, syncDatabase } from "../../config/bootstrap.js";
 import { createSuccessResponse } from "../../utils/responseUtil.js";
-export const handler: CustomAPIGatewayProxyHandler = async (
-  _event,
-  _context
-) => {
+
+await initDB(); 
+await syncDatabase();
+export const handler: CustomAPIGatewayProxyHandler = async () => {
   return createSuccessResponse("Server is running", {
-    ENV: process.env["ENV"],
+    ENV: process.env.ENV,
   });
 };

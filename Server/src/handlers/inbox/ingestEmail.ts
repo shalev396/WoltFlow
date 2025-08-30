@@ -1,4 +1,9 @@
-import { SESEvent } from "aws-lambda";
+import {
+  type SESEventRecord,
+  type SESReceiptS3Action,
+  type SESEvent,
+  type SESMailHeader,
+} from "aws-lambda";
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
@@ -7,25 +12,20 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
-import { simpleParser, ParsedMail } from "mailparser";
+import { simpleParser, type ParsedMail } from "mailparser";
 import { Inbox, Emails } from "../../models/index.js";
-import sequelize from "../../config/database.js";
-import { syncDatabase } from "../../config/bootstrap.js";
-
-const AWS_REGION = process.env["AWS_REGION"];
-
-if (!AWS_REGION) {
-  throw new Error(`Missing  environment variable: AWS_REGION=${AWS_REGION}`);
-}
+import { initDB } from "../../config/bootstrap.js";
+import { getErrorMessage } from "../../utils/responseUtil.js";
+import { Readable } from "stream";
+import type { NodeJsClient } from "@smithy/types";
 
 // Initialize AWS services
 const s3 = new S3Client({
-  region: AWS_REGION,
-});
+  region: process.env.AWS_REGION,
+}) as NodeJsClient<S3Client>;
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 /**
  * Lambda function to process incoming emails from SES
@@ -55,7 +55,7 @@ export const handler = async (event: SESEvent) => {
 /**
  * Process a single SES email record
  */
-async function processEmailRecord(record: any) {
+async function processEmailRecord(record: SESEventRecord) {
   const sesMessage = record.ses.mail;
 
   // Combine both actual recipients and destinations to handle both scenarios:
@@ -108,19 +108,26 @@ async function processEmailRecord(record: any) {
         continue;
       }
 
-      // Get S3 location of email (SES already uploaded it)
-      // First try to get S3 location from SES record
-      let s3Location = record.ses.receipt?.action?.s3;
+      /// Get S3 location of email (SES already uploaded it)
+      const action = record.ses.receipt?.action;
+
+      let s3Location: { bucketName: string; objectKey: string } | undefined;
+
+      if (action && action.type === "S3") {
+        const s3Action = action as SESReceiptS3Action;
+        s3Location = {
+          bucketName: s3Action.bucketName,
+          // objectKey can be undefined depending on your rule setup; fall back to messageId-based key
+          objectKey: s3Action.objectKey ?? `raw/${sesMessage.messageId}`,
+        };
+      }
 
       // If not found, construct it manually (SES saves with messageId as filename under raw/ prefix)
       if (!s3Location) {
         console.log(
           "S3 location not found in SES record, constructing manually..."
         );
-        const bucketName =
-          process.env[
-            `S3_EMAIL_BUCKET_NAME_${process.env["ENV"]?.toUpperCase()}`
-          ];
+        const bucketName = process.env.S3_EMAIL_BUCKET_NAME;
         if (!bucketName) {
           throw new Error(
             "Could not determine S3 bucket name from environment variables"
@@ -158,25 +165,31 @@ async function processEmailRecord(record: any) {
       // Parse From header to extract name and email
       const fromHeader =
         commonHeaders.from?.[0] ||
-        headers.find((header: any) => header.name.toLowerCase() === "from")
-          ?.value ||
+        headers.find(
+          (header: SESMailHeader) => header.name.toLowerCase() === "from"
+        )?.value ||
         "";
       let fromEmail = "";
       let fromName = "";
 
       if (fromHeader) {
-        // Parse "Display Name <email@domain.com>" format
-        const match =
-          fromHeader.match(/^(.*?)\s*<([^>]+)>$/) ||
-          fromHeader.match(/^([^<>\s]+@[^<>\s]+)$/);
-        if (match) {
-          if (match[2]) {
-            // Format: "Name <email>"
-            fromName = match[1].trim().replace(/^["']|["']$/g, ""); // Remove quotes
-            fromEmail = match[2].trim();
-          } else {
-            // Format: just "email"
-            fromEmail = match[1].trim();
+        // Try: "Name <email>"
+        const m1 = fromHeader.match(/^(.*?)\s*<([^>]+)>$/);
+        if (m1) {
+          // Destructure with defaults so TS knows these are strings
+          const [, rawName = "", email = ""] = m1;
+          if (email) {
+            fromName = rawName.trim().replace(/^["']|["']$/g, "");
+            fromEmail = email.trim();
+          }
+        } else {
+          // Try: bare email
+          const m2 = fromHeader.match(/^([^<>\s]+@[^<>\s]+)$/);
+          if (m2) {
+            const [, email = ""] = m2;
+            if (email) {
+              fromEmail = email.trim();
+            }
           }
         }
       }
@@ -184,13 +197,15 @@ async function processEmailRecord(record: any) {
       // Extract other headers
       const subject =
         commonHeaders.subject ||
-        headers.find((header: any) => header.name.toLowerCase() === "subject")
-          ?.value ||
+        headers.find(
+          (header: SESMailHeader) => header.name.toLowerCase() === "subject"
+        )?.value ||
         "No Subject";
       const dateHeader =
         commonHeaders.date ||
-        headers.find((header: any) => header.name.toLowerCase() === "date")
-          ?.value ||
+        headers.find(
+          (header: SESMailHeader) => header.name.toLowerCase() === "date"
+        )?.value ||
         new Date().toISOString();
       const originalEmailDate = new Date(dateHeader);
 
@@ -248,9 +263,9 @@ async function processEmailRecord(record: any) {
         emailId: emailRecord.id,
         messageId: sesMessage.messageId,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Error processing email for ${userEmail}:`, error);
-      results.push({ error: error.message, userEmail });
+      results.push({ error: getErrorMessage(error), userEmail });
     }
   }
 
@@ -307,7 +322,7 @@ async function parseAndProcessEmailContent(
   bucketName: string,
   emailFilePath: string,
   emailFolderPath: string,
-  emailRecord: any
+  emailRecord: Emails
 ): Promise<void> {
   console.log(`Starting email parsing for: ${emailFilePath}`);
 
@@ -410,7 +425,7 @@ async function saveAttachmentToS3(
 /**
  * Convert stream to buffer
  */
-async function streamToBuffer(stream: any): Promise<Buffer> {
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Uint8Array[] = [];
   return new Promise((resolve, reject) => {
     stream.on("data", (chunk: Uint8Array) => chunks.push(chunk));

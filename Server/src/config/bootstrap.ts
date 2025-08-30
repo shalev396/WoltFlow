@@ -1,7 +1,6 @@
-import sequelize from "./database.js";
 import dotenv from "dotenv";
+import sequelize from "./database.js";
 import { initializeModelRelationships } from "../models/index.js";
-
 // Import all new models
 import "../models/index.js";
 
@@ -10,7 +9,7 @@ dotenv.config();
 // Export a function to sync database instead of doing it at module load time
 export async function syncDatabase() {
   if (
-    process.env["ENV"] === "local" ||
+    process.env.ENV === "local" ||
     true // uncomment to sync database on PROD
   ) {
     try {
@@ -31,4 +30,9 @@ export async function syncDatabase() {
       throw err;
     }
   }
+}
+
+export async function initDB() {
+  await sequelize.authenticate();
+  initializeModelRelationships();
 }

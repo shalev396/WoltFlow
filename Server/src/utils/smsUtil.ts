@@ -1,7 +1,7 @@
 import {
   SNSClient,
   PublishCommand,
-  PublishCommandInput,
+  type PublishCommandInput,
 } from "@aws-sdk/client-sns";
 
 // Initialize SNS client for il-central-1 region
@@ -44,10 +44,9 @@ export async function sendSmsBySenderID(
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
-    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
-    if (!enabledSMS) {
+    if (!process.env.ENABLED_SMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
       );
       return {
         success: false,
@@ -137,10 +136,9 @@ export async function sendSmsByLongCode(
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
-    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
-    if (!enabledSMS) {
+    if (!process.env.ENABLED_SMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
       );
       return {
         success: false,
@@ -241,10 +239,10 @@ export async function sendSmsBySharedNumber(
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
-    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    const enabledSMS = process.env.ENABLED_SMS;
     if (!enabledSMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
       );
       return {
         success: false,

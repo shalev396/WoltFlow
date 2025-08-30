@@ -51,10 +51,7 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - https://woltflow.shalev396.com
-        - https://dev.woltflow.shalev396.com
-        - http://localhost:5173
-        - http://localhost:3000
+        - https://${env:DOMAIN_NAME}
       allowedHeaders:
         - Authorization
         - Content-Type
@@ -76,63 +73,34 @@ provider:
       allowCredentials: true
       maxAge: 86400
   environment:
-    # Environment Configuration
+    # ENV
     ENV: ${opt:stage, 'local'}
-
-    # Database Configuration
-    DATABASE_URL_LOCAL: ${env:DATABASE_URL_LOCAL}
-    DATABASE_URL_DEV: ${env:DATABASE_URL_DEV}
-    DATABASE_URL_PROD: ${env:DATABASE_URL_PROD}
-
-    # Google OAuth Configuration
-    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
-    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
-    OAUTH_REDIRECT_URI_LOCAL: ${env:OAUTH_REDIRECT_URI_LOCAL}
-    OAUTH_REDIRECT_URI_DEV: ${env:OAUTH_REDIRECT_URI_DEV}
-    OAUTH_REDIRECT_URI_PROD: ${env:OAUTH_REDIRECT_URI_PROD}
-
-    # JWT Configuration
-    JWT_SECRET: ${env:JWT_SECRET}
-    DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE, ""}
-
-    # SMS Configuration
-    enabledSMS: ${env:ENABLED_SMS, "false"}
-
-    # AWS Configuration - AWS_REGION is automatically provided by AWS Lambda
-
-    # S3 Bucket Configuration
-    S3_ASSETS_BUCKET_NAME_LOCAL: ${env:S3_ASSETS_BUCKET_NAME_LOCAL}
-    S3_ASSETS_BUCKET_NAME_DEV: ${env:S3_ASSETS_BUCKET_NAME_DEV}
-    S3_ASSETS_BUCKET_NAME_PROD: ${env:S3_ASSETS_BUCKET_NAME_PROD}
-
-    # S3 Email Bucket Configuration
-    S3_EMAIL_BUCKET_NAME_LOCAL: ${env:S3_EMAIL_BUCKET_NAME_LOCAL}
-    S3_EMAIL_BUCKET_NAME_DEV: ${env:S3_EMAIL_BUCKET_NAME_DEV}
-    S3_EMAIL_BUCKET_NAME_PROD: ${env:S3_EMAIL_BUCKET_NAME_PROD}
-
-    # Email Subdomain Configuration
-    EMAIL_SUBDOMAIN_LOCAL: ${env:EMAIL_SUBDOMAIN_LOCAL}
-    EMAIL_SUBDOMAIN_DEV: ${env:EMAIL_SUBDOMAIN_DEV}
-    EMAIL_SUBDOMAIN_PROD: ${env:EMAIL_SUBDOMAIN_PROD}
-
-    # Lambda Function Names
-    REFRESH_TOKENS_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-refreshTokens
-    WOLT_BUY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-woltBuyGift
-    GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-getDailyCode
-    WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-woltApplyGift
-
-    # Step Functions Configuration
+    # AWS
+    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
+    EMAIL_SUBDOMAIN: ${env:EMAIL_SUBDOMAIN}
+    CLOUDFRONT_DISTRIBUTION_ID: ${env:CLOUDFRONT_DISTRIBUTION_ID}
+    DOMAIN_NAME: ${env:DOMAIN_NAME}
+    CERTIFICATE_ARN: ${env:CERTIFICATE_ARN}
+    HOSTED_ZONE_ID: ${env:HOSTED_ZONE_ID}
+    # STEP FUNCTIONS
     USER_AUTOMATION_STATE_MACHINE_ARN:
       Fn::Sub: "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}-userAutomationChain"
-
-    # CloudFront and Domain Configuration (Stage-specific)
-    DOMAIN_NAME: ${self:custom.domainName.${self:provider.stage}}
-    CLIENT_BUCKET_NAME: ${self:custom.clientBucketName.${self:provider.stage}}
-    ASSETS_BUCKET_NAME_NEW: ${self:custom.assetsBucketName.${self:provider.stage}}
-    EMAIL_BUCKET_NAME: ${self:custom.emailBucketName.${self:provider.stage}}
-    HOSTED_ZONE_ID: ${env:HOSTED_ZONE_ID} # Route 53 hosted zone ID
-    CERTIFICATE_ARN_DEV: ${env:CERTIFICATE_ARN_DEV} # ACM certificate ARN
-    CERTIFICATE_ARN_PROD: ${env:CERTIFICATE_ARN_PROD} # ACM certificate ARN
+    # S3
+    S3_EMAIL_BUCKET_NAME: ${env:S3_EMAIL_BUCKET_NAME}
+    S3_ASSETS_BUCKET_NAME: ${env:S3_ASSETS_BUCKET_NAME ,""}
+    S3_CLIENT_BUCKET_NAME: ${env:S3_CLIENT_BUCKET_NAME}
+    # SERVERLESS
+    SERVERLESS_ACCESS_KEY: ${env:SERVERLESS_ACCESS_KEY}
+    # DATABASE
+    DATABASE_URL: ${env:DATABASE_URL}
+    # APP
+    ENABLED_SMS: ${env:ENABLED_SMS}
+    JWT_SECRET: ${env:JWT_SECRET}
+    # GOOGLE
+    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
+    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
+    OAUTH_REDIRECT_URI: ${env:OAUTH_REDIRECT_URI}
+    DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE}
 
   ecr:
     images:
@@ -172,17 +140,17 @@ provider:
             - s3:PutObjectAcl
             - s3:CopyObject
           Resource:
-            - "arn:aws:s3:::${self:custom.clientBucketName.${self:provider.stage}}/*"
-            - "arn:aws:s3:::${self:custom.assetsBucketName.${self:provider.stage}}/*"
-            - "arn:aws:s3:::${self:custom.emailBucketName.${self:provider.stage}}/*"
+            - "arn:aws:s3:::${env:S3_CLIENT_BUCKET_NAME}/*"
+            - "arn:aws:s3:::${env:S3_ASSETS_BUCKET_NAME}/*"
+            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}/*"
 
         - Effect: Allow
           Action:
             - s3:ListBucket
           Resource:
-            - "arn:aws:s3:::${self:custom.clientBucketName.${self:provider.stage}}"
-            - "arn:aws:s3:::${self:custom.assetsBucketName.${self:provider.stage}}"
-            - "arn:aws:s3:::${self:custom.emailBucketName.${self:provider.stage}}"
+            - "arn:aws:s3:::${env:S3_CLIENT_BUCKET_NAME}"
+            - "arn:aws:s3:::${env:S3_ASSETS_BUCKET_NAME}"
+            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}"
 
         # ECR Permissions
         - Effect: Allow
@@ -322,63 +290,11 @@ plugins:
   - serverless-step-functions
 
 # Custom Configuration
-custom:
-  # ================================
-  # STAGE-SPECIFIC CONFIGURATION
-  # ================================
-  # Domain names for different stages
-  domainName:
-    local: ${env:DOMAIN_NAME_LOCAL}
-    dev: ${env:DOMAIN_NAME_DEV} # Will have its own certificate
-    prod: ${env:DOMAIN_NAME_PROD} # Will have its own certificate
-
-  # Client bucket names for different stages
-  clientBucketName:
-    local: ${env:S3_BUCKET_NAME_LOCAL}
-    dev: ${env:S3_BUCKET_NAME_DEV}
-    prod: ${env:S3_BUCKET_NAME_PROD}
-
-  # Assets bucket names for different stages
-  assetsBucketName:
-    local: ${env:S3_ASSETS_BUCKET_NAME_LOCAL}
-    dev: ${env:S3_ASSETS_BUCKET_NAME_DEV}
-    prod: ${env:S3_ASSETS_BUCKET_NAME_PROD}
-
-  # Email bucket names for different stages
-  emailBucketName:
-    local: ${env:S3_EMAIL_BUCKET_NAME_LOCAL}
-    dev: ${env:S3_EMAIL_BUCKET_NAME_DEV}
-    prod: ${env:S3_EMAIL_BUCKET_NAME_PROD}
-
-  # Email subdomain names for different stages
-  emailSubdomain:
-    local: ${env:EMAIL_SUBDOMAIN_LOCAL}
-    dev: ${env:EMAIL_SUBDOMAIN_DEV}
-    prod: ${env:EMAIL_SUBDOMAIN_PROD}
-
-  # CloudFront aliases - enable custom domains for both stages
-  aliases:
-    local:
-      - ${self:custom.domainName.local} # local.woltflow.shalev396.com
-    dev:
-      - ${self:custom.domainName.dev} # dev.woltflow.shalev396.com
-    prod:
-      - ${self:custom.domainName.prod} # woltflow.shalev396.com
-
-  # SSL/TLS Certificate configuration - use manually created certificates
+custom: # SSL/TLS Certificate configuration - use manually created certificates
   viewerCertificate:
-    local:
-      AcmCertificateArn: ${env:CERTIFICATE_ARN_LOCAL} # Manually created local certificate
-      SslSupportMethod: sni-only
-      MinimumProtocolVersion: TLSv1.2_2021
-    dev:
-      AcmCertificateArn: ${env:CERTIFICATE_ARN_DEV} # Manually created dev certificate
-      SslSupportMethod: sni-only
-      MinimumProtocolVersion: TLSv1.2_2021
-    prod:
-      AcmCertificateArn: ${env:CERTIFICATE_ARN_PROD} # Manually created prod certificate
-      SslSupportMethod: sni-only
-      MinimumProtocolVersion: TLSv1.2_2021
+    AcmCertificateArn: ${env:CERTIFICATE_ARN} # Manually created local certificate
+    SslSupportMethod: sni-only
+    MinimumProtocolVersion: TLSv1.2_2021
 
   # CloudFront distribution descriptions
   distributionComment:
@@ -404,8 +320,7 @@ custom:
     includeLayers: true
 
   # Environment Variables Configuration
-  dotenv:
-    path: ./.env
+  envFile: .env.${sls:stage}
 
 # Step Functions Configuration
 stepFunctions:
@@ -593,7 +508,7 @@ functions:
       command: ["build/automation/C_woltBuyGift.handler"]
     memorySize: 1536
     ephemeralStorageSize: 1536
-    timeout: 250
+    timeout: 255
     # No HTTP events - only called by Step Functions
 
   # Non-selenium function for email processing
@@ -904,7 +819,7 @@ resources:
     ClientFilesBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.clientBucketName.${self:provider.stage}}
+        BucketName: ${env:S3_CLIENT_BUCKET_NAME}
         # Enable public read access for static website hosting
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
@@ -958,7 +873,7 @@ resources:
     AssetsBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.assetsBucketName.${self:provider.stage}}
+        BucketName: ${env:S3_ASSETS_BUCKET_NAME}
         # Enable public read access for assets
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
@@ -1002,7 +917,7 @@ resources:
     EmailBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.emailBucketName.${self:provider.stage}}
+        BucketName: ${env:S3_EMAIL_BUCKET_NAME}
         # Private bucket - no public access for emails
         PublicAccessBlockConfiguration:
           BlockPublicAcls: true
@@ -1093,7 +1008,7 @@ resources:
     SESEmailIdentity:
       Type: AWS::SES::EmailIdentity
       Properties:
-        EmailIdentity: ${self:custom.emailSubdomain.${self:provider.stage}}
+        EmailIdentity: ${env:EMAIL_SUBDOMAIN}
         DkimAttributes:
           SigningEnabled: true
         FeedbackAttributes:
@@ -1124,7 +1039,7 @@ resources:
         Rule:
           Name: capture-user-emails
           Recipients:
-            - ${self:custom.emailSubdomain.${self:provider.stage}}
+            - ${env:EMAIL_SUBDOMAIN}
           Enabled: true
           ScanEnabled: true
           Actions:
@@ -1186,10 +1101,11 @@ resources:
           Enabled: true
 
           # Domain aliases - the custom domain names (stage-specific)
-          Aliases: ${self:custom.aliases.${self:provider.stage}}
+          Aliases:
+            - ${env:DOMAIN_NAME}
 
           # SSL/TLS Certificate configuration
-          ViewerCertificate: ${self:custom.viewerCertificate.${self:provider.stage}}
+          ViewerCertificate: ${self:custom.viewerCertificate}
 
           # Default cache behavior for /* - serves React app
           DefaultCacheBehavior:
@@ -1298,7 +1214,7 @@ resources:
       Type: AWS::Route53::RecordSet
       Properties:
         HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: ${self:custom.domainName.${self:provider.stage}}
+        Name: ${env:DOMAIN_NAME}
         Type: A
         # Alias configuration - points to CloudFront distribution
         AliasTarget:
@@ -1318,7 +1234,7 @@ resources:
       Type: AWS::Route53::RecordSet
       Properties:
         HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: ${self:custom.emailSubdomain.${self:provider.stage}}
+        Name: ${env:EMAIL_SUBDOMAIN}
         Type: MX
         TTL: 300
         ResourceRecords:
@@ -1329,7 +1245,7 @@ resources:
       Type: AWS::Route53::RecordSet
       Properties:
         HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: ${self:custom.emailSubdomain.${self:provider.stage}}
+        Name: ${env:EMAIL_SUBDOMAIN}
         Type: TXT
         TTL: 300
         ResourceRecords:

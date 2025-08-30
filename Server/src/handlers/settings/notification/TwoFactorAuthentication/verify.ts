@@ -1,14 +1,17 @@
-import { Op } from "sequelize";
+import { type InferAttributes, Op, type WhereOptions } from "sequelize";
 import {
   TwoFactorAuthentication,
   Settings,
   NotificationSettings,
 } from "../../../../models/index.js";
 import { authMiddleware } from "../../../../middlewares/auth.js";
-import { CustomAPIGatewayProxyHandler } from "../../../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../../../../typescript/interfaces/aws.js";
-import sequelize from "../../../../config/database.js";
-import { syncDatabase } from "../../../../config/bootstrap.js";
+import {
+  type SettingsWithNotificationSettings,
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventAuth,
+} from "../../../../types/index.js";
+import { initDB } from "../../../../config/bootstrap.js";
+
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -21,8 +24,8 @@ interface Verify2FARequest {
 }
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
+
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEventAuth) => {
     try {
@@ -50,7 +53,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       }
 
       // Find user's notification settings first
-      const settings = await Settings.findOne({
+      const settings = (await Settings.findOne({
         where: { userId: event.userId! },
         include: [
           {
@@ -58,32 +61,34 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
             as: "notificationSettings",
           },
         ],
-      });
+      })) as SettingsWithNotificationSettings;
 
       const notificationSettings = settings
-        ? (settings as any).notificationSettings
+        ? settings.notificationSettings
         : null;
 
       if (!settings || !notificationSettings) {
         return createErrorResponse("User notification settings not found", 404);
       }
 
-      // Build where clause for finding the verification record - using any for dynamic query building
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const whereClause: any = {
-        notificationSettingsId: notificationSettings.id,
-        method,
-        code,
-        verified: false,
-        expiresAt: {
-          [Op.gte]: new Date(), // Not expired
-        },
-      };
+      // 1) Derive attribute type from the Sequelize model:
+      type TFAAttrs = InferAttributes<TwoFactorAuthentication>;
 
-      // If sessionId provided, include it in the search
-      if (sessionId) {
-        whereClause.id = sessionId;
-      }
+      // ... inside your handler, after you’ve loaded `settings` & `notificationSettings` and validated inputs:
+
+      // 2) Build the where object ONCE (immutable) with conditional spreads.
+      //    - It is fully typed as WhereOptions<TFAAttrs>.
+      //    - `id` is only added when `sessionId` exists, so no post-hoc mutation.
+      const whereClause: WhereOptions<TFAAttrs> = {
+        notificationSettingsId: notificationSettings.id,
+        method, // should match union on your model attribute, e.g. "sms" | "email"
+        code, // string
+        verified: false, // boolean
+        expiresAt: { [Op.gte]: new Date() }, // operator is fine on date columns
+
+        // Conditionally add { id: sessionId }
+        ...(sessionId ? { id: sessionId } : {}),
+      } satisfies WhereOptions<TFAAttrs>; // validates shape w/out changing the inferred literal type
 
       // Find the verification record
       const verificationRecord = await TwoFactorAuthentication.findOne({

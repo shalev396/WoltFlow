@@ -1,39 +1,42 @@
-import sequelize from "../../config/database.js";
+import dotenv from "dotenv";
 import { Settings, WoltSettings, Run, User } from "../../models/index.js";
-import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
-import { APIGatewayProxyResult } from "aws-lambda";
+import {
+  type ICustomStepFunctionResult,
+  type ICustomAPIGatewayProxyEventStepFunction,
+  type RunWithUserWithWoltSettings,
+} from "../../types/index.js";
 import { refreshTokens } from "../../utils/automation.js";
 import { notifyOnError } from "../../utils/notificationUtil.js";
-import dotenv from "dotenv";
-import { syncDatabase } from "../../config/bootstrap.js";
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  getErrorMessage,
-} from "../../utils/responseUtil.js";
+import { initDB } from "../../config/bootstrap.js";
+import { getErrorMessage } from "../../utils/responseUtil.js";
 
 // Environment variables
 dotenv.config();
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 export const handler = async (
   event: ICustomAPIGatewayProxyEventStepFunction
-): Promise<APIGatewayProxyResult> => {
-  let run: Run | null = null;
+): Promise<ICustomStepFunctionResult> => {
+  let globalRun: Run | null = null;
 
   try {
     // Extract runId from event (Step Functions or API Gateway)
-    const runId = event.runId || event.queryStringParameters?.["runId"];
+    const runId = event.runId || event.queryStringParameters?.runId;
 
     if (!runId) {
-      return createErrorResponse("Missing runId parameter", 400);
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Missing runId parameter",
+      };
     }
 
     // Get the run with user settings in one optimized query
-    run = await Run.findByPk(runId, {
+    let run = (await Run.findByPk(runId, {
       include: [
         {
           model: User,
@@ -52,10 +55,16 @@ export const handler = async (
           ],
         },
       ],
-    });
-
+    })) as RunWithUserWithWoltSettings;
+    globalRun = run;
     if (!run) {
-      return createErrorResponse("Run not found", 404);
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Run not found",
+      };
     }
 
     const userId = run.userId;
@@ -64,16 +73,19 @@ export const handler = async (
     await run.update({ stage: "refreshing_tokens" });
 
     // Get user settings from the included data
-    const userWithSettings = (run as any).user;
+    const userWithSettings = run.user;
     const settings = userWithSettings?.settings;
     const woltSettings = settings?.woltSettings;
 
     if (!settings || !woltSettings) {
       await run.update({ status: "failed" });
-      return createErrorResponse(
-        "Settings or Wolt settings not found for user",
-        404
-      );
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Settings or Wolt settings not found for user",
+      };
     }
 
     try {
@@ -95,7 +107,13 @@ export const handler = async (
           );
         }
 
-        return createErrorResponse("No refresh token found in settings", 400);
+        return {
+          runId: "",
+          userId: "",
+          success: false,
+          completed: false,
+          message: "No refresh token found in settings",
+        };
       }
 
       // Refresh the tokens using the existing refresh token
@@ -129,15 +147,18 @@ export const handler = async (
           userId: run.userId,
           success: true,
           message: "Tokens refreshed successfully",
-        } as any;
+        } as ICustomStepFunctionResult;
       } else {
         // Return API Gateway format for HTTP calls
-        return createSuccessResponse("Tokens refreshed successfully", {
+        return {
           runId,
           userId: run.userId,
-        });
+          success: true,
+          completed: true,
+          message: "Tokens refreshed successfully",
+        };
       }
-    } catch (refreshError: any) {
+    } catch (refreshError) {
       console.error("Token refresh failed:", refreshError);
       if (run) {
         await run.update({ status: "failed" });
@@ -161,22 +182,33 @@ export const handler = async (
 
       if (isStepFunctions) {
         // Throw error for Step Functions to catch
-        throw new Error(`Token refresh failed: ${refreshError.message}`);
+        throw new Error(
+          `Token refresh failed: ${getErrorMessage(refreshError)}`
+        );
       } else {
         // Return API Gateway error format for HTTP calls
-        return createErrorResponse(getErrorMessage(refreshError));
+        return {
+          runId: "",
+          userId: "",
+          success: false,
+          completed: false,
+          message: getErrorMessage(refreshError),
+        };
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("RefreshTokens handler error:", error);
-    if (run) {
-      await run.update({ status: "failed", errorMessage: error.message });
+    if (globalRun) {
+      await globalRun.update({
+        status: "failed",
+        errorMessage: getErrorMessage(error),
+      });
 
       // Send error notification to user
       try {
         await notifyOnError(
-          run.userId.toString(),
-          run.id,
+          globalRun.userId.toString(),
+          globalRun.id,
           "Automation error occurred"
         );
       } catch (notificationError) {
@@ -191,7 +223,13 @@ export const handler = async (
       throw error;
     } else {
       // Return API Gateway error format for HTTP calls
-      return createErrorResponse(getErrorMessage(error));
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: getErrorMessage(error),
+      };
     }
   }
 };

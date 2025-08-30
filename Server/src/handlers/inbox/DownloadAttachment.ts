@@ -1,27 +1,24 @@
-import { APIGatewayProxyResult } from "aws-lambda";
+import { type APIGatewayProxyResult } from "aws-lambda";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Emails, Inbox } from "../../models/index.js";
 import { createErrorResponse } from "../../utils/responseUtil.js";
 import { authMiddleware } from "../../middlewares/auth.js";
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../../typescript/interfaces/aws.js";
-import sequelize from "../../config/database.js";
-import { syncDatabase } from "../../config/bootstrap.js";
+import {
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventAuth,
+  type EmailsWithInbox,
+} from "../../types/index.js";
+import { initDB } from "../../config/bootstrap.js";
+import { Readable } from "stream";
+import type { NodeJsClient } from "@smithy/types";
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
-
-const AWS_REGION = process.env["AWS_REGION"];
-
-if (!AWS_REGION) {
-  throw new Error(`Missing environment variable: AWS_REGION=${AWS_REGION}`);
-}
+await initDB();
 
 // Initialize AWS S3
 const s3 = new S3Client({
-  region: AWS_REGION,
-});
+  region: process.env.AWS_REGION,
+}) as NodeJsClient<S3Client>;
 
 /**
  * Download attachment securely - user can only download their own email attachments
@@ -49,17 +46,18 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       }
 
       // Find the email and verify it belongs to the user
-      const email = await Emails.findOne({
-        where: { id: emailId },
-        include: [
-          {
-            model: Inbox,
-            as: "inbox",
-            where: { userId }, // This ensures the email belongs to the user
-            required: true,
-          },
-        ],
-      });
+      const email =
+        ((await Emails.findOne({
+          where: { id: emailId },
+          include: [
+            {
+              model: Inbox,
+              as: "inbox",
+              where: { userId }, // This ensures the email belongs to the user
+              required: true,
+            },
+          ],
+        })) as EmailsWithInbox) || null;
 
       if (!email) {
         return createErrorResponse(
@@ -131,7 +129,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
 /**
  * Convert stream to buffer
  */
-async function streamToBuffer(stream: any): Promise<Buffer> {
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Uint8Array[] = [];
   return new Promise((resolve, reject) => {
     stream.on("data", (chunk: Uint8Array) => chunks.push(chunk));

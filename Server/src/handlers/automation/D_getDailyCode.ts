@@ -1,47 +1,46 @@
-import { APIGatewayProxyResult } from "aws-lambda";
-import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { Op } from "sequelize";
-
 import pdf from "pdf-parse";
 import dotenv from "dotenv";
-import sequelize from "../../config/database.js";
-import { User, Code, Run, Inbox, Emails } from "../../models/index.js";
-import { syncDatabase } from "../../config/bootstrap.js";
-import { notifyOnError } from "../../utils/notificationUtil.js";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import {
-  createSuccessResponse,
-  createErrorResponse,
-  getErrorMessage,
-} from "../../utils/responseUtil.js";
+  type ICustomAPIGatewayProxyEventStepFunction,
+  type RunWithUserWithInbox,
+  type ICustomStepFunctionResult,
+} from "../../types/index.js";
+import { User, Code, Run, Inbox, Emails } from "../../models/index.js";
+import { initDB } from "../../config/bootstrap.js";
+import { notifyOnError } from "../../utils/notificationUtil.js";
+import { getErrorMessage } from "../../utils/responseUtil.js";
+
 // Environment variables
 dotenv.config();
-
-// S3 configuration removed - bucket name is parsed from attachment URLs
-
 // Initialize S3 client
 const s3Client = new S3Client({
-  region: process.env["AWS_REGION"] || "il-central-1",
+  region: process.env.AWS_REGION,
 });
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 export const handler = async (
   event: ICustomAPIGatewayProxyEventStepFunction
-): Promise<APIGatewayProxyResult> => {
-  let run: Run | null = null;
-
+): Promise<ICustomStepFunctionResult> => {
+  let run = null;
   try {
-    // Extract runId from event (Step Functions or API Gateway)
-    const runId = event.runId || event.queryStringParameters?.["runId"];
+    // Extract runId from event (Step Functions or API Gateway(Debug))
+    const runId = event.runId || event.queryStringParameters?.runId;
 
     if (!runId) {
-      return createErrorResponse("Missing runId", 400);
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Missing runId",
+      };
     }
 
     // Get the run with associated user and inbox in one optimized query
-    run = await Run.findByPk(runId, {
+    run = (await Run.findByPk(runId, {
       include: [
         {
           model: User,
@@ -54,10 +53,16 @@ export const handler = async (
           ],
         },
       ],
-    });
+    })) as RunWithUserWithInbox;
 
     if (!run) {
-      return createErrorResponse("Run not found", 404);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Run not found",
+      };
     }
 
     const uid = run.userId;
@@ -66,9 +71,9 @@ export const handler = async (
     await run.update({ stage: "getting_code_from_email" });
 
     let targetDate = new Date();
-    if (process.env["ENV"] === "local") {
-      if (process.env["DEVELOPMENT_DATE"]) {
-        const d = new Date(process.env["DEVELOPMENT_DATE"]);
+    if (process.env.ENV === "local") {
+      if (process.env.DEVELOPMENT_DATE) {
+        const d = new Date(process.env.DEVELOPMENT_DATE);
         if (!isNaN(d.getTime())) targetDate = d;
       }
     }
@@ -84,7 +89,7 @@ export const handler = async (
       `Searching for emails from ${startOfDay.toISOString()} to ${endOfDay.toISOString()} (target date: ${targetDate.toISOString()})`
     );
 
-    const user = (run as any).user;
+    const user = run.user;
     if (!user) {
       console.error(`User not found for uid: ${uid}`);
       await run.update({ status: "failed" });
@@ -95,7 +100,13 @@ export const handler = async (
         console.error("Failed to send error notification:", notificationError);
       }
 
-      return createErrorResponse("User not found", 404);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "User not found",
+      };
     }
 
     const inbox = user.inbox;
@@ -109,7 +120,13 @@ export const handler = async (
         console.error("Failed to send error notification:", notificationError);
       }
 
-      return createErrorResponse("User inbox not found", 404);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "User inbox not found",
+      };
     }
 
     const subject = "הגיפט קארד של Wolt הגיע ומחכה לשליחה :)";
@@ -165,8 +182,8 @@ export const handler = async (
           );
           await wait(retryDelay);
         }
-      } catch (error: any) {
-        lastError = `Database error: ${error.message}`;
+      } catch (error) {
+        lastError = `Database error: ${getErrorMessage(error)}`;
         console.error(`Attempt ${attempt}: ${lastError}`);
 
         // If this isn't the last attempt, wait before retrying
@@ -192,10 +209,13 @@ export const handler = async (
         console.error("Failed to send error notification:", notificationError);
       }
 
-      return createErrorResponse(
-        lastError || "No matching Wolt email found after retries",
-        404
-      );
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: lastError || "No matching Wolt email found after retries",
+      };
     }
 
     // Find the PDF attachment URL
@@ -222,7 +242,13 @@ export const handler = async (
         console.error("Failed to send error notification:", notificationError);
       }
 
-      return createErrorResponse("PDF attachment not found", 404);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "PDF attachment not found",
+      };
     }
 
     // Parse S3 URL (format: s3://bucket-name/key/path/file.pdf)
@@ -234,7 +260,13 @@ export const handler = async (
       const s3UrlMatch = pdfUrl.match(/^s3:\/\/([^\/]+)\/(.+)$/);
       if (!s3UrlMatch || !s3UrlMatch[1] || !s3UrlMatch[2]) {
         await run.update({ status: "failed" });
-        return createErrorResponse("Invalid S3 URL format", 400);
+        return {
+          runId,
+          userId: "",
+          success: false,
+          completed: false,
+          message: "Invalid S3 URL format",
+        };
       }
       bucketName = s3UrlMatch[1];
       s3Key = s3UrlMatch[2]; // No leading slash for S3 keys
@@ -244,12 +276,24 @@ export const handler = async (
       const domainPart = urlParts.shift();
       if (!domainPart) {
         await run.update({ status: "failed" });
-        return createErrorResponse("Invalid URL format", 400);
+        return {
+          runId,
+          userId: "",
+          success: false,
+          completed: false,
+          message: "Invalid URL format",
+        };
       }
       const bucketPart = domainPart.split(".")[0];
       if (!bucketPart) {
         await run.update({ status: "failed" });
-        return createErrorResponse("Invalid domain format in URL", 400);
+        return {
+          runId,
+          userId: "",
+          success: false,
+          completed: false,
+          message: "Invalid domain format in URL",
+        };
       }
       bucketName = bucketPart; // Extract bucket name from domain
       s3Key = urlParts.join("/");
@@ -276,7 +320,13 @@ export const handler = async (
         console.error("Failed to send error notification:", notificationError);
       }
 
-      return createErrorResponse("PDF download failed", 500);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "PDF download failed",
+      };
     }
 
     // Convert stream to buffer
@@ -294,7 +344,13 @@ export const handler = async (
         console.error("Failed to send error notification:", notificationError);
       }
 
-      return createErrorResponse("Code not found in PDF", 500);
+      return {
+        runId,
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Code not found in PDF",
+      };
     }
     const codeValue = match[1];
 
@@ -311,27 +367,15 @@ export const handler = async (
       "Gift card code extracted successfully, Step Functions will handle next step"
     );
 
-    // Check if this is a Step Functions call (has runId directly in event)
-    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
-
-    if (isStepFunctions) {
-      // Return raw data for Step Functions - at root level for JSONPath
-      return {
-        runId,
-        userId: uid,
-        codeValue,
-        success: true,
-        message: "Gift card code extracted successfully",
-      } as any;
-    } else {
-      // Return API Gateway format for HTTP calls
-      return createSuccessResponse("Gift card code extracted successfully", {
-        runId,
-        userId: uid,
-        codeValue,
-      });
-    }
-  } catch (err: any) {
+    // Return raw data for Step Functions - at root level for JSONPath
+    return {
+      runId,
+      userId: uid,
+      codeValue,
+      success: true,
+      message: "Gift card code extracted successfully",
+    } as ICustomStepFunctionResult;
+  } catch (err) {
     console.error("getDailyCode error:", err);
     if (run) {
       await run.update({ status: "failed" });
@@ -354,7 +398,13 @@ export const handler = async (
       throw err;
     } else {
       // Return API Gateway error format for HTTP calls
-      return createErrorResponse(getErrorMessage(err));
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: getErrorMessage(err),
+      };
     }
   }
 };

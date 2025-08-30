@@ -1,19 +1,17 @@
-import { CustomAPIGatewayProxyHandler } from "../../../typescript/types/aws.js";
-import sequelize from "../../../config/database.js";
+import { randomBytes } from "crypto";
+import { type CustomAPIGatewayProxyHandler } from "../../../types/aws.js";
 import { User } from "../../../models/index.js";
 import { authMiddleware } from "../../../middlewares/auth.js";
-import { randomBytes } from "crypto";
-import { ICustomAPIGatewayProxyEventAuth } from "../../../typescript/interfaces/aws.js";
-import { syncDatabase } from "../../../config/bootstrap.js";
+import { type ICustomAPIGatewayProxyEventAuth } from "../../../types/aws.js";
 import {
   createSuccessResponse,
   createErrorResponse,
   getErrorMessage,
 } from "../../../utils/responseUtil.js";
+import { initDB } from "../../../config/bootstrap.js";
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEventAuth) => {

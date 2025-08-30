@@ -1,42 +1,27 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { OAuth2Client } from "google-auth-library";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
+import { oauth2_v2 } from "@googleapis/oauth2";
+import { type GetTokenOptions, OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import sequelize from "../../config/database.js";
+
 import { User } from "../../models/index.js";
-import { oauth2_v2 } from "@googleapis/oauth2";
-import { syncDatabase } from "../../config/bootstrap.js";
 import { createErrorResponse } from "../../utils/responseUtil.js";
+import { initDB } from "../../config/bootstrap.js";
 
 // Environment variables
 dotenv.config();
-const ENV = process.env["ENV"];
-
-let ENV_OAUTH_REDIRECT_URI = "";
-let ENV_LOCATION = "";
-if (ENV === "prod") {
-  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_PROD"] || "";
-  ENV_LOCATION = "https://woltflow.shalev396.com/dashboard";
-} else if (ENV === "dev") {
-  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_DEV"] || "";
-  ENV_LOCATION = "https://dev.woltflow.shalev396.com/dashboard";
-} else if (ENV === "local") {
-  ENV_OAUTH_REDIRECT_URI = process.env["OAUTH_REDIRECT_URI_LOCAL"] || "";
-  ENV_LOCATION = "http://localhost:5173/dashboard";
-}
-
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   console.log("Incoming event:", JSON.stringify(event));
-  const oauthRedirectUri = ENV_OAUTH_REDIRECT_URI;
-
   // 2. Extract 'code' and 'state'
-  const code = event.queryStringParameters?.["code"];
-  const rawState = event.queryStringParameters?.["state"];
+  const code = event.queryStringParameters?.["code"] || "";
+  const rawState = event.queryStringParameters?.["state"] || "";
   if (!code || !rawState) {
     return createErrorResponse("Missing code or state", 400);
   }
@@ -51,15 +36,15 @@ export const handler = async (
 
   // 4. Exchange code + PKCE verifier for tokens
   const oauth2Client = new OAuth2Client(
-    process.env["GOOGLE_CLIENT_ID"],
-    process.env["GOOGLE_CLIENT_SECRET"],
-    oauthRedirectUri
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.OAUTH_REDIRECT_URI
   );
   const { tokens } = await oauth2Client.getToken({
     code,
     codeVerifier,
-    redirectUri: oauthRedirectUri,
-  } as any);
+    redirectUri: process.env.OAUTH_REDIRECT_URI,
+  } as GetTokenOptions);
   const { access_token, refresh_token } = tokens;
   if (!refresh_token) {
     return createErrorResponse("No refresh token returned", 400);
@@ -92,13 +77,9 @@ export const handler = async (
   }
 
   // 8. Create 7-day session JWT with internal UUID (not Google ID)
-  const sessionToken = jwt.sign(
-    { userId: user.id },
-    process.env["JWT_SECRET"]!,
-    {
-      expiresIn: "7d",
-    }
-  );
+  const sessionToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
   // 9. Redirect with HTTP-Only cookie
   return {
@@ -107,7 +88,9 @@ export const handler = async (
       "Set-Cookie": `sessionToken=${sessionToken}; HttpOnly; Path=/; Max-Age=${
         7 * 24 * 60 * 60
       }`,
-      Location: ENV_LOCATION,
+      Location: `${process.env.ENV === "local" ? "http" : "https"}://${
+        process.env.DOMAIN_NAME
+      }/dashboard`,
       "Access-Control-Allow-Credentials": "true",
     },
     body: "",

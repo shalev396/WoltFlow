@@ -1,9 +1,12 @@
 import { By, Builder } from "selenium-webdriver";
-
-import sequelize from "../../config/database.js";
+import dotenv from "dotenv";
 import { Settings, WoltSettings, Code, Run, User } from "../../models/index.js";
-import { ICustomAPIGatewayProxyEventStepFunction } from "../../typescript/interfaces/aws.js";
-import { APIGatewayProxyResult } from "aws-lambda";
+import {
+  type ICustomStepFunctionResult,
+  type RunWithUserWithWoltSettings,
+  type ICustomAPIGatewayProxyEventStepFunction,
+} from "../../types/index.js";
+
 import {
   safeClick,
   waitForElement,
@@ -19,32 +22,67 @@ import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
-import dotenv from "dotenv";
-import { syncDatabase } from "../../config/bootstrap.js";
-import { createErrorResponse } from "../../utils/responseUtil.js";
+
+import { initDB } from "../../config/bootstrap.js";
 // Environment variables
 dotenv.config();
-const ENV = process.env["ENV"];
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 export const handler = async (
   event: ICustomAPIGatewayProxyEventStepFunction
-): Promise<APIGatewayProxyResult> => {
+): Promise<ICustomStepFunctionResult> => {
   let success = false;
-  let run: Run | null = null;
-  let driver: any = null;
+  let globalRun: Run | null = null;
 
-  // Extract runId from event (Step Functions or API Gateway)
-  const runId = event.runId || event.queryStringParameters?.["runId"];
+  // Extract runId from event (Step Functions or API Gateway(Debug))
+  const runId = event.runId || event.queryStringParameters?.runId;
 
   if (!runId) {
-    return createErrorResponse("Missing runId", 400);
+    return {
+      runId: "",
+      userId: "",
+      success: false,
+      completed: false,
+      message: "Missing runId",
+    };
   }
+  // Browser setup
+  console.log("Start chrome + driver");
+  const options = new ChromeOptions();
+  const service = new ChromeServiceBuilder("/opt/chromedriver");
 
+  options.setChromeBinaryPath("/opt/chrome/chrome");
+
+  // Essential Chrome flags for Lambda
+  options.addArguments("--headless=old");
+  options.addArguments("--no-sandbox");
+  options.addArguments("--disable-dev-shm-usage");
+  options.addArguments("--disable-gpu");
+  options.addArguments("--single-process"); //with isWorking="true", ms="163767"||without(//) isWorking="true", ms="168950"
+  options.addArguments("--no-zygote");
+  options.addArguments("--remote-debugging-port=0");
+
+  // Set exact window size
+  options.addArguments("--window-size=1920,1080");
+  options.addArguments("--force-device-scale-factor=1");
+
+  // Basic optimizations
+  options.addArguments("--disable-extensions");
+  options.addArguments("--disable-plugins");
+  options.addArguments("--no-first-run");
+  options.addArguments("--disable-default-apps");
+
+  console.log("Building Chrome driver...");
+  const driver = await new Builder()
+    .forBrowser("chrome")
+    .setChromeOptions(options)
+    .setChromeService(service)
+    .build();
+
+  console.log("End chrome + driver");
   try {
     // Get the run with user and settings in one optimized query
-    run = await Run.findByPk(runId, {
+    let run = (await Run.findByPk(runId, {
       include: [
         {
           model: User,
@@ -63,24 +101,36 @@ export const handler = async (
           ],
         },
       ],
-    });
+    })) as RunWithUserWithWoltSettings;
     if (!run) {
-      return createErrorResponse("Run not found", 404);
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Run not found",
+      };
     }
-
+    globalRun = run;
     const userId = run.userId;
 
     // Update run stage
     await run.update({ stage: "applying_gift" });
 
     // Get user settings from included data
-    const userWithSettings = (run as any).user;
+    const userWithSettings = run.user;
     const settings = userWithSettings?.settings;
     const woltSettings = settings?.woltSettings;
 
     if (!settings || !woltSettings) {
       await run.update({ status: "failed" });
-      return createErrorResponse("Settings not found", 404);
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "Settings not found",
+      };
     }
 
     // Get the most recent unused code for the user
@@ -91,43 +141,14 @@ export const handler = async (
 
     if (!code) {
       await run.update({ status: "failed" });
-      return createErrorResponse("No unused gift card code found", 404);
+      return {
+        runId: "",
+        userId: "",
+        success: false,
+        completed: false,
+        message: "No unused gift card code found",
+      };
     }
-
-    // Browser setup
-    console.log("Start chrome + driver");
-    const options = new ChromeOptions();
-    const service = new ChromeServiceBuilder("/opt/chromedriver");
-
-    options.setChromeBinaryPath("/opt/chrome/chrome");
-
-    // Essential Chrome flags for Lambda
-    options.addArguments("--headless=old");
-    options.addArguments("--no-sandbox");
-    options.addArguments("--disable-dev-shm-usage");
-    options.addArguments("--disable-gpu");
-    options.addArguments("--single-process"); //with isWorking="true", ms="163767"||without(//) isWorking="true", ms="168950"
-    options.addArguments("--no-zygote");
-    options.addArguments("--remote-debugging-port=0");
-
-    // Set exact window size
-    options.addArguments("--window-size=1920,1080");
-    options.addArguments("--force-device-scale-factor=1");
-
-    // Basic optimizations
-    options.addArguments("--disable-extensions");
-    options.addArguments("--disable-plugins");
-    options.addArguments("--no-first-run");
-    options.addArguments("--disable-default-apps");
-
-    console.log("Building Chrome driver...");
-    const driver = await new Builder()
-      .forBrowser("chrome")
-      .setChromeOptions(options)
-      .setChromeService(service)
-      .build();
-
-    console.log("End chrome + driver");
 
     // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
@@ -206,14 +227,14 @@ export const handler = async (
     success = false;
 
     // Take error screenshot and upload to S3
-    if (driver && run) {
+    if (driver && globalRun) {
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         const base64WithPrefix = `data:image/png;base64,${screenshotBase64}`;
         const currentUrl = await driver.getCurrentUrl();
         await uploadImageToS3AndSaveToDb(
           base64WithPrefix,
-          run.id,
+          globalRun.id,
           true,
           currentUrl,
           "error",
@@ -231,15 +252,15 @@ export const handler = async (
     }
 
     // Update run status and stage based on success
-    if (run) {
+    if (globalRun) {
       if (success) {
-        await run.update({ status: "completed", stage: "completed" });
+        await globalRun.update({ status: "completed", stage: "completed" });
 
         // Send success notification to user
         try {
           await notifyOnSuccess(
-            run.userId.toString(),
-            run.id,
+            globalRun.userId.toString(),
+            globalRun.id,
             "Gift card redemption completed successfully"
           );
         } catch (notificationError) {
@@ -249,13 +270,13 @@ export const handler = async (
           );
         }
       } else {
-        await run.update({ status: "failed" });
+        await globalRun.update({ status: "failed" });
 
         // Send error notification to user
         try {
           await notifyOnError(
-            run.userId.toString(),
-            run.id,
+            globalRun.userId.toString(),
+            globalRun.id,
             "Gift card redemption failed"
           );
         } catch (notificationError) {
@@ -267,20 +288,6 @@ export const handler = async (
       }
     }
 
-    // Take final screenshot and return it only in development mode
-    if (ENV === "local" && driver) {
-      try {
-        const screenshotBase64 = await driver.takeScreenshot();
-        return {
-          statusCode: 200,
-          headers: { "Content-Type": "image/png" },
-          body: screenshotBase64,
-          isBase64Encoded: true,
-        };
-      } catch (screenshotError) {
-        console.error("Failed to take final screenshot:", screenshotError);
-      }
-    }
     if (driver) {
       await sleep(1000);
       await driver.quit();
@@ -296,10 +303,10 @@ export const handler = async (
         // Return raw data for Step Functions
         return {
           runId,
-          userId: run?.userId,
+          userId: globalRun?.userId,
           success: true,
           message: "Gift card redemption completed",
-        } as any;
+        } as ICustomStepFunctionResult;
       } else {
         // Throw error for Step Functions to catch
         throw new Error("Gift card redemption failed");
@@ -307,15 +314,13 @@ export const handler = async (
     } else {
       // Return API Gateway format for HTTP calls
       return {
-        statusCode: success ? 200 : 500,
-        body: JSON.stringify({
-          success,
-          message: success
-            ? "Gift card redemption completed"
-            : "Gift card redemption failed",
-          runId,
-          userId: run?.userId,
-        }),
+        runId: runId,
+        userId: globalRun?.userId || "",
+        success: success,
+        completed: true,
+        message: success
+          ? "Gift card redemption completed"
+          : "Gift card redemption failed",
       };
     }
   }

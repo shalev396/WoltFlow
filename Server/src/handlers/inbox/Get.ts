@@ -1,98 +1,83 @@
 import { Inbox, Emails, User } from "../../models/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
-import { CustomAPIGatewayProxyHandler } from "../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../../typescript/interfaces/aws.js";
-import sequelize from "../../config/database.js";
-import { syncDatabase } from "../../config/bootstrap.js";
+import {
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventPaginate,
+  type InboxWithUser,
+} from "../../types/index.js";
+import { initDB } from "../../config/bootstrap.js";
 import {
   createSuccessResponse,
   createErrorResponse,
   getErrorMessage,
 } from "../../utils/responseUtil.js";
-import { Op } from "sequelize";
+import { type Attributes, Op, type WhereOptions } from "sequelize";
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
-// Get the current stage/environment
-const ENV = process.env["ENV"] || "dev"; // Default to dev
-console.log("Current ENV:", ENV);
-
-// Get the email subdomain based on environment
-let emailSubdomain = "";
-if (ENV === "prod") {
-  emailSubdomain = process.env["EMAIL_SUBDOMAIN_PROD"] || "";
-} else if (ENV === "dev") {
-  emailSubdomain = process.env["EMAIL_SUBDOMAIN_DEV"] || "";
-} else if (ENV === "local") {
-  emailSubdomain = process.env["EMAIL_SUBDOMAIN_LOCAL"] || "";
-}
-
-// Fallback to dev subdomain if empty
-if (!emailSubdomain) {
-  emailSubdomain = "dev.users.woltflow.shalev396.com";
-  console.warn("Using fallback email subdomain:", emailSubdomain);
-} else {
-  console.log("Using email subdomain:", emailSubdomain);
-}
+await initDB();
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
-  async (event: ICustomAPIGatewayProxyEventAuth) => {
+  async (event: ICustomAPIGatewayProxyEventPaginate) => {
     try {
       const userId = event.userId!;
       const queryParams = event.queryStringParameters || {};
 
       // Parse pagination parameters
-      const page = parseInt(queryParams["page"] || "1", 10);
-      const limit = Math.min(parseInt(queryParams["limit"] || "20", 10), 100);
+      const page = parseInt(queryParams.page || "1", 10);
+      const limit = Math.min(parseInt(queryParams.limit || "20", 10), 100);
       const offset = (page - 1) * limit;
 
       // Build where conditions for email filtering
-      const whereConditions: any = {};
+      const whereConditions: WhereOptions<Attributes<Emails>> = {};
+      if (queryParams.startDate || queryParams.endDate) {
+        // type for symbol-keyed date operators
+        type DateRange = {
+          [Op.gte]?: Date;
+          [Op.lte]?: Date;
+        };
 
-      if (queryParams["startDate"] || queryParams["endDate"]) {
-        whereConditions.createdAt = {};
-        if (queryParams["startDate"]) {
-          whereConditions.createdAt[Op.gte] = new Date(
-            queryParams["startDate"]
-          );
+        const createdAtFilter: DateRange = {};
+        if (queryParams.startDate) {
+          createdAtFilter[Op.gte] = new Date(queryParams.startDate);
         }
-        if (queryParams["endDate"]) {
-          whereConditions.createdAt[Op.lte] = new Date(queryParams["endDate"]);
+        if (queryParams.endDate) {
+          createdAtFilter[Op.lte] = new Date(queryParams.endDate);
         }
+
+        // assign in one shot (no readonly mutation, no symbol-indexing on `{}`)
+        Object.assign(whereConditions, { createdAt: createdAtFilter });
       }
 
       // Get or create user's inbox
-      let inbox = await Inbox.findOne({
+      let inbox = (await Inbox.findOne({
         where: { userId },
         include: [
           {
             model: User,
             as: "user",
-            attributes: ["id", "name", "email"],
+            // attributes: ["id", "name", "email"],
           },
         ],
-      });
+      })) as InboxWithUser;
 
       // If no inbox exists, create one
       if (!inbox) {
-        const customEmailAddress = `${userId}@${emailSubdomain}`;
+        const customEmailAddress = `${userId}@${process.env.EMAIL_SUBDOMAIN}`;
 
-        inbox = await Inbox.create({
+        const newinbox = await Inbox.create({
           userId,
           emailAddress: customEmailAddress,
-          sesVerificationStatus: "pending",
         });
 
         // Reload with user information
-        inbox = await Inbox.findByPk(inbox.id, {
+        inbox = (await Inbox.findByPk(newinbox.id, {
           include: [
             {
               model: User,
               as: "user",
-              attributes: ["id", "name", "email"],
+              // attributes: ["id", "name", "email"],
             },
           ],
-        });
+        })) as InboxWithUser;
       }
 
       // Get emails for this inbox with filtering and pagination
@@ -131,10 +116,9 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         inbox: {
           id: inbox!.id,
           emailAddress: inbox!.emailAddress,
-          sesVerificationStatus: inbox!.sesVerificationStatus,
           createdAt: inbox!.createdAt,
           updatedAt: inbox!.updatedAt,
-          user: (inbox as any).user,
+          user: inbox.user,
         },
         emails: emailsQuery.rows,
         pagination: {
@@ -146,8 +130,8 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           hasPrevPage: page > 1,
         },
         filters: {
-          startDate: queryParams["startDate"] || null,
-          endDate: queryParams["endDate"] || null,
+          startDate: queryParams.startDate,
+          endDate: queryParams.endDate,
         },
       });
     } catch (error) {

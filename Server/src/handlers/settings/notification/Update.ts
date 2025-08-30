@@ -1,9 +1,11 @@
 import { Settings, NotificationSettings } from "../../../models/index.js";
 import { authMiddleware } from "../../../middlewares/auth.js";
-import { CustomAPIGatewayProxyHandler } from "../../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../../../typescript/interfaces/aws.js";
-import sequelize from "../../../config/database.js";
-import { syncDatabase } from "../../../config/bootstrap.js";
+import {
+  type SettingsWithNotificationSettings,
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventAuth,
+} from "../../../types/index.js";
+import { initDB } from "../../../config/bootstrap.js";
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -22,8 +24,7 @@ interface SaveNotificationSettingsRequest {
 }
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEventAuth) => {
     try {
@@ -37,7 +38,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       );
 
       // Find or create main settings record with notification settings included
-      let [settings] = await Settings.findOrCreate({
+      let [settings] = (await Settings.findOrCreate({
         where: { userId: event.userId! },
         defaults: { userId: event.userId! },
         include: [
@@ -47,13 +48,13 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
             required: false,
           },
         ],
-      });
+      })) as [SettingsWithNotificationSettings, boolean];
 
       // Get or create notification settings
       let notificationSettings: NotificationSettings;
-      
-      if ((settings as any).notificationSettings) {
-        notificationSettings = (settings as any).notificationSettings;
+
+      if (settings.notificationSettings) {
+        notificationSettings = settings.notificationSettings;
       } else {
         // Create new notification settings
         notificationSettings = await NotificationSettings.create({
@@ -87,7 +88,8 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       }
       if (requestData.phoneNumber !== undefined) {
         // Convert empty string to null
-        updates.phoneNumber = requestData.phoneNumber === "" ? null : requestData.phoneNumber;
+        updates.phoneNumber =
+          requestData.phoneNumber === "" ? null : requestData.phoneNumber;
       }
       if (requestData.phoneVerified !== undefined) {
         updates.phoneVerified = requestData.phoneVerified;
@@ -117,9 +119,12 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         emailVerified: notificationSettings.emailVerified,
       });
 
-      return createSuccessResponse("Notification settings updated successfully", {
-        notificationSettings: notificationSettings,
-      });
+      return createSuccessResponse(
+        "Notification settings updated successfully",
+        {
+          notificationSettings: notificationSettings,
+        }
+      );
     } catch (error) {
       console.error("Error in saveNotificationSettings handler:", error);
       return createErrorResponse(getErrorMessage(error));

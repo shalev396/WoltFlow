@@ -1,9 +1,11 @@
 import { Settings, WoltSettings } from "../../../models/index.js";
 import { authMiddleware } from "../../../middlewares/auth.js";
-import { CustomAPIGatewayProxyHandler } from "../../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../../../typescript/interfaces/aws.js";
-import sequelize from "../../../config/database.js";
-import { syncDatabase } from "../../../config/bootstrap.js";
+import {
+  type SettingsWithWoltSettings,
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventAuth,
+} from "../../../types/index.js";
+import { initDB } from "../../../config/bootstrap.js";
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -16,8 +18,7 @@ interface SaveWoltSettingsRequest {
 }
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEventAuth) => {
@@ -30,7 +31,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       const requestData: SaveWoltSettingsRequest = JSON.parse(event.body);
 
       // Find or create main settings record with wolt settings included
-      let [settings] = await Settings.findOrCreate({
+      let [settings] = (await Settings.findOrCreate({
         where: { userId: event.userId! },
         defaults: { userId: event.userId! },
         include: [
@@ -40,13 +41,13 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
             required: false,
           },
         ],
-      });
+      })) as [SettingsWithWoltSettings, boolean];
 
       // Get or create wolt settings
       let woltSettings: WoltSettings;
 
-      if ((settings as any).woltSettings) {
-        woltSettings = (settings as any).woltSettings;
+      if (settings.woltSettings) {
+        woltSettings = settings.woltSettings;
       } else {
         // Create new wolt settings
         woltSettings = await WoltSettings.create({

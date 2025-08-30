@@ -1,9 +1,11 @@
 import { Settings, CibusSettings } from "../../../models/index.js";
 import { authMiddleware } from "../../../middlewares/auth.js";
-import { CustomAPIGatewayProxyHandler } from "../../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../../../typescript/interfaces/aws.js";
-import sequelize from "../../../config/database.js";
-import { syncDatabase } from "../../../config/bootstrap.js";
+import {
+  type SettingsWithCibusSettings,
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventAuth,
+} from "../../../types/index.js";
+import { initDB } from "../../../config/bootstrap.js";
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -17,8 +19,7 @@ interface SaveCibusSettingsRequest {
 }
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEventAuth) => {
@@ -31,7 +32,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       const requestData: SaveCibusSettingsRequest = JSON.parse(event.body);
 
       // Find or create main settings record with cibus settings included
-      let [settings] = await Settings.findOrCreate({
+      let [settings] = (await Settings.findOrCreate({
         where: { userId: event.userId! },
         defaults: { userId: event.userId! },
         include: [
@@ -41,13 +42,13 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
             required: false,
           },
         ],
-      });
+      })) as [SettingsWithCibusSettings, boolean];
 
       // Get or create cibus settings
       let cibusSettings: CibusSettings;
 
-      if ((settings as any).cibusSettings) {
-        cibusSettings = (settings as any).cibusSettings;
+      if (settings.cibusSettings) {
+        cibusSettings = settings.cibusSettings;
       } else {
         // Create new cibus settings
         cibusSettings = await CibusSettings.create({

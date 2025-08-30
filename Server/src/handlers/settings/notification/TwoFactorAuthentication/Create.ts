@@ -10,12 +10,14 @@ import {
 } from "../../../../utils/smsUtil.js";
 import { sendEmail, normalizeEmail } from "../../../../utils/emailUtil.js";
 import { authMiddleware } from "../../../../middlewares/auth.js";
-import { CustomAPIGatewayProxyHandler } from "../../../../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../../../../typescript/interfaces/aws.js";
-import sequelize from "../../../../config/database.js";
+import {
+  type SettingsWithNotificationSettings,
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventAuth,
+} from "../../../../types/index.js";
+import { initDB } from "../../../../config/bootstrap.js";
 import fs from "fs";
 import path from "path";
-import { syncDatabase } from "../../../../config/bootstrap.js";
 
 interface Start2FARequest {
   method: "sms" | "email";
@@ -28,8 +30,7 @@ import {
 } from "../../../../utils/responseUtil.js";
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event: ICustomAPIGatewayProxyEventAuth) => {
     try {
@@ -51,10 +52,10 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
 
       // Check if SMS is enabled via environment variable
       if (method === "sms") {
-        const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+        const enabledSMS = process.env.ENABLED_SMS;
         if (!enabledSMS) {
           console.log(
-            `SMS 2FA was not allowed because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+            `SMS 2FA was not allowed because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
           );
           return createErrorResponse(
             "SMS functionality is currently disabled",
@@ -80,7 +81,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       }
 
       // Find user's notification settings
-      const settings = await Settings.findOne({
+      const settings = (await Settings.findOne({
         where: { userId: event.userId! },
         include: [
           {
@@ -88,7 +89,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
             as: "notificationSettings",
           },
         ],
-      });
+      })) as SettingsWithNotificationSettings;
 
       if (!settings) {
         return createErrorResponse(
@@ -97,7 +98,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         );
       }
 
-      const notificationSettings = (settings as any).notificationSettings;
+      const notificationSettings = settings.notificationSettings;
 
       if (!notificationSettings) {
         return createErrorResponse(

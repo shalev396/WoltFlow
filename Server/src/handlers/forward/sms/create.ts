@@ -1,23 +1,15 @@
 import { User, Cibus2FA } from "../../../models/index.js";
-import { CustomAPIGatewayProxyHandler } from "../../../typescript/types/aws.js";
-import sequelize from "../../../config/database.js";
-import { syncDatabase } from "../../../config/bootstrap.js";
+import { type CustomAPIGatewayProxyHandler } from "../../../types/aws.js";
+
 import {
   createSuccessResponse,
   createErrorResponse,
   getErrorMessage,
 } from "../../../utils/responseUtil.js";
-
-// Interface for SMS forward request structure (for documentation)
-// interface SMSForwardRequest {
-//   message?: string;
-//   phoneNumber?: string;
-//   from?: string;
-// }
+import { initDB } from "../../../config/bootstrap.js";
 
 // Connect to database
-await sequelize.authenticate();
-await syncDatabase();
+await initDB();
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   try {

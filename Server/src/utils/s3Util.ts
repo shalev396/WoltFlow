@@ -1,36 +1,26 @@
 import {
   S3Client,
   PutObjectCommand,
-  PutObjectCommandInput,
+  type PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
 import Screenshot from "../models/Screenshot.js";
+import fs from "fs";
+import path from "path";
 
 // Environment variables
 dotenv.config();
-const ENV = process.env["ENV"];
-let ENV_ASSETS_BUCKET_NAME = "";
-if (ENV === "prod") {
-  ENV_ASSETS_BUCKET_NAME = process.env["S3_ASSETS_BUCKET_NAME_PROD"] || "";
-} else if (ENV === "dev") {
-  ENV_ASSETS_BUCKET_NAME = process.env["S3_ASSETS_BUCKET_NAME_DEV"] || "";
-} else if (ENV === "local") {
-  ENV_ASSETS_BUCKET_NAME = process.env["S3_ASSETS_BUCKET_NAME_DEV"] || "";
-}
-const ASSETS_BUCKET_NAME = ENV_ASSETS_BUCKET_NAME;
-// AWS Configuration
-const AWS_REGION = process.env["AWS_REGION"];
 
-if (!AWS_REGION || !ASSETS_BUCKET_NAME) {
+if (!process.env.AWS_REGION || !process.env.S3_ASSETS_BUCKET_NAME) {
   throw new Error(
-    `Missing one or more environment variables: AWS_REGION=${AWS_REGION}, ASSETS_BUCKET_NAME=${ASSETS_BUCKET_NAME}, ENV=${ENV}`
+    `Missing one or more environment variables: AWS_REGION=${process.env.AWS_REGION}, ASSETS_BUCKET_NAME=${process.env.S3_ASSETS_BUCKET_NAME}, ENV=${process.env.ENV}`
   );
 }
 
 // Initialize S3 client with explicit credentials
 const s3 = new S3Client({
-  region: AWS_REGION,
+  region: process.env.AWS_REGION,
 });
 
 /**
@@ -40,9 +30,6 @@ const s3 = new S3Client({
  */
 export function convertImageToBase64(imagePath: string): string | null {
   try {
-    const fs = require("fs");
-    const path = require("path");
-
     const imageBuffer = fs.readFileSync(imagePath);
     const encodedString = imageBuffer.toString("base64");
 
@@ -101,7 +88,7 @@ export async function uploadImageToS3(
   // 3. Upload to S3
   try {
     const uploadParams: PutObjectCommandInput = {
-      Bucket: ASSETS_BUCKET_NAME!,
+      Bucket: process.env.S3_ASSETS_BUCKET_NAME!,
       Key: key,
       Body: imgBuffer,
       ContentType: contentType!,
@@ -109,7 +96,9 @@ export async function uploadImageToS3(
 
     const command = new PutObjectCommand(uploadParams);
     await s3.send(command);
-    console.log(`Image uploaded successfully to ${ASSETS_BUCKET_NAME}/${key}`);
+    console.log(
+      `Image uploaded successfully to ${process.env.S3_ASSETS_BUCKET_NAME}/${key}`
+    );
   } catch (error) {
     console.error("Error uploading image to S3:", error);
     throw error;
@@ -117,9 +106,9 @@ export async function uploadImageToS3(
 
   // 4. Return the CloudFront or direct S3 URL
   const url =
-    process.env["ENV"] === "prod"
-      ? `https://woltflow.shalev396.com/${key}`
-      : `https://dev.woltflow.shalev396.com/${key}`;
+    process.env.ENV === "prod"
+      ? `https://${process.env.DOMAIN_NAME}/${key}`
+      : `https://${process.env.DOMAIN_NAME}/${key}`;
   return url;
 }
 

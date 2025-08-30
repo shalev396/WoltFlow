@@ -1,4 +1,7 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 import { sendEmail, normalizeEmail } from "../../utils/emailUtil.js";
 import {
   createSuccessResponse,

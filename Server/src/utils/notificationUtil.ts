@@ -2,13 +2,16 @@ import { Settings, NotificationSettings } from "../models/index.js";
 import User from "../models/User.js";
 import Run from "../models/Run.js";
 import Screenshot from "../models/Screenshot.js";
-import { sendEmail, SendEmailResult } from "./emailUtil.js";
-import { sendSmsBySenderID, SendSmsResult } from "./smsUtil.js";
+import { sendEmail, type SendEmailResult } from "./emailUtil.js";
+import { sendSmsBySenderID, type SendSmsResult } from "./smsUtil.js";
 import fs from "fs/promises";
 import path from "path";
+import {
+  type RunWithScreenshots,
+  type SettingsWithUserAndNotificationSettings,
+} from "../types/index.js";
 
-const ALERT_SENDER_EMAIL_PROD = "alert@woltflow.shalev396.com";
-const ALERT_SENDER_EMAIL_DEV = "alert@dev.woltflow.shalev396.com";
+const ALERT_SENDER_EMAIL = `alert@${process.env.DOMAIN_NAME}`;
 const ALERT_SENDER_NAME = "WoltFlow Alert System";
 
 export interface UserNotificationDetails {
@@ -39,7 +42,7 @@ export async function getUserNotificationDetails(
 ): Promise<UserNotificationDetails> {
   try {
     // Get user settings with notification settings included
-    const setting = await Settings.findOne({
+    const setting = (await Settings.findOne({
       where: { userId },
       include: [
         {
@@ -52,7 +55,7 @@ export async function getUserNotificationDetails(
           as: "notificationSettings",
         },
       ],
-    });
+    })) as SettingsWithUserAndNotificationSettings;
 
     if (!setting) {
       console.log(`No settings found for user ${userId}`);
@@ -69,8 +72,8 @@ export async function getUserNotificationDetails(
       };
     }
 
-    const user = (setting as any).user;
-    const notificationSettings = (setting as any).notificationSettings;
+    const user = setting.user;
+    const notificationSettings = setting.notificationSettings;
     const userName = user?.name || user?.email || "User";
 
     // Check if notifications are enabled
@@ -185,21 +188,22 @@ export async function notifyOnError(
     }
 
     // Get run details with screenshots
-    const run = await Run.findByPk(runId, {
+    const run = (await Run.findByPk(runId, {
       include: [
         {
           model: Screenshot,
           attributes: ["screenshotUrl", "isError"],
+          as: "screenshots",
         },
       ],
-    });
+    })) as RunWithScreenshots;
 
     if (!run) {
       result.errors.push(`Run ${runId} not found`);
       return result;
     }
 
-    const screenshots = (run as any).Screenshots || [];
+    const screenshots = run.screenshots || [];
 
     // Send notifications using preferred methods
     for (const method of userNotificationDetails.preferredMethods) {
@@ -297,21 +301,21 @@ export async function notifyOnSuccess(
     }
 
     // Get run details with screenshots
-    const run = await Run.findByPk(runId, {
+    const run = (await Run.findByPk(runId, {
       include: [
         {
           model: Screenshot,
           attributes: ["screenshotUrl", "isError"],
         },
       ],
-    });
+    })) as RunWithScreenshots;
 
     if (!run) {
       result.errors.push(`Run ${runId} not found`);
       return result;
     }
 
-    const screenshots = (run as any).Screenshots || [];
+    const screenshots = run.screenshots || [];
 
     // Send notifications using preferred methods
     for (const method of userNotificationDetails.preferredMethods) {
@@ -373,23 +377,24 @@ export async function notifyOnSuccess(
  */
 async function sendSmsErrorNotification(
   userDetails: UserNotificationDetails,
-  run: any,
+  run: Run,
   errorMessage?: string
 ): Promise<SendSmsResult> {
   if (!userDetails.phoneNumber) {
     throw new Error("Phone number not available");
   }
-
+  // TODO: Uncomment when giftAmount is implemented
+  //Amount: ₪${run.giftAmount || 0}
   const message = `WoltFlow Alert 🚨
 
 Run #${run.id} has failed
 Stage: ${run.stage}
-Mode: ${run.mode}
-Amount: ₪${run.amount}
+Mode: ${run.automationMode}
+
 ${errorMessage ? `Error: ${errorMessage}` : ""}
 
 Check your dashboard for details.
-Support: support@woltflow.shalev396.com`;
+Support: support@${process.env.DOMAIN_NAME}`;
 
   return await sendSmsBySenderID({
     phoneNumber: userDetails.phoneNumber,
@@ -404,8 +409,8 @@ Support: support@woltflow.shalev396.com`;
  */
 async function sendEmailErrorNotification(
   userDetails: UserNotificationDetails,
-  run: any,
-  screenshots: any[],
+  run: Run,
+  screenshots: Screenshot[],
   errorMessage?: string
 ): Promise<SendEmailResult> {
   if (!userDetails.email) {
@@ -441,10 +446,12 @@ async function sendEmailErrorNotification(
       "{{RUN_STATUS}}": run.status,
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
       "{{RUN_STAGE}}": run.stage,
-      "{{RUN_MODE}}": run.mode,
-      "{{RUN_AMOUNT}}": run.amount.toString(),
-      "{{RUN_CREATED_AT}}": formatDate(run.created_at || run.createdAt),
-      "{{RUN_UPDATED_AT}}": formatDate(run.updated_at || run.updatedAt),
+      "{{RUN_MODE}}": run.automationMode,
+      //TODO: Uncomment when giftAmount is implemented
+      //run.amount.toString() ||
+      "{{RUN_AMOUNT}}": "0",
+      "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
+      "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };
 
     // Replace basic template variables
@@ -503,7 +510,8 @@ async function sendEmailErrorNotification(
         );
       }
     }
-
+    //TODO: Uncomment when giftAmount is implemented
+    //- Amount: ₪${run.amount}
     // Create text version
     const textBody = `WoltFlow Error Notification
 
@@ -515,10 +523,10 @@ Run Details:
 - Run ID: #${run.id}
 - Status: ${run.status}
 - Current Stage: ${run.stage}
-- Mode: ${run.mode}
-- Amount: ₪${run.amount}
-- Started: ${formatDate(run.created_at || run.createdAt)}
-- Last Updated: ${formatDate(run.updated_at || run.updatedAt)}
+- Mode: ${run.automationMode}
+
+- Started: ${formatDate(run.createdAt)}
+- Last Updated: ${formatDate(run.updatedAt)}
 
 ${errorMessage ? `Error Message: ${errorMessage}` : ""}
 
@@ -530,7 +538,7 @@ ${
 
 If this error persists, please contact our support team with the run ID for assistance.
 
-Support: support@woltflow.shalev396.com
+Support: support@${process.env.DOMAIN_NAME}
 
 © 2025 WoltFlow. Streamlining your Wolt experience.`;
 
@@ -540,10 +548,7 @@ Support: support@woltflow.shalev396.com
       htmlBody: htmlTemplate,
       textBody,
       fromName: ALERT_SENDER_NAME,
-      from:
-        process.env["ENV"] === "prod"
-          ? ALERT_SENDER_EMAIL_PROD
-          : ALERT_SENDER_EMAIL_DEV,
+      from: ALERT_SENDER_EMAIL,
     });
   } catch (error) {
     console.error("Error creating email notification:", error);
@@ -556,23 +561,24 @@ Support: support@woltflow.shalev396.com
  */
 async function sendSmsSuccessNotification(
   userDetails: UserNotificationDetails,
-  run: any,
+  run: Run,
   successMessage?: string
 ): Promise<SendSmsResult> {
   if (!userDetails.phoneNumber) {
     throw new Error("Phone number not available");
   }
-
+  //TODO: Uncomment when giftAmount is implemented
+  //Amount: ₪${run.amount}
   const message = `WoltFlow Success 🎉
 
 Run #${run.id} completed successfully!
 Stage: ${run.stage}
-Mode: ${run.mode}
-Amount: ₪${run.amount}
+Mode: ${run.automationMode}
+
 ${successMessage ? `Message: ${successMessage}` : ""}
 
 Your gift card has been redeemed and is ready to use!
-Dashboard: app.woltflow.shalev396.com`;
+Dashboard: ${process.env.DOMAIN_NAME}/dashboard`;
 
   return await sendSmsBySenderID({
     phoneNumber: userDetails.phoneNumber,
@@ -587,8 +593,8 @@ Dashboard: app.woltflow.shalev396.com`;
  */
 async function sendEmailSuccessNotification(
   userDetails: UserNotificationDetails,
-  run: any,
-  screenshots: any[],
+  run: Run,
+  screenshots: Screenshot[],
   successMessage?: string
 ): Promise<SendEmailResult> {
   if (!userDetails.email) {
@@ -624,10 +630,12 @@ async function sendEmailSuccessNotification(
       "{{RUN_STATUS}}": run.status,
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
       "{{RUN_STAGE}}": run.stage,
-      "{{RUN_MODE}}": run.mode,
-      "{{RUN_AMOUNT}}": run.amount.toString(),
-      "{{RUN_CREATED_AT}}": formatDate(run.created_at || run.createdAt),
-      "{{RUN_UPDATED_AT}}": formatDate(run.updated_at || run.updatedAt),
+      "{{RUN_MODE}}": run.automationMode,
+      //TODO: Uncomment when giftAmount is implemented
+      //run.amount.toString() ||
+      "{{RUN_AMOUNT}}": "0",
+      "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
+      "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };
 
     // Replace basic template variables
@@ -688,6 +696,8 @@ async function sendEmailSuccessNotification(
         );
       }
     }
+    //TODO: Uncomment when giftAmount is implemented
+    //- Amount: ₪${run.amount}
 
     // Create text version
     const textBody = `WoltFlow Success Notification
@@ -700,10 +710,9 @@ Run Details:
 - Run ID: #${run.id}
 - Status: ${run.status}
 - Final Stage: ${run.stage}
-- Mode: ${run.mode}
-- Amount: ₪${run.amount}
-- Started: ${formatDate(run.created_at || run.createdAt)}
-- Completed: ${formatDate(run.updated_at || run.updatedAt)}
+- Mode: ${run.automationMode}
+- Started: ${formatDate(run.createdAt)}
+- Completed: ${formatDate(run.updatedAt)}
 
 ${successMessage ? `Message: ${successMessage}` : ""}
 
@@ -726,10 +735,7 @@ Dashboard: app.woltflow.shalev396.com
       htmlBody: htmlTemplate,
       textBody,
       fromName: ALERT_SENDER_NAME,
-      from:
-        process.env["ENV"] === "prod"
-          ? ALERT_SENDER_EMAIL_PROD
-          : ALERT_SENDER_EMAIL_DEV,
+      from: ALERT_SENDER_EMAIL,
     });
   } catch (error) {
     console.error("Error creating success email notification:", error);

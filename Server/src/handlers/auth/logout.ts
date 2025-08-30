@@ -1,5 +1,5 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import dotenv from "dotenv";
+import { type APIGatewayProxyResult } from "aws-lambda";
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -8,15 +8,12 @@ import {
 
 // Environment variables
 dotenv.config();
-const ENV = process.env["ENV"];
 
-export const handler = async (
-  _event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
+export const handler = async (): Promise<APIGatewayProxyResult> => {
   try {
     // Clear the session cookie by setting Max-Age to 0
     const cookieSettings =
-      ENV === "local"
+      process.env.ENV === "local"
         ? "HttpOnly; SameSite=Lax; Path=/"
         : "HttpOnly; Secure; SameSite=Strict; Path=/";
 

@@ -5,12 +5,6 @@ export default class Inbox extends Model {
   declare id: string;
   declare userId: string; // Foreign key to Users table
   declare emailAddress: string; // The SES-created email address
-  declare sesIdentityArn: string | null; // AWS SES identity ARN
-  declare sesVerificationStatus:
-    | "pending"
-    | "success"
-    | "failed"
-    | "temporary_failure"; // SES verification status
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -40,16 +34,6 @@ Inbox.init(
         isEmail: true,
       },
       comment: "The SES-created email address for receiving emails",
-    },
-    sesIdentityArn: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      comment: "AWS SES identity ARN for this email address",
-    },
-    sesVerificationStatus: {
-      type: DataTypes.ENUM("pending", "success", "failed", "temporary_failure"),
-      allowNull: false,
-      defaultValue: "pending",
     },
   },
   {

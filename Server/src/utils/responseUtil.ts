@@ -1,12 +1,10 @@
-import { APIGatewayProxyResult } from "aws-lambda";
-
-const ENV = process.env["ENV"];
+import { type APIGatewayProxyResult } from "aws-lambda";
 
 /**
  * Extracts error message from error object, respecting environment settings
  */
 export function getErrorMessage(error: unknown): string {
-  if (ENV === "prod") {
+  if (process.env.ENV === "prod") {
     return "Internal server error";
   }
 
@@ -24,7 +22,7 @@ export function getErrorMessage(error: unknown): string {
 export interface SuccessResponseData {
   success: true;
   message: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface ErrorResponseData {
@@ -37,14 +35,13 @@ export interface ErrorResponseData {
  */
 export function createSuccessResponse(
   message: string,
-  data?: any,
+  data?: unknown,
   statusCode: number = 200
 ): APIGatewayProxyResult {
-  const responseBody: SuccessResponseData = {
-    success: true,
-    message,
-    ...(data && { data }), // Only include data if it exists
-  };
+  const responseBody: SuccessResponseData =
+    data === undefined
+      ? { success: true, message }
+      : { success: true, message, data };
 
   return {
     statusCode,
@@ -81,13 +78,11 @@ export function createErrorResponse(
  */
 export function createSuccessData(
   message: string,
-  data?: any
+  data?: unknown
 ): SuccessResponseData {
-  return {
-    success: true,
-    message,
-    ...(data && { data }),
-  };
+  return data === undefined
+    ? { success: true, message }
+    : { success: true, message, data };
 }
 
 /**
