@@ -30,13 +30,7 @@ export const handler = async (
     const runId = event.runId || event.queryStringParameters?.runId;
 
     if (!runId) {
-      return {
-        runId: "",
-        userId: "",
-        success: false,
-        completed: false,
-        message: "Missing runId",
-      };
+      throw new Error("Missing runId");
     }
 
     // Get the run with associated user and inbox in one optimized query
@@ -56,13 +50,7 @@ export const handler = async (
     })) as RunWithUserWithInbox;
 
     if (!run) {
-      return {
-        runId,
-        userId: "",
-        success: false,
-        completed: false,
-        message: "Run not found",
-      };
+      throw new Error("Run not found");
     }
 
     const uid = run.userId;
@@ -94,19 +82,7 @@ export const handler = async (
       console.error(`User not found for uid: ${uid}`);
       await run.update({ status: "failed" });
 
-      try {
-        await notifyOnError(uid.toString(), run.id, "User not found");
-      } catch (notificationError) {
-        console.error("Failed to send error notification:", notificationError);
-      }
-
-      return {
-        runId,
-        userId: "",
-        success: false,
-        completed: false,
-        message: "User not found",
-      };
+      throw new Error("User not found");
     }
 
     const inbox = user.inbox;
@@ -114,19 +90,7 @@ export const handler = async (
       console.error(`Inbox not found for user: ${uid}`);
       await run.update({ status: "failed" });
 
-      try {
-        await notifyOnError(uid.toString(), run.id, "User inbox not found");
-      } catch (notificationError) {
-        console.error("Failed to send error notification:", notificationError);
-      }
-
-      return {
-        runId,
-        userId: "",
-        success: false,
-        completed: false,
-        message: "User inbox not found",
-      };
+      throw new Error("User inbox not found");
     }
 
     const subject = "הגיפט קארד של Wolt הגיע ומחכה לשליחה :)";
@@ -202,20 +166,9 @@ export const handler = async (
         `All ${maxRetries} attempts failed. Final error: ${lastError}`
       );
       await run.update({ status: "failed" });
-
-      try {
-        await notifyOnError(uid.toString(), run.id, "No Wolt email found");
-      } catch (notificationError) {
-        console.error("Failed to send error notification:", notificationError);
-      }
-
-      return {
-        runId,
-        userId: "",
-        success: false,
-        completed: false,
-        message: lastError || "No matching Wolt email found after retries",
-      };
+      throw new Error(
+        lastError || "No matching Wolt email found after retries"
+      );
     }
 
     // Find the PDF attachment URL
@@ -235,20 +188,7 @@ export const handler = async (
 
     if (!pdfUrl) {
       await run.update({ status: "failed" });
-
-      try {
-        await notifyOnError(uid.toString(), run.id, "PDF attachment not found");
-      } catch (notificationError) {
-        console.error("Failed to send error notification:", notificationError);
-      }
-
-      return {
-        runId,
-        userId: "",
-        success: false,
-        completed: false,
-        message: "PDF attachment not found",
-      };
+      throw new Error("PDF attachment not found");
     }
 
     // Parse S3 URL (format: s3://bucket-name/key/path/file.pdf)
@@ -260,13 +200,7 @@ export const handler = async (
       const s3UrlMatch = pdfUrl.match(/^s3:\/\/([^\/]+)\/(.+)$/);
       if (!s3UrlMatch || !s3UrlMatch[1] || !s3UrlMatch[2]) {
         await run.update({ status: "failed" });
-        return {
-          runId,
-          userId: "",
-          success: false,
-          completed: false,
-          message: "Invalid S3 URL format",
-        };
+        throw new Error("Invalid S3 URL format");
       }
       bucketName = s3UrlMatch[1];
       s3Key = s3UrlMatch[2]; // No leading slash for S3 keys
@@ -276,24 +210,12 @@ export const handler = async (
       const domainPart = urlParts.shift();
       if (!domainPart) {
         await run.update({ status: "failed" });
-        return {
-          runId,
-          userId: "",
-          success: false,
-          completed: false,
-          message: "Invalid URL format",
-        };
+        throw new Error("Invalid URL format");
       }
       const bucketPart = domainPart.split(".")[0];
       if (!bucketPart) {
         await run.update({ status: "failed" });
-        return {
-          runId,
-          userId: "",
-          success: false,
-          completed: false,
-          message: "Invalid domain format in URL",
-        };
+        throw new Error("Invalid domain format in URL");
       }
       bucketName = bucketPart; // Extract bucket name from domain
       s3Key = urlParts.join("/");
@@ -313,20 +235,7 @@ export const handler = async (
 
     if (!s3Response.Body) {
       await run.update({ status: "failed" });
-
-      try {
-        await notifyOnError(uid.toString(), run.id, "PDF download failed");
-      } catch (notificationError) {
-        console.error("Failed to send error notification:", notificationError);
-      }
-
-      return {
-        runId,
-        userId: "",
-        success: false,
-        completed: false,
-        message: "PDF download failed",
-      };
+      throw new Error("PDF download failed");
     }
 
     // Convert stream to buffer
@@ -337,20 +246,7 @@ export const handler = async (
     const match = pdfData.text.match(/CODE:\s*([A-Z0-9]+)/);
     if (!match) {
       await run.update({ status: "failed" });
-
-      try {
-        await notifyOnError(uid.toString(), run.id, "Code not found in PDF");
-      } catch (notificationError) {
-        console.error("Failed to send error notification:", notificationError);
-      }
-
-      return {
-        runId,
-        userId: "",
-        success: false,
-        completed: false,
-        message: "Code not found in PDF",
-      };
+      throw new Error("Code not found in PDF");
     }
     const codeValue = match[1];
 
@@ -391,20 +287,6 @@ export const handler = async (
       }
     }
 
-    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
-
-    if (isStepFunctions) {
-      // Re-throw error for Step Functions to catch
-      throw err;
-    } else {
-      // Return API Gateway error format for HTTP calls
-      return {
-        runId: "",
-        userId: "",
-        success: false,
-        completed: false,
-        message: getErrorMessage(err),
-      };
-    }
+    throw new Error("Email processing failed");
   }
 };

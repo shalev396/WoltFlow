@@ -19,7 +19,10 @@ import {
 } from "../../utils/automation.js";
 import { sleep } from "../../utils/general.js";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
-import { notifyOnError } from "../../utils/notificationUtil.js";
+import {
+  notifyOnError,
+  notifyOnSuccess,
+} from "../../utils/notificationUtil.js";
 import {
   Options as ChromeOptions,
   ServiceBuilder as ChromeServiceBuilder,
@@ -82,13 +85,7 @@ export const handler = async (
   try {
     console.log("user setup");
     if (!runId) {
-      return {
-        runId: runId || "",
-        userId: "",
-        success: false,
-        completed: false,
-        message: "Missing runId",
-      };
+      throw new Error("Missing runId");
     }
     console.log("start db");
     console.log("end db");
@@ -127,7 +124,7 @@ export const handler = async (
         runId,
         userId: "",
         success: false,
-        completed: false,
+        completed: true,
         message: "Run not found",
       };
     }
@@ -152,7 +149,7 @@ export const handler = async (
         runId,
         userId: "",
         success: false,
-        completed: false,
+        completed: true,
         message: "Settings not found",
       };
     }
@@ -468,9 +465,10 @@ export const handler = async (
       //add || true to debug script
       if (
         process.env.ENV === "local"
-        //||ENV === "dev"
+        // ||process.env.ENV === "dev"
         // || true
       ) {
+        console.log("dev mode override success");
         success = true;
       } else {
         throw err;
@@ -502,76 +500,59 @@ export const handler = async (
       }
     }
   } finally {
+    // Clean up driver
     if (driver) {
       console.log("url", await driver.getCurrentUrl());
       console.log("success", success);
-    }
-
-    // Update run status based on success
-    if (run) {
-      if (!success) {
-        await run.update({ status: "failed" });
-      }
-    }
-
-    // Check if automation mode is "buy-only" and set success status if purchase was successful
-    if ((success || process.env.ENV === "dev") && run) {
-      const automationMode = run.automationMode;
-
-      if (automationMode === "buy-only") {
-        console.log(
-          "Automation mode is 'buy-only', marking run as successful and completed"
-        );
-        await run.update({
-          status: "completed",
-          stage: "completed",
-        });
-      } else {
-        console.log(
-          "Gift purchase successful, Step Functions will handle next step"
-        );
-        // Step Functions will trigger getDailyCode automatically
-        // No need to manually invoke here
-      }
-    } else {
-      console.log("Gift purchase failed, skipping getDailyCode trigger");
-      if (run && !success) {
-        await run.update({ status: "failed" });
-
-        // Send error notification to user
-        try {
-          await notifyOnError(
-            run.userId.toString(),
-            run.id,
-            "Gift purchase failed"
-          );
-        } catch (notificationError) {
-          console.error(
-            "Failed to send error notification:",
-            notificationError
-          );
-        }
-      }
-    }
-    if (driver) {
       await sleep(1000);
       await driver.quit();
       console.log("driver quit");
     }
-    // await driver?.quit();
-    // await sleep(2000);
 
-    // Check for buy-only automation mode
-    const automationMode = run?.automationMode;
-    const isBuyOnlyMode = automationMode === "buy-only";
+    // Handle case where run is not found
+    if (!run) {
+      throw new Error("Run not found");
+    }
+    let status = "in_progress";
+    let stage = "buying_gift";
+    // Update run status once
+    if (run.automationMode === "buy-only") {
+      status = success ? "completed" : "failed";
+      stage = success ? "completed" : "buying_gift";
+    }
+    await run.update({
+      status: status,
+      stage: stage,
+    });
 
+    // Send single notification
+    try {
+      if (success) {
+        if (run.automationMode === "buy-only") {
+          await notifyOnSuccess(
+            run.userId.toString(),
+            run.id,
+            "Gift purchase completed"
+          );
+        }
+      } else {
+        await notifyOnError(
+          run.userId.toString(),
+          run.id,
+          "Gift purchase failed"
+        );
+      }
+    } catch (notificationError) {
+      console.error("Failed to send notification:", notificationError);
+    }
+
+    // Return appropriate response based on success and mode
     if (success) {
-      if (isBuyOnlyMode) {
-        // For buy-only mode, return a special response that indicates completion
-        console.log("Buy-only mode: Step Functions execution complete");
+      if (run.automationMode === "buy-only") {
+        // Buy-only mode: stop the chain
         return {
-          runId: runId || "",
-          userId: run?.userId || "",
+          runId: run.id,
+          userId: run.userId.toString(),
           success: true,
           completed: true,
           message:
@@ -579,17 +560,17 @@ export const handler = async (
           automationMode: "buy-only",
         };
       } else {
-        // Continue to next step in chain
+        // Full-run mode: continue to next step
         return {
-          runId: runId || "",
-          userId: run?.userId || "",
+          runId: run.id,
+          userId: run.userId.toString(),
           success: true,
           completed: false,
           message: "Gift purchase completed",
         };
       }
     } else {
-      // Throw error for Step Functions to catch
+      // Failed: return error response for Step Functions
       throw new Error("Gift purchase failed");
     }
   }

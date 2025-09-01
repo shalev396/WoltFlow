@@ -1,7 +1,10 @@
-import { Settings, NotificationSettings } from "../models/index.js";
-import User from "../models/User.js";
-import Run from "../models/Run.js";
-import Screenshot from "../models/Screenshot.js";
+import {
+  Settings,
+  NotificationSettings,
+  User,
+  Run,
+  Screenshot,
+} from "../models/index.js";
 import { sendEmail, type SendEmailResult } from "./emailUtil.js";
 import { sendSmsBySenderID, type SendSmsResult } from "./smsUtil.js";
 import fs from "fs/promises";
@@ -14,32 +17,20 @@ import {
 const ALERT_SENDER_EMAIL = `alert@${process.env.DOMAIN_NAME}`;
 const ALERT_SENDER_NAME = "WoltFlow Alert System";
 
-export interface UserNotificationDetails {
-  hasNotifications: boolean;
-  notificationOnSuccess: boolean;
-  notificationOnError: boolean;
-  preferredMethods: ("sms" | "email")[];
-  phoneNumber: string | null;
-  phoneVerified: boolean;
-  email: string | null;
-  emailVerified: boolean;
-  userName: string | null;
-}
-
 export interface NotifyOnResult {
   success: boolean;
-  sentMethods: ("sms" | "email")[];
+  sentMethods: "sms" | "email" | null;
   errors: string[];
 }
 
 /**
- * Get user notification details and preferred verified methods
- * @param userId User ID to get notification details for
- * @returns Promise with user notification details
+ * Get user notification settings and preferred verified methods
+ * @param userId User ID to get notification settings for
+ * @returns Promise with user notification settings
  */
-export async function getUserNotificationDetails(
+export async function getSettingsWithUserAndNotificationSettings(
   userId: string
-): Promise<UserNotificationDetails> {
+): Promise<SettingsWithUserAndNotificationSettings> {
   try {
     // Get user settings with notification settings included
     const setting = (await Settings.findOne({
@@ -57,93 +48,10 @@ export async function getUserNotificationDetails(
       ],
     })) as SettingsWithUserAndNotificationSettings;
 
-    if (!setting) {
-      console.log(`No settings found for user ${userId}`);
-      return {
-        hasNotifications: false,
-        notificationOnSuccess: false,
-        notificationOnError: false,
-        preferredMethods: [],
-        phoneNumber: null,
-        phoneVerified: false,
-        email: null,
-        emailVerified: false,
-        userName: null,
-      };
-    }
-
-    const user = setting.user;
-    const notificationSettings = setting.notificationSettings;
-    const userName = user?.name || user?.email || "User";
-
-    // Check if notifications are enabled
-    if (!notificationSettings?.isEnabled) {
-      console.log(`Notifications disabled for user ${userId}`);
-      return {
-        hasNotifications: false,
-        notificationOnSuccess:
-          notificationSettings?.notificationOnSuccess || false,
-        notificationOnError: notificationSettings?.notificationOnError || false,
-        preferredMethods: [],
-        phoneNumber: notificationSettings?.phoneNumber,
-        phoneVerified: notificationSettings?.phoneVerified || false,
-        email: notificationSettings?.email || user?.email,
-        emailVerified: notificationSettings?.emailVerified || false,
-        userName,
-      };
-    }
-
-    // Determine preferred methods based on verified contacts
-    const preferredMethods: ("sms" | "email")[] = [];
-
-    // Check SMS
-    if (
-      notificationSettings?.phoneNumber &&
-      notificationSettings.phoneVerified
-    ) {
-      preferredMethods.push("sms");
-    }
-
-    // Check Email
-    const emailAddress = notificationSettings?.email || user?.email;
-    if (emailAddress && notificationSettings?.emailVerified) {
-      preferredMethods.push("email");
-    }
-
-    if (preferredMethods.length === 0) {
-      console.log(
-        `User ${userId} has notifications enabled but no verified contact methods`
-      );
-    }
-
-    return {
-      hasNotifications: true,
-      notificationOnSuccess:
-        notificationSettings?.notificationOnSuccess || false,
-      notificationOnError: notificationSettings?.notificationOnError || false,
-      preferredMethods,
-      phoneNumber: notificationSettings?.phoneNumber,
-      phoneVerified: notificationSettings?.phoneVerified || false,
-      email: emailAddress,
-      emailVerified: notificationSettings?.emailVerified || false,
-      userName,
-    };
+    return setting;
   } catch (error) {
-    console.error(
-      `Error getting notification details for user ${userId}:`,
-      error
-    );
-    return {
-      hasNotifications: false,
-      notificationOnSuccess: false,
-      notificationOnError: false,
-      preferredMethods: [],
-      phoneNumber: null,
-      phoneVerified: false,
-      email: null,
-      emailVerified: false,
-      userName: null,
-    };
+    console.error("Error in getUserNotificationSettings handler:", error);
+    throw error;
   }
 }
 
@@ -161,27 +69,40 @@ export async function notifyOnError(
 ): Promise<NotifyOnResult> {
   const result: NotifyOnResult = {
     success: false,
-    sentMethods: [],
+    sentMethods: null,
     errors: [],
   };
 
   try {
     // Get user notification preferences
-    const userNotificationDetails = await getUserNotificationDetails(userId);
+    const userNotificationDetails =
+      await getSettingsWithUserAndNotificationSettings(userId);
 
-    if (!userNotificationDetails.hasNotifications) {
+    if (!userNotificationDetails) {
+      console.log(`No notification settings found for user ${userId}`);
+      result.errors.push("No notification settings found for this user");
+      return result;
+    }
+
+    if (!userNotificationDetails.notificationSettings) {
+      console.log(`No notification settings object found for user ${userId}`);
+      result.errors.push("Notification settings object not found");
+      return result;
+    }
+
+    if (!userNotificationDetails.notificationSettings.isEnabled) {
       console.log(`User ${userId} has notifications disabled`);
       result.errors.push("Notifications are disabled for this user");
       return result;
     }
 
-    if (!userNotificationDetails.notificationOnError) {
+    if (!userNotificationDetails.notificationSettings.notificationOnError) {
       console.log(`User ${userId} has error notifications disabled`);
       result.errors.push("Error notifications are disabled for this user");
       return result;
     }
 
-    if (userNotificationDetails.preferredMethods.length === 0) {
+    if (!userNotificationDetails.notificationSettings.notificationMethod) {
       console.log(`User ${userId} has no verified notification methods`);
       result.errors.push("No verified notification methods available");
       return result;
@@ -205,41 +126,43 @@ export async function notifyOnError(
 
     const screenshots = run.screenshots || [];
 
-    // Send notifications using preferred methods
-    for (const method of userNotificationDetails.preferredMethods) {
-      try {
-        if (method === "sms") {
-          await sendSmsErrorNotification(
-            userNotificationDetails,
-            run,
-            errorMessage
-          );
-          result.sentMethods.push("sms");
-        } else if (method === "email") {
-          await sendEmailErrorNotification(
-            userNotificationDetails,
-            run,
-            screenshots,
-            errorMessage
-          );
-          result.sentMethods.push("email");
-        }
-      } catch (error) {
-        const errorMsg = `Failed to send ${method} notification: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`;
-        console.error(errorMsg);
-        result.errors.push(errorMsg);
+    // Send notifications using preferred method
+    try {
+      const notificationMethod =
+        userNotificationDetails.notificationSettings.notificationMethod;
+
+      if (notificationMethod === "sms") {
+        await sendSmsErrorNotification(
+          userNotificationDetails,
+          run,
+          errorMessage
+        );
+        result.sentMethods = "sms";
+      } else if (notificationMethod === "email") {
+        await sendEmailErrorNotification(
+          userNotificationDetails,
+          run,
+          screenshots,
+          errorMessage
+        );
+        result.sentMethods = "email";
       }
+    } catch (error) {
+      const errorMsg = `Failed to send ${
+        userNotificationDetails.notificationSettings.notificationMethod ||
+        "unknown"
+      } notification: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`;
+      console.error(errorMsg);
+      result.errors.push(errorMsg);
     }
 
-    result.success = result.sentMethods.length > 0;
+    result.success = result.sentMethods !== null;
 
     if (result.success) {
       console.log(
-        `Error notification sent to user ${userId} via: ${result.sentMethods.join(
-          ", "
-        )}`
+        `Error notification sent to user ${userId} via: ${result.sentMethods}`
       );
     } else {
       console.error(
@@ -274,27 +197,40 @@ export async function notifyOnSuccess(
 ): Promise<NotifyOnResult> {
   const result: NotifyOnResult = {
     success: false,
-    sentMethods: [],
+    sentMethods: null,
     errors: [],
   };
 
   try {
     // Get user notification preferences
-    const userNotificationDetails = await getUserNotificationDetails(userId);
+    const userNotificationDetails =
+      await getSettingsWithUserAndNotificationSettings(userId);
 
-    if (!userNotificationDetails.hasNotifications) {
+    if (!userNotificationDetails) {
+      console.log(`No notification settings found for user ${userId}`);
+      result.errors.push("No notification settings found for this user");
+      return result;
+    }
+
+    if (!userNotificationDetails.notificationSettings) {
+      console.log(`No notification settings object found for user ${userId}`);
+      result.errors.push("Notification settings object not found");
+      return result;
+    }
+
+    if (!userNotificationDetails.notificationSettings.isEnabled) {
       console.log(`User ${userId} has notifications disabled`);
       result.errors.push("Notifications are disabled for this user");
       return result;
     }
 
-    if (!userNotificationDetails.notificationOnSuccess) {
+    if (!userNotificationDetails.notificationSettings.notificationOnSuccess) {
       console.log(`User ${userId} has success notifications disabled`);
       result.errors.push("Success notifications are disabled for this user");
       return result;
     }
 
-    if (userNotificationDetails.preferredMethods.length === 0) {
+    if (!userNotificationDetails.notificationSettings.notificationMethod) {
       console.log(`User ${userId} has no verified notification methods`);
       result.errors.push("No verified notification methods available");
       return result;
@@ -306,6 +242,7 @@ export async function notifyOnSuccess(
         {
           model: Screenshot,
           attributes: ["screenshotUrl", "isError"],
+          as: "screenshots",
         },
       ],
     })) as RunWithScreenshots;
@@ -318,40 +255,42 @@ export async function notifyOnSuccess(
     const screenshots = run.screenshots || [];
 
     // Send notifications using preferred methods
-    for (const method of userNotificationDetails.preferredMethods) {
-      try {
-        if (method === "sms") {
-          await sendSmsSuccessNotification(
-            userNotificationDetails,
-            run,
-            successMessage
-          );
-          result.sentMethods.push("sms");
-        } else if (method === "email") {
-          await sendEmailSuccessNotification(
-            userNotificationDetails,
-            run,
-            screenshots,
-            successMessage
-          );
-          result.sentMethods.push("email");
-        }
-      } catch (error) {
-        const errorMsg = `Failed to send ${method} success notification: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`;
-        console.error(errorMsg);
-        result.errors.push(errorMsg);
+    try {
+      const notificationMethod =
+        userNotificationDetails.notificationSettings.notificationMethod;
+
+      if (notificationMethod === "sms") {
+        await sendSmsSuccessNotification(
+          userNotificationDetails,
+          run,
+          successMessage
+        );
+        result.sentMethods = "sms";
+      } else if (notificationMethod === "email") {
+        await sendEmailSuccessNotification(
+          userNotificationDetails,
+          run,
+          screenshots,
+          successMessage
+        );
+        result.sentMethods = "email";
       }
+    } catch (error) {
+      const errorMsg = `Failed to send ${
+        userNotificationDetails.notificationSettings.notificationMethod ||
+        "unknown"
+      } success notification: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`;
+      console.error(errorMsg);
+      result.errors.push(errorMsg);
     }
 
-    result.success = result.sentMethods.length > 0;
+    result.success = result.sentMethods !== null;
 
     if (result.success) {
       console.log(
-        `Success notification sent to user ${userId} via: ${result.sentMethods.join(
-          ", "
-        )}`
+        `Success notification sent to user ${userId} via: ${result.sentMethods}`
       );
     } else {
       console.error(
@@ -376,11 +315,11 @@ export async function notifyOnSuccess(
  * Send SMS notification for error
  */
 async function sendSmsErrorNotification(
-  userDetails: UserNotificationDetails,
+  userDetails: SettingsWithUserAndNotificationSettings,
   run: Run,
   errorMessage?: string
 ): Promise<SendSmsResult> {
-  if (!userDetails.phoneNumber) {
+  if (!userDetails.notificationSettings.phoneNumber) {
     throw new Error("Phone number not available");
   }
   // TODO: Uncomment when giftAmount is implemented
@@ -397,7 +336,7 @@ Check your dashboard for details.
 Support: support@${process.env.DOMAIN_NAME}`;
 
   return await sendSmsBySenderID({
-    phoneNumber: userDetails.phoneNumber,
+    phoneNumber: userDetails.notificationSettings.phoneNumber,
     message,
     senderID: "WoltFlow",
     smsType: "Transactional",
@@ -408,12 +347,12 @@ Support: support@${process.env.DOMAIN_NAME}`;
  * Send email notification for error
  */
 async function sendEmailErrorNotification(
-  userDetails: UserNotificationDetails,
+  userDetails: SettingsWithUserAndNotificationSettings,
   run: Run,
   screenshots: Screenshot[],
   errorMessage?: string
 ): Promise<SendEmailResult> {
-  if (!userDetails.email) {
+  if (!userDetails.notificationSettings.email) {
     throw new Error("Email address not available");
   }
 
@@ -441,7 +380,7 @@ async function sendEmailErrorNotification(
 
     // Replace template variables
     const replacements = {
-      "{{USER_NAME}}": userDetails.userName || "User",
+      "{{USER_NAME}}": userDetails.user.name || "User",
       "{{RUN_ID}}": run.id.toString(),
       "{{RUN_STATUS}}": run.status,
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
@@ -515,7 +454,7 @@ async function sendEmailErrorNotification(
     // Create text version
     const textBody = `WoltFlow Error Notification
 
-Hello ${userDetails.userName || "User"},
+Hello ${userDetails.user.name || "User"},
 
 Your WoltFlow automation run has encountered an error.
 
@@ -543,7 +482,7 @@ Support: support@${process.env.DOMAIN_NAME}
 © 2025 WoltFlow. Streamlining your Wolt experience.`;
 
     return await sendEmail({
-      to: userDetails.email,
+      to: userDetails.notificationSettings.email,
       subject: `🚨 WoltFlow Error - Run #${run.id} Failed`,
       htmlBody: htmlTemplate,
       textBody,
@@ -560,11 +499,11 @@ Support: support@${process.env.DOMAIN_NAME}
  * Send SMS notification for success
  */
 async function sendSmsSuccessNotification(
-  userDetails: UserNotificationDetails,
+  userDetails: SettingsWithUserAndNotificationSettings,
   run: Run,
   successMessage?: string
 ): Promise<SendSmsResult> {
-  if (!userDetails.phoneNumber) {
+  if (!userDetails.notificationSettings.phoneNumber) {
     throw new Error("Phone number not available");
   }
   //TODO: Uncomment when giftAmount is implemented
@@ -581,7 +520,7 @@ Your gift card has been redeemed and is ready to use!
 Dashboard: ${process.env.DOMAIN_NAME}/dashboard`;
 
   return await sendSmsBySenderID({
-    phoneNumber: userDetails.phoneNumber,
+    phoneNumber: userDetails.notificationSettings.phoneNumber,
     message,
     senderID: "WoltFlow",
     smsType: "Transactional",
@@ -592,12 +531,12 @@ Dashboard: ${process.env.DOMAIN_NAME}/dashboard`;
  * Send email notification for success
  */
 async function sendEmailSuccessNotification(
-  userDetails: UserNotificationDetails,
+  userDetails: SettingsWithUserAndNotificationSettings,
   run: Run,
   screenshots: Screenshot[],
   successMessage?: string
 ): Promise<SendEmailResult> {
-  if (!userDetails.email) {
+  if (!userDetails.notificationSettings.email) {
     throw new Error("Email address not available");
   }
 
@@ -625,7 +564,7 @@ async function sendEmailSuccessNotification(
 
     // Replace template variables
     const replacements = {
-      "{{USER_NAME}}": userDetails.userName || "User",
+      "{{USER_NAME}}": userDetails.user.name || "User",
       "{{RUN_ID}}": run.id.toString(),
       "{{RUN_STATUS}}": run.status,
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
@@ -702,7 +641,7 @@ async function sendEmailSuccessNotification(
     // Create text version
     const textBody = `WoltFlow Success Notification
 
-Hello ${userDetails.userName || "User"},
+Hello ${userDetails.user.name || "User"},
 
 Great news! Your WoltFlow automation run has completed successfully.
 
@@ -730,7 +669,7 @@ Dashboard: app.woltflow.shalev396.com
 © 2025 WoltFlow. Streamlining your Wolt experience.`;
 
     return await sendEmail({
-      to: userDetails.email,
+      to: userDetails.notificationSettings.email,
       subject: `🎉 WoltFlow Success - Run #${run.id} Completed`,
       htmlBody: htmlTemplate,
       textBody,

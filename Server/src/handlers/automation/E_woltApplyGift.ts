@@ -38,13 +38,7 @@ export const handler = async (
   const runId = event.runId || event.queryStringParameters?.runId;
 
   if (!runId) {
-    return {
-      runId: "",
-      userId: "",
-      success: false,
-      completed: false,
-      message: "Missing runId",
-    };
+    throw new Error("Missing runId");
   }
   // Browser setup
   console.log("Start chrome + driver");
@@ -103,13 +97,7 @@ export const handler = async (
       ],
     })) as RunWithUserWithWoltSettings;
     if (!run) {
-      return {
-        runId: "",
-        userId: "",
-        success: false,
-        completed: false,
-        message: "Run not found",
-      };
+      throw new Error("Run not found");
     }
     globalRun = run;
     const userId = run.userId;
@@ -124,13 +112,7 @@ export const handler = async (
 
     if (!settings || !woltSettings) {
       await run.update({ status: "failed" });
-      return {
-        runId: "",
-        userId: "",
-        success: false,
-        completed: false,
-        message: "Settings not found",
-      };
+      throw new Error("Settings not found");
     }
 
     // Get the most recent unused code for the user
@@ -141,13 +123,7 @@ export const handler = async (
 
     if (!code) {
       await run.update({ status: "failed" });
-      return {
-        runId: "",
-        userId: "",
-        success: false,
-        completed: false,
-        message: "No unused gift card code found",
-      };
+      throw new Error("No unused gift card code found");
     }
 
     // Setup Wolt cookies using the extracted function
@@ -295,33 +271,17 @@ export const handler = async (
     }
     // await sleep(2000);
 
-    // Check if this is a Step Functions call (has runId directly in event)
-    const isStepFunctions = !!event.runId || !!event.Payload?.runId;
-
-    if (isStepFunctions) {
-      if (success) {
-        // Return raw data for Step Functions
-        return {
-          runId,
-          userId: globalRun?.userId,
-          success: true,
-          message: "Gift card redemption completed",
-        } as ICustomStepFunctionResult;
-      } else {
-        // Throw error for Step Functions to catch
-        throw new Error("Gift card redemption failed");
-      }
-    } else {
-      // Return API Gateway format for HTTP calls
+    if (success) {
+      // Return raw data for Step Functions
       return {
-        runId: runId,
-        userId: globalRun?.userId || "",
-        success: success,
-        completed: true,
-        message: success
-          ? "Gift card redemption completed"
-          : "Gift card redemption failed",
-      };
+        runId,
+        userId: globalRun?.userId,
+        success: true,
+        message: "Gift card redemption completed",
+      } as ICustomStepFunctionResult;
+    } else {
+      // Throw error for Step Functions to catch
+      throw new Error("Gift card redemption failed");
     }
   }
 };
