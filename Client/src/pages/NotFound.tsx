@@ -77,7 +77,7 @@ export default function NotFound() {
               Settings
             </a>
             <a
-              href="/privacy"
+              href="/legal/privacy-policy"
               className="text-blue-600 hover:text-blue-700 underline"
             >
               Privacy Policy

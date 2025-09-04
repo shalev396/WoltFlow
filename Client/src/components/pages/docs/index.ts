@@ -1,4 +1,4 @@
-export { DocsRouter } from "./DocsRouter";
+export { DocsRouter } from "../../../routers/DocsRouter";
 export { DocsLayout } from "./DocsLayout";
 export { DocsSidebar } from "./sidebar/DocsSidebar";
 export { DocsSectionContent } from "./DocsSectionContent";

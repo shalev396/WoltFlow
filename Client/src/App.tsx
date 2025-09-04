@@ -8,7 +8,7 @@ import { Toaster } from "./components/ui/sonner";
 import { queryClient } from "./lib/queryClient";
 import LoadingScreen from "./components/shared/LoadingScreen";
 
-import { router } from "./pages/router";
+import { router } from "./routers/Router";
 import { checkAuth } from "./store/slices/userSlice";
 import type { RootState, AppDispatch } from "./store/store";
 

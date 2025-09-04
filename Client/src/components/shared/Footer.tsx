@@ -10,13 +10,13 @@ export default function Footer() {
           </div>
           <div className="flex gap-6 text-sm">
             <Link
-              to="/privacy-policy"
+              to="/legal/privacy-policy"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy Policy
             </Link>
             <Link
-              to="/terms-of-service"
+              to="/legal/terms-of-service"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms of Service

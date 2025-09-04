@@ -55,7 +55,7 @@ export default function ApiKeyForm() {
       try {
         await navigator.clipboard.writeText(apiKey);
         toast.success("API key copied to clipboard");
-      } catch (error) {
+      } catch {
         // Fallback for older browsers
         const textArea = document.createElement("textarea");
         textArea.value = apiKey;
@@ -65,7 +65,7 @@ export default function ApiKeyForm() {
         try {
           document.execCommand("copy");
           toast.success("API key copied to clipboard");
-        } catch (fallbackError) {
+        } catch {
           toast.error("Failed to copy API key");
         }
         document.body.removeChild(textArea);

@@ -3,21 +3,14 @@ import type { AxiosError, AxiosResponse } from "axios";
 // Define API endpoints that require authentication
 const protectedApiRoutes = [
   "/setting",
-  "/automation",
-  "/wolt",
-  "/gmail",
-  "/api/generate-api-key",
+  "/forward",
   "/runs",
+  "/inbox",
+  "/automation",
 ];
 
 // Define public page routes that don't require authentication
-const publicPageRoutes = [
-  "/",
-  "/privacy",
-  "/extension-privacy-policy.html",
-  "/privacy-policy.html",
-  "/terms",
-];
+const publicPageRoutes = ["/legal/*", "/docs/*"];
 
 // Helper function to check if current page is public
 const isOnPublicRoute = (): boolean => {
@@ -30,7 +23,7 @@ const isOnPublicRoute = (): boolean => {
 // Helper function to check if the user is trying to access a protected page
 const isOnProtectedRoute = (): boolean => {
   const currentPath = window.location.pathname;
-  const protectedPageRoutes = ["/dashboard", "/runs", "/settings"];
+  const protectedPageRoutes = ["/dashboard", "/runs", "/settings", "/inbox"];
   return protectedPageRoutes.some((route) => currentPath.startsWith(route));
 };
 

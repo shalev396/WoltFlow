@@ -1,17 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
-import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { ProtectedRoute } from "@/routers/ProtectedRoute";
 import { DocsRouter } from "@/components/pages/docs";
+import { LegalRouter } from "@/routers/LegalRouter";
 
 // Page imports
-import LandingPage from "./LandingPage";
-import DashboardPage from "./DashboardPage";
-import RunsPage from "./RunsPage";
-import SettingsPage from "./SettingsPage";
-import InboxPage from "./InboxPage";
-import PrivacyPage from "./PrivacyPage";
-import ExtensionPrivacyPage from "./ExtensionPrivacyPage";
-import TermsOfService from "./TermsOfService";
-import NotFound from "./NotFound";
+import LandingPage from "../pages/LandingPage";
+import DashboardPage from "../pages/DashboardPage";
+import RunsPage from "../pages/RunsPage";
+import SettingsPage from "../pages/SettingsPage";
+import InboxPage from "../pages/InboxPage";
+import NotFound from "../pages/NotFound";
 
 export const router = createBrowserRouter([
   {
@@ -51,16 +49,8 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/privacy-policy",
-    element: <PrivacyPage />,
-  },
-  {
-    path: "/extension-privacy-policy",
-    element: <ExtensionPrivacyPage />,
-  },
-  {
-    path: "/terms-of-service",
-    element: <TermsOfService />,
+    path: "/legal/*",
+    element: <LegalRouter />,
   },
   {
     path: "/docs/*",

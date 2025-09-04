@@ -1,8 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Layout from "@/components/shared/Layout";
+
+const EXTENSION_PRIVACY_POLICY_CONFIG = {
+  lastUpdated: "04/09/2025",
+  contactEmail: "shalev396@gmail.com",
+  extensionDeveloper: "Shalev Ben-Moshe (individual, side-project)",
+};
 
 export default function ExtensionPrivacyPage() {
   return (
@@ -16,7 +21,7 @@ export default function ExtensionPrivacyPage() {
             WoltFlow Token Reviewer Privacy Policy
           </CardTitle>
           <p className="text-center text-muted-foreground">
-            Last Updated: January 15, 2025
+            Last Updated: {EXTENSION_PRIVACY_POLICY_CONFIG.lastUpdated}
           </p>
         </CardHeader>
 
@@ -25,20 +30,12 @@ export default function ExtensionPrivacyPage() {
           <section>
             <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
             <p className="text-muted-foreground mb-4">
-              The WoltFlow browser extension helps you securely extract your
-              Wolt account credentials to automate gift card purchases. This
-              privacy policy explains how the extension handles your data during
-              the credential extraction process.
+              The WoltFlow Token Reviewer is a simple browser extension that
+              displays your Wolt access and refresh tokens when you click on it.
+              This privacy policy explains how the extension handles your data
+              and clarifies that no data ever leaves your browser unless you
+              manually copy and paste it.
             </p>
-            <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-              <Shield className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800 dark:text-blue-200">
-                <strong>Key Principle:</strong> The extension only extracts
-                credentials when you explicitly request it and immediately
-                transfers them to your WoltFlow account. No data is stored
-                permanently by the extension.
-              </AlertDescription>
-            </Alert>
           </section>
 
           <Separator />
@@ -51,17 +48,23 @@ export default function ExtensionPrivacyPage() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-medium mb-2">
-                  Credential Extraction
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Token Display</h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  <li>Detects when you're logged into your Wolt account</li>
                   <li>
-                    Extracts your Wolt refresh token and access token from
-                    browser storage
+                    Reads your Wolt access token and refresh token from browser
+                    cookies
                   </li>
-                  <li>Only activates when you click the extension button</li>
-                  <li>Immediately transfers extracted data to WoltFlow</li>
+                  <li>
+                    Displays the tokens in a simple popup interface when you
+                    click the extension
+                  </li>
+                  <li>
+                    Shows copy buttons next to each token for easy clipboard
+                    copying
+                  </li>
+                  <li>
+                    Only activates when you manually click the extension button
+                  </li>
                 </ul>
               </div>
 
@@ -71,16 +74,12 @@ export default function ExtensionPrivacyPage() {
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>
-                    <strong>ActiveTab:</strong> Access the current tab when
-                    extension is clicked
+                    <strong>Cookies:</strong> Read cookies from Wolt domains to
+                    display your authentication tokens
                   </li>
                   <li>
-                    <strong>Storage:</strong> Temporarily store extracted tokens
-                    during transfer
-                  </li>
-                  <li>
-                    <strong>Host Permissions:</strong> Access to wolt.com and
-                    consumer-api.wolt.com
+                    <strong>Host Permissions:</strong> Access to *.wolt.com
+                    domains only to read authentication cookies
                   </li>
                 </ul>
               </div>
@@ -95,14 +94,10 @@ export default function ExtensionPrivacyPage() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-medium mb-2">What We Extract</h3>
+                <h3 className="text-lg font-medium mb-2">What We Access</h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  <li>Wolt refresh tokens (for authentication)</li>
-                  <li>Wolt access tokens (for API access)</li>
-                  <li>
-                    No personal information, passwords, or payment details
-                  </li>
-                  <li>No browsing history or other website data</li>
+                  <li>Wolt refresh tokens (from browser cookies only)</li>
+                  <li>Wolt access tokens (from browser cookies only)</li>
                 </ul>
               </div>
 
@@ -110,20 +105,16 @@ export default function ExtensionPrivacyPage() {
                 <h3 className="text-lg font-medium mb-2">Data Storage</h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>
-                    <strong>No Permanent Storage:</strong> Extension doesn't
-                    store any data permanently
+                    <strong>No Storage:</strong> Extension doesn't store any
+                    data anywhere - not locally, not remotely
                   </li>
                   <li>
-                    <strong>Temporary Storage:</strong> Tokens held briefly
-                    during transfer process
+                    <strong>Display Only:</strong> Tokens are only displayed in
+                    the popup interface while it's open
                   </li>
                   <li>
-                    <strong>Automatic Cleanup:</strong> All temporary data
-                    cleared after transfer
-                  </li>
-                  <li>
-                    <strong>No Analytics:</strong> Extension doesn't collect
-                    usage statistics
+                    <strong>No Persistence:</strong> When you close the popup,
+                    nothing is saved or remembered
                   </li>
                 </ul>
               </div>
@@ -132,11 +123,22 @@ export default function ExtensionPrivacyPage() {
                 <h3 className="text-lg font-medium mb-2">Data Transmission</h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>
-                    Tokens sent directly to your WoltFlow account via HTTPS
+                    <strong>NO Data Transmission:</strong> The extension never
+                    sends any data to any servers, ever
                   </li>
-                  <li>No third-party services or external analytics</li>
-                  <li>Encrypted transmission using TLS 1.3</li>
-                  <li>Data only sent to WoltFlow servers</li>
+                  <li>
+                    <strong>No Network Requests:</strong> Extension makes zero
+                    network calls or connections
+                  </li>
+                  <li>
+                    <strong>Manual Only:</strong> Data only leaves your browser
+                    if you manually copy it to your clipboard and paste it
+                    elsewhere
+                  </li>
+                  <li>
+                    <strong>Completely Local:</strong> Everything happens
+                    locally in your browser
+                  </li>
                 </ul>
               </div>
             </div>
@@ -162,10 +164,14 @@ export default function ExtensionPrivacyPage() {
               <div>
                 <h3 className="text-lg font-medium mb-2">Data Protection</h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  <li>All data encrypted during transmission</li>
-                  <li>No local storage or caching of sensitive data</li>
-                  <li>Extension operates only when explicitly activated</li>
-                  <li>No automatic or background data collection</li>
+                  <li>
+                    No data transmission means no transmission security concerns
+                  </li>
+                  <li>No local storage or caching of any data</li>
+                  <li>
+                    Extension operates only when you click the popup button
+                  </li>
+                  <li>No automatic, background, or scheduled operations</li>
                 </ul>
               </div>
             </div>
@@ -186,17 +192,22 @@ export default function ExtensionPrivacyPage() {
                   <li>Uninstall the extension anytime from browser settings</li>
                   <li>Extension only runs when you click it</li>
                   <li>No automatic or scheduled operations</li>
-                  <li>Full control over when credentials are extracted</li>
+                  <li>Full control over when tokens are displayed</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-lg font-medium mb-2">Data Control</h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  <li>Revoke Wolt tokens anytime from your Wolt account</li>
-                  <li>Remove stored tokens from WoltFlow settings</li>
-                  <li>No data remains in extension after use</li>
-                  <li>Complete control over automation settings</li>
+                  <li>
+                    Tokens displayed are your existing Wolt authentication
+                    cookies
+                  </li>
+
+                  <li>
+                    You control if/when/where you use the copied token
+                    information
+                  </li>
                 </ul>
               </div>
             </div>
@@ -210,30 +221,29 @@ export default function ExtensionPrivacyPage() {
               Third-Party Services
             </h2>
             <p className="text-muted-foreground mb-4">
-              The extension interacts with the following services:
+              The extension only accesses browser cookies - it does not
+              communicate with any external services or servers:
             </p>
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-medium mb-2">Wolt Services</h3>
+                <h3 className="text-lg font-medium mb-2">Cookie Access Only</h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
                   <li>
-                    <strong>wolt.com:</strong> Main Wolt website where tokens
-                    are extracted
+                    <strong>*.wolt.com cookies:</strong> Extension reads your
+                    existing authentication cookies from Wolt domains
                   </li>
                   <li>
-                    <strong>consumer-api.wolt.com:</strong> Wolt API endpoints
+                    <strong>No API calls:</strong> Extension never communicates
+                    with Wolt servers or any other servers
                   </li>
-                  <li>Extension reads existing authentication data only</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium mb-2">WoltFlow Services</h3>
-                <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  <li>Your WoltFlow account receives extracted tokens</li>
-                  <li>Tokens stored securely in WoltFlow infrastructure</li>
-                  <li>Subject to main WoltFlow Privacy Policy</li>
+                  <li>
+                    <strong>No WoltFlow communication:</strong> Extension does
+                    not send any data to WoltFlow servers
+                  </li>
+                  <li>
+                    Extension only reads existing authentication data locally
+                  </li>
                 </ul>
               </div>
             </div>
@@ -250,10 +260,12 @@ export default function ExtensionPrivacyPage() {
 
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <p>
-                <strong>Extension Developer:</strong> Shalev Ben Moshe
+                <strong>Extension Developer:</strong>{" "}
+                {EXTENSION_PRIVACY_POLICY_CONFIG.extensionDeveloper}
               </p>
               <p>
-                <strong>Email:</strong> privacy@woltflow.com
+                <strong>Email:</strong>{" "}
+                {EXTENSION_PRIVACY_POLICY_CONFIG.contactEmail}
               </p>
               <p>
                 <strong>Website:</strong>{" "}
@@ -300,11 +312,12 @@ export default function ExtensionPrivacyPage() {
           {/* Effective Date */}
           <section className="text-center">
             <p className="text-sm text-muted-foreground">
-              This Extension Privacy Policy is effective as of January 15, 2025.
+              This Extension Privacy Policy is effective as of{" "}
+              {EXTENSION_PRIVACY_POLICY_CONFIG.lastUpdated}.
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              By installing and using the WoltFlow extension, you acknowledge
-              that you have read and understood this Privacy Policy.
+              By installing and using the WoltFlow Token Reviewer extension, you
+              acknowledge that you have read and understood this Privacy Policy.
             </p>
           </section>
         </CardContent>

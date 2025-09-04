@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "../components/shared/LoadingScreen";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

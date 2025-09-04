@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { DocsLayout } from "./DocsLayout";
+import { DocsLayout } from "../components/pages/docs/DocsLayout";
+import NotFound from "@/pages/NotFound";
 
 export function DocsRouter() {
   return (
@@ -35,7 +36,7 @@ export function DocsRouter() {
       <Route path="inbox" element={<DocsLayout currentSection="inbox" />} />
 
       {/* Fallback - redirect any unknown docs path to introduction */}
-      <Route path="*" element={<Navigate to="/docs/introduction" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
