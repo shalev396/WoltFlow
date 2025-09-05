@@ -171,24 +171,67 @@ export const handler = async (
       );
     }
 
-    // Find the PDF attachment URL
-    const attachmentUrls = woltEmail.attachmentUrls || [];
+    // Find the PDF attachment URL with retry logic for attachment processing
     let pdfUrl: string | null = null;
+    const maxAttachmentRetries = 5;
+    const attachmentRetryDelay = 3000; // 3 seconds
 
-    // Look for the specific Wolt gift card PDF
-    for (const url of attachmentUrls) {
-      if (
-        url.includes("Wolt_gift_card_English_1.pdf") ||
-        url.includes("Wolt gift card English 1.pdf")
-      ) {
-        pdfUrl = url;
+    for (
+      let attachmentAttempt = 1;
+      attachmentAttempt <= maxAttachmentRetries;
+      attachmentAttempt++
+    ) {
+      console.log(
+        `Attachment search attempt ${attachmentAttempt}/${maxAttachmentRetries}`
+      );
+
+      // Refresh email record to get latest attachmentUrls
+      await woltEmail.reload();
+      const attachmentUrls = woltEmail.attachmentUrls || [];
+
+      console.log(
+        `Found ${attachmentUrls.length} attachments: ${JSON.stringify(
+          attachmentUrls
+        )}`
+      );
+
+      // Look for the specific Wolt gift card PDF
+      for (const url of attachmentUrls) {
+        if (
+          url.includes("Wolt_gift_card_English_1.pdf") ||
+          url.includes("Wolt gift card English 1.pdf")
+        ) {
+          pdfUrl = url;
+          break;
+        }
+      }
+
+      if (pdfUrl) {
+        console.log(
+          `PDF found on attachment attempt ${attachmentAttempt}: ${pdfUrl}`
+        );
         break;
+      }
+
+      // If no PDF found and this isn't the last attempt, wait
+      if (attachmentAttempt < maxAttachmentRetries) {
+        console.log(
+          `No PDF found, waiting ${
+            attachmentRetryDelay / 1000
+          } seconds for attachment processing...`
+        );
+        await wait(attachmentRetryDelay);
       }
     }
 
     if (!pdfUrl) {
+      console.error(
+        `PDF attachment not found after ${maxAttachmentRetries} attempts`
+      );
       await run.update({ status: "failed" });
-      throw new Error("PDF attachment not found");
+      throw new Error(
+        "PDF attachment not found after attachment processing retries"
+      );
     }
 
     // Parse S3 URL (format: s3://bucket-name/key/path/file.pdf)
