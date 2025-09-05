@@ -559,6 +559,21 @@ functions:
           method: post
 
   # ================================
+  # DASHBOARD FUNCTIONS
+  # ================================
+  getDashboard:
+    handler: ./build/dashboard/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/dashboard/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/dashboard
+          method: get
+
+  # ================================
   # HEALTH FUNCTIONS
   # ================================
   healthCheck:

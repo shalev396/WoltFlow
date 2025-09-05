@@ -1,38 +1,48 @@
 import { TrendingUp, Calendar, CheckCircle, Clock } from "lucide-react";
 import StatCard from "@/components/shared/StatCard";
-import { useRecentRunsQuery } from "@/queries/runs";
+import type { DashboardAnalytics } from "@/types/api";
 
-export default function MetricsGrid() {
-  const { data: recentRuns, isLoading } = useRecentRunsQuery(10);
+interface MetricsGridProps {
+  analytics?: DashboardAnalytics;
+  isLoading: boolean;
+}
 
-  // Calculate metrics from real data
-  const totalRuns = recentRuns?.length ?? 0;
-  const successfulRuns =
-    recentRuns?.filter((run) => run.status === "completed").length ?? 0;
-  const successRate =
-    totalRuns > 0 ? Math.round((successfulRuns / totalRuns) * 100) : 0;
+export default function MetricsGrid({
+  analytics,
+  isLoading,
+}: MetricsGridProps) {
+  // Use analytics data if available, fallback to 0
+  const totalRuns = analytics?.totalRuns ?? 0;
+  const successfulRuns = analytics?.successfulRuns ?? 0;
+  const successRate = analytics?.successRate ?? 0;
+  const totalSavings = analytics?.totalSavings ?? 0;
+  const daysSinceLastRun = analytics?.daysSinceLastRun;
+  const savingsGrowth = analytics?.trendComparison.savingsGrowthPercentage ?? 0;
+  const runsGrowth = analytics?.trendComparison.runsGrowthPercentage ?? 0;
 
-  // Calculate estimated monthly savings (₪40 per successful run as example)
-  const avgSavingsPerRun = 40;
-  const estimatedMonthlySavings = successfulRuns * avgSavingsPerRun;
-
-  // Calculate days since last run
-  const lastRun = recentRuns?.[0];
-  const daysSinceLastRun = lastRun
-    ? Math.floor(
-        (Date.now() - new Date(lastRun.createdAt).getTime()) /
-          (1000 * 60 * 60 * 24)
-      )
-    : null;
+  const getTimeRangeDescription = (timeRange?: string) => {
+    switch (timeRange) {
+      case "7d":
+        return "Last 7 days";
+      case "90d":
+        return "Last 90 days";
+      default:
+        return "Last 30 days";
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <StatCard
-        title="Monthly Savings"
-        value={`₪${estimatedMonthlySavings.toLocaleString()}`}
-        description="Estimated this month"
+        title="Total Savings"
+        value={`₪${totalSavings.toLocaleString()}`}
+        description={getTimeRangeDescription(analytics?.timeRange)}
         icon={TrendingUp}
-        trend={{ value: 12, isPositive: true, label: "vs last month" }}
+        trend={{
+          value: Math.abs(savingsGrowth),
+          isPositive: savingsGrowth >= 0,
+          label: "vs previous period",
+        }}
         isLoading={isLoading}
         variant="success"
       />
@@ -40,9 +50,13 @@ export default function MetricsGrid() {
       <StatCard
         title="Success Rate"
         value={`${successRate}%`}
-        description="Last 10 runs"
+        description={`${successfulRuns} successful runs`}
         icon={CheckCircle}
-        trend={{ value: 2.1, isPositive: true, label: "improvement" }}
+        trend={{
+          value: Math.abs(runsGrowth),
+          isPositive: runsGrowth >= 0,
+          label: "vs previous period",
+        }}
         isLoading={isLoading}
         variant="default"
       />
@@ -50,7 +64,7 @@ export default function MetricsGrid() {
       <StatCard
         title="Total Runs"
         value={totalRuns.toString()}
-        description="This month"
+        description={getTimeRangeDescription(analytics?.timeRange)}
         icon={Calendar}
         isLoading={isLoading}
         variant="default"
@@ -58,7 +72,13 @@ export default function MetricsGrid() {
 
       <StatCard
         title="Last Run"
-        value={daysSinceLastRun !== null ? `${daysSinceLastRun}d ago` : "Never"}
+        value={
+          daysSinceLastRun !== null && daysSinceLastRun !== undefined
+            ? daysSinceLastRun === 0
+              ? "Today"
+              : `${daysSinceLastRun}d ago`
+            : "Never"
+        }
         description="Days since last execution"
         icon={Clock}
         isLoading={isLoading}

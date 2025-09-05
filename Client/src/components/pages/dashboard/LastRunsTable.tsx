@@ -12,10 +12,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRecentRunsQuery } from "@/queries/runs";
 
 import { RunDetailsDialog } from "@/components/shared/RunDetailsDialog";
 import { Link } from "react-router-dom";
+import type { DashboardAnalytics } from "@/types/api";
 
 const getStatusBadge = (status: string) => {
   const baseClasses =
@@ -28,6 +28,8 @@ const getStatusBadge = (status: string) => {
       return `${baseClasses} bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300`;
     case "in_progress":
       return `${baseClasses} bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300`;
+    case "started":
+      return `${baseClasses} bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300`;
     default:
       return `${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300`;
   }
@@ -41,6 +43,8 @@ const getStatusIcon = (status: string) => {
       return "✕ ";
     case "in_progress":
       return "⋯ ";
+    case "started":
+      return "▶ ";
     default:
       return "";
   }
@@ -49,13 +53,21 @@ const getStatusIcon = (status: string) => {
 type SortField = "createdAt" | "status";
 type SortDirection = "asc" | "desc";
 
-export default function LastRunsTable() {
-  const { data: runs, isLoading } = useRecentRunsQuery(8);
+interface LastRunsTableProps {
+  analytics?: DashboardAnalytics;
+  isLoading: boolean;
+}
+
+export default function LastRunsTable({
+  analytics,
+  isLoading,
+}: LastRunsTableProps) {
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   const sortedRuns = useMemo(() => {
-    if (!runs) return [];
+    const runs = analytics?.recentRuns || [];
+    if (!runs || runs.length === 0) return [];
 
     return [...runs].sort((a, b) => {
       let aValue, bValue;
@@ -77,7 +89,7 @@ export default function LastRunsTable() {
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
-  }, [runs, sortField, sortDirection]);
+  }, [analytics?.recentRuns, sortField, sortDirection]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -109,10 +121,28 @@ export default function LastRunsTable() {
     </button>
   );
 
+  const getTimeRangeDescription = (timeRange?: string) => {
+    switch (timeRange) {
+      case "7d":
+        return "Last 7 days";
+      case "90d":
+        return "Last 90 days";
+      default:
+        return "Last 30 days";
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="text-lg font-semibold">Recent Runs</CardTitle>
+        <div>
+          <CardTitle className="text-lg font-semibold">Recent Runs</CardTitle>
+          {analytics && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {getTimeRangeDescription(analytics.timeRange)}
+            </p>
+          )}
+        </div>
         <Button variant="ghost" size="sm" asChild>
           <Link to="/runs" className="flex items-center gap-1">
             View All
@@ -134,7 +164,7 @@ export default function LastRunsTable() {
               </div>
             ))}
           </div>
-        ) : !runs || runs.length === 0 ? (
+        ) : !sortedRuns || sortedRuns.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <p className="mb-2">No runs yet</p>
             <p className="text-sm">Your automation runs will appear here</p>
@@ -170,13 +200,18 @@ export default function LastRunsTable() {
                     <TableCell className="py-3">
                       <span className={getStatusBadge(run.status)}>
                         {getStatusIcon(run.status)}
-                        {run.status.charAt(0).toUpperCase() +
-                          run.status.slice(1)}
+                        {run.status === "in_progress"
+                          ? "In Progress"
+                          : run.status.charAt(0).toUpperCase() +
+                            run.status.slice(1)}
                       </span>
                     </TableCell>
                     <TableCell className="py-3">
                       <span className="font-medium">
-                        {run.automationMode === "full-run" ? "₪40" : "—"}
+                        {run.status === "completed" &&
+                        run.automationMode === "full-run"
+                          ? `₪${analytics?.averageSavingsPerRun || 40}`
+                          : "—"}
                       </span>
                     </TableCell>
                     <TableCell className="py-3">

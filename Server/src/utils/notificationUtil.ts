@@ -388,7 +388,7 @@ async function sendEmailErrorNotification(
       "{{RUN_MODE}}": run.automationMode,
       //TODO: Uncomment when giftAmount is implemented
       //run.amount.toString() ||
-      "{{RUN_AMOUNT}}": "0",
+      // "{{RUN_AMOUNT}}": "0",
       "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };
@@ -572,7 +572,7 @@ async function sendEmailSuccessNotification(
       "{{RUN_MODE}}": run.automationMode,
       //TODO: Uncomment when giftAmount is implemented
       //run.amount.toString() ||
-      "{{RUN_AMOUNT}}": "0",
+      // "{{RUN_AMOUNT}}": "0",
       "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };

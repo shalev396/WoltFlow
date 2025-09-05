@@ -18,6 +18,11 @@ export interface Pagination extends APIGatewayProxyEventQueryStringParameters {
   endDate?: string;
 }
 
+export interface DashboardFilter
+  extends APIGatewayProxyEventQueryStringParameters {
+  timeRange?: string;
+}
+
 export interface RunFilter extends Pagination {
   status?: string;
   stage?: string;
@@ -38,6 +43,12 @@ export interface ICustomAPIGatewayProxyEventPaginate
   extends ICustomAPIGatewayProxyEventAuth {
   // Now compatible (still has the index signature)
   queryStringParameters?: Pagination;
+}
+
+export interface ICustomAPIGatewayProxyEventDashboard
+  extends ICustomAPIGatewayProxyEventAuth {
+  // Now compatible (still has the index signature)
+  queryStringParameters?: DashboardFilter;
 }
 
 export interface ICustomAPIGatewayProxyEventPaginateForRun

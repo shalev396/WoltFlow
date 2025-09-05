@@ -1,25 +1,33 @@
-import { TrendingUp, DollarSign, Calendar } from "lucide-react";
+import { TrendingUp, DollarSign, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRecentRunsQuery } from "@/queries/runs";
+import type { DashboardAnalytics } from "@/types/api";
 
-export default function SavingsOverviewCard() {
-  const { data: recentRuns, isLoading } = useRecentRunsQuery(30); // Last 30 runs for monthly view
+interface SavingsOverviewCardProps {
+  analytics?: DashboardAnalytics;
+  isLoading: boolean;
+}
 
-  // Calculate savings metrics from real data
-  const successfulRuns =
-    recentRuns?.filter((run) => run.status === "completed") ?? [];
-  const avgSavingsPerRun = 40; // ₪40 per successful run as example
-  const totalSavings = successfulRuns.length * avgSavingsPerRun;
+export default function SavingsOverviewCard({
+  analytics,
+  isLoading,
+}: SavingsOverviewCardProps) {
+  // Use analytics data
+  const totalSavings = analytics?.totalSavings ?? 0;
+  const successfulRuns = analytics?.successfulRuns ?? 0;
+  const avgSavingsPerRun = analytics?.averageSavingsPerRun ?? 40;
+  const savingsGrowthPercentage =
+    analytics?.trendComparison.savingsGrowthPercentage ?? 0;
 
-  // Calculate monthly trend (compare last 15 vs previous 15 runs)
-  const recentHalf = successfulRuns.slice(0, 15);
-  const previousHalf = successfulRuns.slice(15, 30);
-  const recentSavings = recentHalf.length * avgSavingsPerRun;
-  const previousSavings = previousHalf.length * avgSavingsPerRun;
-  const trendPercentage =
-    previousSavings > 0
-      ? Math.round(((recentSavings - previousSavings) / previousSavings) * 100)
-      : 0;
+  const getTimeRangeLabel = (timeRange?: string) => {
+    switch (timeRange) {
+      case "7d":
+        return "this week";
+      case "90d":
+        return "last 3 months";
+      default:
+        return "this month";
+    }
+  };
 
   return (
     <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800">
@@ -34,8 +42,8 @@ export default function SavingsOverviewCard() {
           <div className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
             <TrendingUp className="h-4 w-4" />
             <span>
-              {trendPercentage >= 0 ? "+" : ""}
-              {trendPercentage}%
+              {savingsGrowthPercentage >= 0 ? "+" : ""}
+              {savingsGrowthPercentage}%
             </span>
           </div>
         </CardTitle>
@@ -52,7 +60,8 @@ export default function SavingsOverviewCard() {
               )}
             </div>
             <p className="text-green-700 dark:text-green-300 text-sm">
-              This month from automated claims
+              Saved {getTimeRangeLabel(analytics?.timeRange)} from automated
+              claims
             </p>
           </div>
 
@@ -63,7 +72,7 @@ export default function SavingsOverviewCard() {
                 {isLoading ? (
                   <div className="h-6 w-8 bg-green-200 dark:bg-green-800/50 animate-pulse rounded" />
                 ) : (
-                  successfulRuns.length
+                  successfulRuns
                 )}
               </div>
               <p className="text-xs text-green-700 dark:text-green-300">
@@ -80,16 +89,21 @@ export default function SavingsOverviewCard() {
             </div>
           </div>
 
-          {/* Monthly projection */}
-          <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
-              <Calendar className="h-4 w-4" />
-              <span>
-                On track for ₪{Math.round(totalSavings * 1.2).toLocaleString()}{" "}
-                this month
-              </span>
+          {/* Growth indicator */}
+          {analytics && analytics.timeRange !== "90d" && (
+            <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+                <Target className="h-4 w-4" />
+                <span>
+                  {savingsGrowthPercentage >= 0
+                    ? `Growing ${savingsGrowthPercentage}% vs previous period`
+                    : `Down ${Math.abs(
+                        savingsGrowthPercentage
+                      )}% vs previous period`}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
