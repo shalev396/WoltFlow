@@ -27,15 +27,32 @@ jobs:
         with:
           node-version: 22
 
-      - name: Load environment variables from ENV
+      - name: Load environment variables for dev
+        if: github.ref == 'refs/heads/dev'
         run: |
-          echo '${{ secrets.ENV }}' > .env
-        working-directory: Client
+          echo '${{ secrets.ENV_DEV }}' > .env.dev
+        working-directory: Server
 
-      - name: Export .env variables
+      - name: Load environment variables for prod
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo '${{ secrets.ENV_PROD }}' > .env.prod
+        working-directory: Server
+
+      - name: Export .env.dev variables
+        if: github.ref == 'refs/heads/dev'
         uses: falti/dotenv-action@v1.1.4
         with:
-          path: Client/.env
+          path: Server/.env.dev
+          export-variables: true
+          keys-case: bypass
+          mask-variables: true
+
+      - name: Export .env.prod variables
+        if: github.ref == 'refs/heads/main'
+        uses: falti/dotenv-action@v1.1.4
+        with:
+          path: Server/.env.prod
           export-variables: true
           keys-case: bypass
           mask-variables: true
