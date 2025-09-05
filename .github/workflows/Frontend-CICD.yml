@@ -71,14 +71,8 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
-      - name: Deploy to Dev S3 and CloudFront
+      - name: Deploy to S3 and CloudFront
         if: github.ref == 'refs/heads/dev'
         run: |
-          aws s3 sync ./Client/dist s3://${{ env.S3_BUCKET_NAME_DEV }}/ --delete
-          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID_DEV }} --paths "/*"
-
-      - name: Deploy to Prod S3 and CloudFront
-        if: github.ref == 'refs/heads/main'
-        run: |
-          aws s3 sync ./Client/dist s3://${{ env.S3_BUCKET_NAME_PROD }}/ --delete
-          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID_PROD }} --paths "/*"
+          aws s3 sync ./Client/dist s3://${{ env.S3_CLIENT_BUCKET_NAME }}/ --delete
+          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
