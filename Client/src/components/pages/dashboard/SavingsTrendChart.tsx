@@ -13,20 +13,14 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
 import type { DashboardAnalytics, TimeRange } from "@/types/api";
 
 const chartConfig = {
   savings: {
-    label: "Cumulative",
+    label: "Cumulative Savings",
     color: "hsl(var(--chart-1))",
-  },
-  dailyAmount: {
-    label: "Daily",
-    color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig;
 
@@ -41,9 +35,18 @@ export default function SavingsTrendChart({
   isLoading,
   timeRange,
 }: SavingsTrendChartProps) {
-  const chartData = analytics?.chartData || [];
-  const totalSavings = chartData[chartData.length - 1]?.savings || 0;
-  const successfulDays = chartData.filter((d) => d.dailyAmount > 0).length;
+  const rawChartData = analytics?.chartData || [];
+  const totalSavings = analytics?.totalSavings || 0;
+  const successfulDays = rawChartData.filter((d) => d.dailyAmount > 0).length;
+
+  // Filter out leading zero data points to make chart more readable
+  const firstNonZeroIndex = rawChartData.findIndex(
+    (d) => d.savings > 0 || d.dailyAmount > 0
+  );
+  const chartData =
+    firstNonZeroIndex >= 0
+      ? rawChartData.slice(firstNonZeroIndex)
+      : rawChartData;
 
   const getTimeRangeLabel = (range: TimeRange) => {
     switch (range) {
@@ -75,7 +78,7 @@ export default function SavingsTrendChart({
           <div className="h-[250px] flex items-center justify-center">
             <div className="text-muted-foreground">Loading chart...</div>
           </div>
-        ) : !chartData || chartData.length === 0 || totalSavings === 0 ? (
+        ) : !chartData || chartData.length === 0 ? (
           <div className="h-[250px] flex items-center justify-center">
             <div className="text-center text-muted-foreground">
               <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -96,30 +99,12 @@ export default function SavingsTrendChart({
                   <linearGradient id="fillSavings" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="5%"
-                      stopColor="var(--color-savings)"
+                      stopColor="hsl(var(--chart-1))"
                       stopOpacity={0.8}
                     />
                     <stop
                       offset="95%"
-                      stopColor="var(--color-savings)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient
-                    id="fillDailyAmount"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-dailyAmount)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-dailyAmount)"
+                      stopColor="hsl(var(--chart-1))"
                       stopOpacity={0.1}
                     />
                   </linearGradient>
@@ -151,28 +136,19 @@ export default function SavingsTrendChart({
                         });
                       }}
                       indicator="dot"
-                      formatter={(value: number, name: string) => [
+                      formatter={(value: number) => [
                         `₪${value.toLocaleString()}`,
-                        name === "savings" ? "Cumulative" : "Daily",
+                        "Cumulative Savings",
                       ]}
                     />
                   }
                 />
                 <Area
-                  dataKey="dailyAmount"
-                  type="natural"
-                  fill="url(#fillDailyAmount)"
-                  stroke="var(--color-dailyAmount)"
-                  stackId="a"
-                />
-                <Area
                   dataKey="savings"
                   type="natural"
                   fill="url(#fillSavings)"
-                  stroke="var(--color-savings)"
-                  stackId="a"
+                  stroke="hsl(var(--chart-1))"
                 />
-                <ChartLegend content={<ChartLegendContent />} />
               </AreaChart>
             </ChartContainer>
 
