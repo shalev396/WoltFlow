@@ -386,9 +386,7 @@ async function sendEmailErrorNotification(
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
       "{{RUN_STAGE}}": run.stage,
       "{{RUN_MODE}}": run.automationMode,
-      //TODO: Uncomment when giftAmount is implemented
-      //run.amount.toString() ||
-      // "{{RUN_AMOUNT}}": "0",
+      "{{RUN_AMOUNT}}": run.amount ? Number(run.amount).toLocaleString() : "0",
       "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };
@@ -449,8 +447,6 @@ async function sendEmailErrorNotification(
         );
       }
     }
-    //TODO: Uncomment when giftAmount is implemented
-    //- Amount: ₪${run.amount}
     // Create text version
     const textBody = `WoltFlow Error Notification
 
@@ -463,7 +459,7 @@ Run Details:
 - Status: ${run.status}
 - Current Stage: ${run.stage}
 - Mode: ${run.automationMode}
-
+- Amount: ₪${run.amount ? Number(run.amount).toLocaleString() : "0"}
 - Started: ${formatDate(run.createdAt)}
 - Last Updated: ${formatDate(run.updatedAt)}
 
@@ -570,9 +566,7 @@ async function sendEmailSuccessNotification(
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
       "{{RUN_STAGE}}": run.stage,
       "{{RUN_MODE}}": run.automationMode,
-      //TODO: Uncomment when giftAmount is implemented
-      //run.amount.toString() ||
-      // "{{RUN_AMOUNT}}": "0",
+      "{{RUN_AMOUNT}}": run.amount ? Number(run.amount).toLocaleString() : "0",
       "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };
@@ -635,9 +629,6 @@ async function sendEmailSuccessNotification(
         );
       }
     }
-    //TODO: Uncomment when giftAmount is implemented
-    //- Amount: ₪${run.amount}
-
     // Create text version
     const textBody = `WoltFlow Success Notification
 
@@ -650,6 +641,7 @@ Run Details:
 - Status: ${run.status}
 - Final Stage: ${run.stage}
 - Mode: ${run.automationMode}
+- Amount: ₪${run.amount ? Number(run.amount).toLocaleString() : "0"}
 - Started: ${formatDate(run.createdAt)}
 - Completed: ${formatDate(run.updatedAt)}
 

@@ -47,7 +47,6 @@ export interface ICustomAPIGatewayProxyEventPaginate
 
 export interface ICustomAPIGatewayProxyEventDashboard
   extends ICustomAPIGatewayProxyEventAuth {
-  // Now compatible (still has the index signature)
   queryStringParameters?: DashboardFilter;
 }
 

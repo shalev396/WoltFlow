@@ -17,8 +17,9 @@ export default function MetricsGrid({
   const successRate = analytics?.successRate ?? 0;
   const totalSavings = analytics?.totalSavings ?? 0;
   const daysSinceLastRun = analytics?.daysSinceLastRun;
-  const savingsGrowth = analytics?.trendComparison.savingsGrowthPercentage ?? 0;
-  const runsGrowth = analytics?.trendComparison.runsGrowthPercentage ?? 0;
+  const savingsGrowth =
+    analytics?.trendComparison?.savingsGrowthPercentage ?? 0;
+  const runsGrowth = analytics?.trendComparison?.runsGrowthPercentage ?? 0;
 
   const getTimeRangeDescription = (timeRange?: string) => {
     switch (timeRange) {

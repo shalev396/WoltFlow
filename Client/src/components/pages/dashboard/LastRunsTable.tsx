@@ -208,9 +208,8 @@ export default function LastRunsTable({
                     </TableCell>
                     <TableCell className="py-3">
                       <span className="font-medium">
-                        {run.status === "completed" &&
-                        run.automationMode === "full-run"
-                          ? `₪${analytics?.averageSavingsPerRun || 40}`
+                        {run.status === "completed" && run.amount
+                          ? `₪${Number(run.amount).toLocaleString()}`
                           : "—"}
                       </span>
                     </TableCell>

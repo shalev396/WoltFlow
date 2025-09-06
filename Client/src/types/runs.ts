@@ -15,6 +15,7 @@ export interface Run {
     | "applying_gift"
     | "completed";
   automationMode: "full-run" | "buy-only" | "cross-account";
+  amount: number | null; // Gift card amount for this run
   errorMessage: string | null;
   createdAt: Date;
   updatedAt: Date;

@@ -65,6 +65,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           "status",
           "stage",
           "automationMode",
+          "amount",
           "errorMessage",
           "createdAt",
           "updatedAt",

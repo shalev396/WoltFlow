@@ -14,6 +14,7 @@ export default class Run extends Model {
     | "completed";
 
   declare automationMode: "full-run" | "buy-only" | "cross-account"; // Copied from user settings at creation
+  declare amount: number | null; // Gift card amount for this run (copied from user settings at creation)
   declare errorMessage: string | null; // Error message if failed
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -59,7 +60,12 @@ Run.init(
       allowNull: false,
       defaultValue: "full-run",
     },
-
+    amount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      comment:
+        "Gift card amount for this run (copied from user settings at creation)",
+    },
     errorMessage: {
       type: DataTypes.TEXT,
       allowNull: true,

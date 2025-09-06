@@ -16,7 +16,7 @@ export default function SavingsOverviewCard({
   const successfulRuns = analytics?.successfulRuns ?? 0;
   const avgSavingsPerRun = analytics?.averageSavingsPerRun ?? 40;
   const savingsGrowthPercentage =
-    analytics?.trendComparison.savingsGrowthPercentage ?? 0;
+    analytics?.trendComparison?.savingsGrowthPercentage ?? 0;
 
   const getTimeRangeLabel = (timeRange?: string) => {
     switch (timeRange) {

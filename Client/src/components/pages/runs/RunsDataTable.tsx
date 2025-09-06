@@ -179,13 +179,13 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
     ),
   },
   {
-    accessorKey: "automationMode",
+    accessorKey: "amount",
     header: "Amount",
     cell: ({ row }) => {
-      const mode = row.getValue("automationMode") as string;
+      const amount = row.getValue("amount") as number | null;
       return (
         <span className="font-medium text-foreground">
-          {mode === "full-run" ? "₪40" : "—"}
+          {amount && amount > 0 ? `₪${Number(amount).toLocaleString()}` : "—"}
         </span>
       );
     },

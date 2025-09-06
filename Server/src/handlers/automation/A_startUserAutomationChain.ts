@@ -84,6 +84,7 @@ export const handler = async (): Promise<ICustomStepFunctionResult> => {
           status: "started",
           stage: "triggered",
           automationMode: runSettings.automationMode || "full-run",
+          amount: runSettings.giftAmount || null,
           errorMessage: null,
         });
 

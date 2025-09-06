@@ -135,6 +135,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           "status",
           "stage",
           "automationMode",
+          "amount",
           "errorMessage",
           "createdAt",
           "updatedAt",
@@ -159,9 +160,19 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       const successRate =
         totalRuns > 0 ? Math.round((successfulRunsCount / totalRuns) * 100) : 0;
 
-      // Calculate savings (₪40 per successful full-run, ₪0 for buy-only)
-      const averageSavingsPerRun = 40; // ILS per successful run
-      const totalSavings = successfulRunsCount * averageSavingsPerRun;
+      // Calculate savings from actual run amounts
+      const successfulRunAmounts = successfulRuns
+        .map((run) => Number(run.amount) || 0)
+        .filter((amount) => amount > 0);
+
+      const totalSavings = successfulRunAmounts.reduce(
+        (sum, amount) => sum + amount,
+        0
+      );
+      const averageSavingsPerRun =
+        successfulRunAmounts.length > 0
+          ? Math.round(totalSavings / successfulRunAmounts.length)
+          : 0;
 
       // Calculate days since last run
       const lastRun =
@@ -174,19 +185,16 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         : null;
 
       // Generate chart data (daily aggregation)
-      const chartData = generateChartData(
-        currentPeriodRuns,
-        days,
-        averageSavingsPerRun
-      );
+      const chartData = generateChartData(currentPeriodRuns, days);
 
       // Calculate trend comparison
       const previousPeriodRunsCount = previousPeriodRuns.length;
       const previousPeriodSuccessfulRuns = previousPeriodRuns.filter(
         (run) => run.status === "completed"
-      ).length;
-      const previousPeriodSavings =
-        previousPeriodSuccessfulRuns * averageSavingsPerRun;
+      );
+      const previousPeriodSavings = previousPeriodSuccessfulRuns
+        .map((run) => Number(run.amount) || 0)
+        .reduce((sum, amount) => sum + amount, 0);
 
       const runsGrowthPercentage = calculateGrowthPercentage(
         previousPeriodRunsCount,
@@ -243,8 +251,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
  */
 function generateChartData(
   runs: Run[],
-  days: number,
-  averageSavingsPerRun: number
+  days: number
 ): Array<{
   date: string;
   savings: number;
@@ -279,7 +286,9 @@ function generateChartData(
     const dailySuccessfulRuns = dailyRuns.filter(
       (run) => run.status === "completed"
     );
-    const dailyAmount = dailySuccessfulRuns.length * averageSavingsPerRun;
+    const dailyAmount = dailySuccessfulRuns
+      .map((run) => Number(run.amount) || 0)
+      .reduce((sum, amount) => sum + amount, 0);
     cumulativeSavings += dailyAmount;
 
     const isoDate = date.toISOString().split("T")[0];
