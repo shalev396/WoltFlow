@@ -13,17 +13,19 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
 import type { DashboardAnalytics, TimeRange } from "@/types/api";
 
 const chartConfig = {
   savings: {
-    label: "Savings",
+    label: "Cumulative",
     color: "hsl(var(--chart-1))",
   },
   dailyAmount: {
-    label: "Daily Amount",
+    label: "Daily",
     color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig;
@@ -103,6 +105,24 @@ export default function SavingsTrendChart({
                       stopOpacity={0.1}
                     />
                   </linearGradient>
+                  <linearGradient
+                    id="fillDailyAmount"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-dailyAmount)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-dailyAmount)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} />
                 <XAxis
@@ -133,18 +153,26 @@ export default function SavingsTrendChart({
                       indicator="dot"
                       formatter={(value: number, name: string) => [
                         `₪${value.toLocaleString()}`,
-                        name === "savings" ? "Total Savings" : "Daily Amount",
+                        name === "savings" ? "Cumulative" : "Daily",
                       ]}
                     />
                   }
+                />
+                <Area
+                  dataKey="dailyAmount"
+                  type="natural"
+                  fill="url(#fillDailyAmount)"
+                  stroke="var(--color-dailyAmount)"
+                  stackId="a"
                 />
                 <Area
                   dataKey="savings"
                   type="natural"
                   fill="url(#fillSavings)"
                   stroke="var(--color-savings)"
-                  strokeWidth={2}
+                  stackId="a"
                 />
+                <ChartLegend content={<ChartLegendContent />} />
               </AreaChart>
             </ChartContainer>
 

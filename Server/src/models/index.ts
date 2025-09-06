@@ -13,8 +13,16 @@ import Run from "./Run.js";
 import Code from "./Code.js";
 import Screenshot from "./Screenshot.js";
 
+// Track if relationships have been initialized to prevent duplicates
+let relationshipsInitialized = false;
+
 // Define all relationships here to avoid circular dependency issues
 function initializeModelRelationships() {
+  // Prevent duplicate initialization
+  if (relationshipsInitialized) {
+    return;
+  }
+  relationshipsInitialized = true;
   // ============================================================================
   // USER RELATIONSHIPS
   // ============================================================================

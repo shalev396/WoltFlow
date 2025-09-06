@@ -23,7 +23,6 @@ export interface UserInbox {
   userId: string;
   emailAddress: string;
   sesIdentityArn: string | null;
-  sesVerificationStatus: "pending" | "success" | "failed" | "temporary_failure";
   createdAt: string;
   updatedAt: string;
   user: {

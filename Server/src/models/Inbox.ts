@@ -49,9 +49,6 @@ Inbox.init(
         unique: true,
         fields: ["emailAddress"],
       },
-      {
-        fields: ["sesVerificationStatus"],
-      },
     ],
   }
 );
