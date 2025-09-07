@@ -5,7 +5,7 @@ export default function SavingsHighlight() {
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-normal">
           Maximum Savings, Zero Effort
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -27,7 +27,7 @@ export default function SavingsHighlight() {
             <div className="space-y-4">
               <div>
                 <div className="text-4xl md:text-5xl font-bold text-green-600 dark:text-green-400 mb-2">
-                  ₪1,200
+                  ₪700
                 </div>
                 <p className="text-green-700 dark:text-green-300 text-sm">
                   Per user, per month in meal benefits automatically claimed
@@ -38,11 +38,11 @@ export default function SavingsHighlight() {
                 <p className="text-sm text-muted-foreground">
                   <strong className="text-foreground">Before WoltFlow:</strong>{" "}
                   Users typically lose 30-40% of meal benefits due to forgotten
-                  claims or expired balances
+                  claims
                 </p>
                 <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                  <strong>With WoltFlow:</strong> 100% automated claiming means
-                  0% waste
+                  <strong>With WoltFlow:</strong> Up to 100% automated claiming
+                  means up to 0% waste
                 </p>
               </div>
             </div>
@@ -60,7 +60,7 @@ export default function SavingsHighlight() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                15 min
+                10 min
               </div>
               <p className="text-sm text-blue-700 dark:text-blue-300">
                 Per day that you would spend manually claiming benefits
@@ -77,7 +77,7 @@ export default function SavingsHighlight() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-                99.8%
+                90%
               </div>
               <p className="text-sm text-purple-700 dark:text-purple-300">
                 Success rate for automated benefit claims
@@ -85,13 +85,6 @@ export default function SavingsHighlight() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      <div className="text-center mt-12">
-        <p className="text-sm text-muted-foreground italic">
-          "I haven't manually claimed meal benefits in 6 months. WoltFlow just
-          works." - Real user
-        </p>
       </div>
     </section>
   );

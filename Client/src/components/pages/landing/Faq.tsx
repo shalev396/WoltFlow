@@ -4,22 +4,36 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Link } from "react-router-dom";
 
 const faqData = [
   {
     question: "How does WoltFlow access my Cibus and Wolt accounts?",
     answer:
-      "WoltFlow uses secure, encrypted authentication to connect with your accounts. We store your credentials using bank-level encryption and follow strict security protocols. You maintain full control and can revoke access at any time.",
+      "WoltFlow uses secure, encrypted authentication to connect with your accounts. We store your credentials using AES 256 algorithm encryption. You maintain full control and can revoke access at any time.",
   },
   {
     question: "Is my personal information safe?",
-    answer:
-      "Absolutely. We use industry-standard encryption, store data on secure AWS infrastructure, and follow strict data protection protocols. We never access your personal emails or data beyond what's necessary for the meal benefit automation.",
+    answer: (
+      <>
+        Absolutely. We use industry-standard encryption and store data on secure
+        AWS infrastructure. We never access your personal emails or data beyond
+        what's necessary for the meal benefit automation. You can read more
+        details in our{" "}
+        <Link
+          to="/legal/privacy-policy"
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors underline underline-offset-2"
+        >
+          privacy policy
+        </Link>
+        .
+      </>
+    ),
   },
   {
     question: "What happens if something goes wrong?",
     answer:
-      "WoltFlow includes comprehensive error handling and will notify you immediately if any issues occur. Our system automatically retries failed operations and provides detailed logs. You can also manually trigger runs or disable automation at any time.",
+      "WoltFlow includes comprehensive error handling and will notify you immediately if any issues occur. You can disable automation at any time from your settings.",
   },
   {
     question: "How much does WoltFlow cost?",
@@ -29,12 +43,12 @@ const faqData = [
   {
     question: "Which meal benefit providers are supported?",
     answer:
-      "Currently, WoltFlow supports Cibus meal benefits with Wolt gift card purchases. We're actively working to add support for additional providers like Sodexo, Ten Bis, and others based on user demand.",
+      "Currently, WoltFlow supports Cibus meal benefits with Wolt gift card purchases.",
   },
   {
     question: "Can I customize when the automation runs?",
     answer:
-      "WoltFlow automatically schedules runs at optimal times for the best success rates (typically weekdays at noon). While the timing is optimized for reliability, you can manually trigger runs anytime from your dashboard.",
+      "The automation runs at a specific time, usually around 12:00 PM (noon), but the exact timing may vary. You can see a countdown to the next run on your runs page.",
   },
   {
     question: "What if I need to pause the automation?",
@@ -44,7 +58,7 @@ const faqData = [
   {
     question: "How do I get support if I need help?",
     answer:
-      "You can reach out through our support email or use the help section in your dashboard. We typically respond within a few hours and provide detailed assistance with any setup or operational questions.",
+      "First, check out our comprehensive documentation page where you can find detailed setup guides and troubleshooting information. If you're still having trouble, you can contact our support at shalev396@gmail.com.",
   },
 ];
 
@@ -53,7 +67,7 @@ export default function Faq() {
     <section className="bg-muted/50 py-12 md:py-20">
       <div className="container mx-auto px-4">
         <header className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-normal">
             Frequently Asked Questions
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -74,7 +88,7 @@ export default function Faq() {
                 </AccordionTrigger>
                 <AccordionContent className="pb-6 pt-0">
                   <div className="text-muted-foreground leading-relaxed">
-                    {faq.answer}
+                    {typeof faq.answer === "string" ? faq.answer : faq.answer}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -86,7 +100,7 @@ export default function Faq() {
           <p className="text-muted-foreground">
             Have a different question?{" "}
             <a
-              href="mailto:support@woltflow.com"
+              href="mailto:shalev396@gmail.com"
               className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
             >
               Contact our support team

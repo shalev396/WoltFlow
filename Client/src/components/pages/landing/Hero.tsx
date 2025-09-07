@@ -11,16 +11,16 @@ export default function Hero({ isAuthenticated, onGetStarted }: HeroProps) {
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
       <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-normal">
           WoltFlow
         </h1>
-        <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground leading-tight">
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground leading-normal">
           Automate Your Wolt Gift Card Purchases
         </h2>
         <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-          Never miss out on your meal benefits again. WoltFlow automatically
+          Streamline your meal benefits with automation. WoltFlow automatically
           purchases Wolt gift cards from Cibus daily, saving you time and
-          ensuring maximum benefits utilization.
+          maximizing your benefits utilization.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -31,7 +31,7 @@ export default function Hero({ isAuthenticated, onGetStarted }: HeroProps) {
               className="group w-full sm:w-auto"
             >
               Go to Dashboard
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
           ) : (
             <LoginButton

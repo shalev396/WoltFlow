@@ -9,7 +9,7 @@ interface CtaProps {
 
 const benefits = [
   "Free forever",
-  "5-minute setup",
+  "20-minute setup",
   "No credit card required",
   "Cancel anytime",
 ];
@@ -19,7 +19,7 @@ export default function Cta({ isAuthenticated, onGetStarted }: CtaProps) {
     <section className="container mx-auto px-4 py-12 md:py-20">
       <div className="max-w-4xl mx-auto text-center">
         <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-2xl border-2 border-blue-200 dark:border-blue-800 p-8 md:p-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-normal">
             Ready to Automate Your Savings?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">

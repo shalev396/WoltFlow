@@ -1,4 +1,4 @@
-import { Bot, Shield, Clock, Smartphone, Bell, BarChart3 } from "lucide-react";
+import { Bot, Shield, Key, Smartphone, Bell, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const features = [
@@ -15,9 +15,9 @@ const features = [
   },
   {
     icon: Shield,
-    title: "Bank-Level Security",
+    title: "AES 256 Algorithm Security",
     description:
-      "Your credentials are encrypted and stored using industry-standard security practices.",
+      "Your credentials are encrypted and stored using industry-standard AES 256 encryption.",
     benefits: [
       "End-to-end encryption",
       "Secure AWS infrastructure",
@@ -25,14 +25,14 @@ const features = [
     ],
   },
   {
-    icon: Clock,
-    title: "Perfect Timing",
+    icon: Key,
+    title: "Two-Factor Authentication Support",
     description:
-      "Automatically claims benefits at the best times to maximize success rates.",
+      "Seamlessly handles Cibus 2FA by automatically forwarding SMS codes to our system for verification.",
     benefits: [
-      "Avoids peak traffic",
-      "Respects rate limits",
-      "Optimal success windows",
+      "Automatic SMS code processing",
+      "No manual intervention needed",
+      "Works with all major carriers",
     ],
   },
   {
@@ -40,13 +40,17 @@ const features = [
     title: "Works Everywhere",
     description:
       "Monitor and control your automation from any device, anywhere.",
-    benefits: ["Responsive design", "Mobile optimized", "Real-time updates"],
+    benefits: [
+      "Responsive design",
+      "Mobile optimized",
+      "Cross-platform support",
+    ],
   },
   {
     icon: Bell,
     title: "Smart Notifications",
     description:
-      "Get notified about successful runs, issues, or when manual intervention is needed.",
+      "Get notified about successful runs and any issues that occur.",
     benefits: [
       "SMS and email alerts",
       "Customizable preferences",
@@ -58,7 +62,7 @@ const features = [
     title: "Savings Tracking",
     description:
       "See exactly how much you're saving with detailed reports and trends.",
-    benefits: ["Monthly summaries", "Historical data", "Export capabilities"],
+    benefits: ["Monthly summaries", "Historical data", "Interactive Dashboard"],
   },
 ];
 
@@ -66,7 +70,7 @@ export default function Features() {
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
       <header className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-normal">
           Everything You Need
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -118,6 +122,7 @@ export default function Features() {
         })}
       </div>
 
+      {/* 
       <div className="text-center mt-12">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border">
           <div
@@ -129,6 +134,7 @@ export default function Features() {
           </span>
         </div>
       </div>
+      */}
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { LogIn, CreditCard, Mail, Gift, ArrowDown } from "lucide-react";
+import { LogIn, CreditCard, Mail, Gift, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const steps = [
@@ -6,8 +6,8 @@ const steps = [
     icon: LogIn,
     title: "Connect Your Accounts",
     description:
-      "Securely link your Wolt and Cibus accounts through our encrypted system.",
-    detail: "One-time setup with bank-level security",
+      "Link your Wolt and Cibus accounts using the secure credentials you provide.",
+    detail: "One-time setup with AES 256 encryption security",
   },
   {
     icon: CreditCard,
@@ -18,10 +18,10 @@ const steps = [
   },
   {
     icon: Mail,
-    title: "Code Retrieval",
+    title: "Email Forwarding Setup",
     description:
-      "Our system automatically retrieves gift card codes from your email confirmations.",
-    detail: "No manual checking or copy-pasting required",
+      "Set up email forwarding from your email to WoltFlow so we can automatically retrieve gift card codes.",
+    detail: "Simple Gmail forwarding configuration required",
   },
   {
     icon: Gift,
@@ -37,7 +37,7 @@ export default function HowItWorks() {
     <section id="how-it-works" className="bg-muted/50 py-12 md:py-20">
       <div className="container mx-auto px-4">
         <header className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-normal">
             How It Works
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -78,11 +78,12 @@ export default function HowItWorks() {
                   </CardContent>
                 </Card>
 
-                {/* Arrow connector (hidden on mobile) */}
+                {/* Arrow connector - mathematically centered in gap */}
+                {/* Gap: lg:gap-8 (32px) | Arrow: size-6 (24px) | Center: (32÷2)-(24÷2) = 4px */}
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                    <ArrowDown
-                      className="size-6 text-muted-foreground rotate-90"
+                  <div className="hidden lg:block absolute top-1/2 left-full transform -translate-y-1/2 translate-x-[4px] z-10">
+                    <ArrowRight
+                      className="size-6 text-muted-foreground"
                       aria-hidden="true"
                     />
                   </div>
