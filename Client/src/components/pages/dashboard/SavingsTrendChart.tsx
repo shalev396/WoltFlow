@@ -20,7 +20,7 @@ import type { DashboardAnalytics, TimeRange } from "@/types/api";
 const chartConfig = {
   savings: {
     label: "Cumulative Savings",
-    color: "hsl(var(--chart-1))",
+    color: "#2563eb", // WoltFlow brand blue-600
   },
 } satisfies ChartConfig;
 
@@ -37,16 +37,25 @@ export default function SavingsTrendChart({
 }: SavingsTrendChartProps) {
   const rawChartData = analytics?.chartData || [];
   const totalSavings = analytics?.totalSavings || 0;
-  const successfulDays = rawChartData.filter((d) => d.dailyAmount > 0).length;
 
-  // Filter out leading zero data points to make chart more readable
-  const firstNonZeroIndex = rawChartData.findIndex(
-    (d) => d.savings > 0 || d.dailyAmount > 0
-  );
-  const chartData =
-    firstNonZeroIndex >= 0
-      ? rawChartData.slice(firstNonZeroIndex)
-      : rawChartData;
+  // The API (both real and mock) now provides properly filtered data for the selected time range
+  // We need to recalculate cumulative savings starting from 0 for the chart visualization
+  const chartData = rawChartData.map((item, index) => {
+    // Calculate cumulative savings starting from 0 for this time period
+    const relativeCumulativeSavings = rawChartData
+      .slice(0, index + 1)
+      .reduce((sum, dayData) => sum + dayData.dailyAmount, 0);
+
+    return {
+      ...item,
+      savings: relativeCumulativeSavings, // Override with relative cumulative savings for chart
+    };
+  });
+
+  // Use the API-provided totalSavings for summary (now correctly filtered by time range)
+  const totalDaysInRange = chartData.length;
+  const averageDailySavings =
+    totalDaysInRange > 0 ? totalSavings / totalDaysInRange : 0;
 
   const getTimeRangeLabel = (range: TimeRange) => {
     switch (range) {
@@ -64,7 +73,7 @@ export default function SavingsTrendChart({
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-chart-1" />
+            <TrendingUp className="h-5 w-5 text-blue-600" />
             <span>Savings Trend</span>
           </CardTitle>
           <CardDescription>
@@ -90,23 +99,21 @@ export default function SavingsTrendChart({
           </div>
         ) : (
           <>
-            <ChartContainer
-              config={chartConfig}
-              className="aspect-auto h-[250px] w-full"
-            >
-              <AreaChart data={chartData}>
+            <ChartContainer config={chartConfig} className="h-[250px] pt-4">
+              <AreaChart
+                data={chartData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                  top: 16,
+                  bottom: 8,
+                }}
+              >
                 <defs>
                   <linearGradient id="fillSavings" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="hsl(var(--chart-1))"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="hsl(var(--chart-1))"
-                      stopOpacity={0.1}
-                    />
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                    <stop offset="50%" stopColor="#7c3aed" stopOpacity={0.6} />
+                    <stop offset="95%" stopColor="#9333ea" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} />
@@ -126,36 +133,27 @@ export default function SavingsTrendChart({
                 />
                 <ChartTooltip
                   cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value: string) => {
-                        return new Date(value).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        });
-                      }}
-                      indicator="dot"
-                      formatter={(value: number) => [
-                        `₪${value.toLocaleString()}`,
-                        "Cumulative Savings",
-                      ]}
-                    />
-                  }
+                  content={<ChartTooltipContent />}
                 />
                 <Area
                   dataKey="savings"
                   type="natural"
                   fill="url(#fillSavings)"
-                  stroke="hsl(var(--chart-1))"
+                  stroke="#2563eb"
+                  strokeWidth={2}
                 />
               </AreaChart>
             </ChartContainer>
 
             {/* Summary */}
             <div className="flex items-center justify-between text-sm text-muted-foreground mt-4 pt-4 border-t">
-              <span>Total accumulated: ₪{totalSavings.toLocaleString()}</span>
-              <span>{successfulDays} successful days</span>
+              <span>
+                Average daily savings: ₪{averageDailySavings.toFixed(2)}
+              </span>
+              <span>
+                Over {totalDaysInRange} days (
+                {getTimeRangeLabel(timeRange).toLowerCase()})
+              </span>
             </div>
           </>
         )}
