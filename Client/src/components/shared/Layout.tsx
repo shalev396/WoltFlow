@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
+import { RouteTracker } from "@/components/shared/RouteTracker";
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export default function Layout({
 }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <RouteTracker />
       <Navbar />
 
       <main className="flex-1 pt-16">

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { CookieSettings } from "../consent/CookieSettings";
 
 export default function Footer() {
   return (
@@ -21,6 +22,7 @@ export default function Footer() {
             >
               Terms of Service
             </Link>
+            <CookieSettings variant="link" />
           </div>
         </div>
       </div>

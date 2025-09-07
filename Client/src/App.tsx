@@ -7,6 +7,8 @@ import { ThemeProvider } from "./components/shared/theme-provider";
 import { Toaster } from "./components/ui/sonner";
 import { queryClient } from "./lib/queryClient";
 import LoadingScreen from "./components/shared/LoadingScreen";
+import { ConsentProvider } from "./contexts/ConsentContext";
+import { ConsentManager } from "./components/consent/ConsentManager";
 
 import { router } from "./routers/Router";
 import { checkAuth } from "./store/slices/userSlice";
@@ -30,7 +32,10 @@ export default function App() {
     return (
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
-          <LoadingScreen message="Starting WoltFlow..." />
+          <ConsentProvider>
+            <LoadingScreen message="Starting WoltFlow..." />
+            <ConsentManager />
+          </ConsentProvider>
         </ThemeProvider>
       </QueryClientProvider>
     );
@@ -39,9 +44,12 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
-        <RouterProvider router={router} />
-        <Toaster />
-        <ReactQueryDevtools initialIsOpen={false} />
+        <ConsentProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+          <ConsentManager />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </ConsentProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
