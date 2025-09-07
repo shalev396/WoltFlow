@@ -288,6 +288,7 @@ plugins:
   - serverless-offline
   - serverless-prune-plugin
   - serverless-step-functions
+  - serverless-ecr-image-cleaner
 
 # Custom Configuration
 custom: # SSL/TLS Certificate configuration - use manually created certificates
@@ -321,6 +322,12 @@ custom: # SSL/TLS Certificate configuration - use manually created certificates
 
   # Environment Variables Configuration
   envFile: .env.${sls:stage}
+
+  # ECR Image Cleaner Configuration - Keep only last 5 images
+  ecrImageCleaner:
+    appRegion: ${self:provider.region}
+    repositoryName: serverless-${self:service}-${self:provider.stage}
+    numImagesToKeep: 5
 
 # Step Functions Configuration
 stepFunctions:
@@ -528,7 +535,7 @@ functions:
       command: ["build/automation/E_woltApplyGift.handler"]
     memorySize: 1536
     ephemeralStorageSize: 1536
-    timeout: 150
+    timeout: 165
     # No HTTP events - only called by Step Functions
 
   # ================================

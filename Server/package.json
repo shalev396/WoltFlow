@@ -51,6 +51,7 @@
     "clean-webpack-plugin": "^4.0.0",
     "cross-env": "^7.0.3",
     "glob": "^11.0.3",
+    "serverless-ecr-image-cleaner": "^1.0.7",
     "serverless-prune-plugin": "^2.1.0",
     "serverless-step-functions": "^3.23.3",
     "ts-loader": "^9.5.2",
