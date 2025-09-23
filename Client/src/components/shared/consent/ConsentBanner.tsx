@@ -1,6 +1,6 @@
-import { Button } from "../ui/button";
-import { Card } from "../ui/card";
-import { useConsent } from "../../hooks/useConsent";
+import { Button } from "../../ui/button";
+import { Card } from "../../ui/card";
+import { useConsent } from "../../../hooks/useConsent";
 import { Cookie } from "lucide-react";
 
 export function ConsentBanner() {

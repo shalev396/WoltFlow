@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CookieSettings } from "../consent/CookieSettings";
+import { CookieSettings } from "../shared/consent/CookieSettings";
 
 export default function Footer() {
   return (

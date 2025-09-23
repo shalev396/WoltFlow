@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { ConsentBanner } from "./ConsentBanner";
-import { useConsent } from "../../hooks/useConsent";
-import { analytics } from "../../services/analytics";
+import { useConsent } from "../../../hooks/useConsent";
+import { analytics } from "../../../services/analytics";
 
 /**
  * ConsentManager - Main component that handles cookie consent flow

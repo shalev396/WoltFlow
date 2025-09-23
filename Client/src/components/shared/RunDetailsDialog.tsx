@@ -44,11 +44,11 @@ export function RunDetailsDialog({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return "✓ ";
+        return "";
       case "failed":
-        return "✕ ";
+        return "";
       case "in_progress":
-        return "⋯ ";
+        return "";
       default:
         return "";
     }
@@ -61,27 +61,27 @@ export function RunDetailsDialog({
       description: "Automation process started",
     },
     {
-      id: "refreshing tokens",
+      id: "refreshing_tokens",
       name: "Refreshing Tokens",
       description: "Updating authentication tokens",
     },
     {
-      id: "buying gift",
+      id: "buying_gift",
       name: "Buying Gift Card",
       description: "Purchasing gift card from Wolt",
     },
     {
-      id: "getting code from mail",
+      id: "getting_code_from_email",
       name: "Getting Code",
       description: "Retrieving gift code from email",
     },
     {
-      id: "applying gift",
+      id: "applying_gift",
       name: "Applying Gift",
       description: "Adding gift code to account",
     },
     {
-      id: "done",
+      id: "completed",
       name: "Process Complete",
       description: "All steps completed successfully",
     },
@@ -90,11 +90,11 @@ export function RunDetailsDialog({
   const getStageOrder = (stage: string) =>
     [
       "triggered",
-      "refreshing tokens",
-      "buying gift",
-      "getting code from mail",
-      "applying gift",
-      "done",
+      "refreshing_tokens",
+      "buying_gift",
+      "getting_code_from_email",
+      "applying_gift",
+      "completed",
     ].indexOf(stage);
 
   const getStageIcon = (stage: string, current: string, status: string) => {
@@ -136,7 +136,7 @@ export function RunDetailsDialog({
         </DialogHeader>
         <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-lg bg-muted/50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg bg-muted/50">
               <div className="text-center">
                 <p className="text-sm font-medium text-muted-foreground">
                   Status
@@ -153,7 +153,7 @@ export function RunDetailsDialog({
                   Current Stage
                 </p>
                 <p className="mt-1 text-sm font-medium capitalize">
-                  {run.stage}
+                  {run.stage.replace(/_/g, " ")}
                 </p>
               </div>
               <div className="text-center">
@@ -164,32 +164,19 @@ export function RunDetailsDialog({
                   {run.automationMode}
                 </p>
               </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Error Message
-                </p>
-                <div className="mt-1">
-                  {run.errorMessage ? (
-                    <span className="text-sm text-red-600">
-                      {run.errorMessage}
-                    </span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">None</span>
-                  )}
-                </div>
-              </div>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Process Timeline</h3>
               <div className="space-y-4">
                 {stages.map((stage, i) => {
-                  const isActive = i === getStageOrder(run.stage);
+                  const currentStageIndex = getStageOrder(run.stage);
+                  const isActive = i === currentStageIndex;
                   const isDone =
-                    i < getStageOrder(run.stage) ||
-                    (i === getStageOrder(run.stage) &&
-                      run.status === "completed");
+                    i < currentStageIndex ||
+                    (i === currentStageIndex && run.status === "completed");
                   const isError =
-                    i === getStageOrder(run.stage) && run.status === "failed";
+                    i === currentStageIndex && run.status === "failed";
+
                   return (
                     <div key={stage.id} className="flex items-start space-x-4">
                       <div className="flex flex-col items-center">
@@ -197,7 +184,9 @@ export function RunDetailsDialog({
                         {i < stages.length - 1 && (
                           <div
                             className={`w-0.5 h-8 mt-2 ${
-                              isDone ? "bg-green-500" : "bg-gray-300"
+                              isDone
+                                ? "bg-green-500"
+                                : "bg-gray-300 dark:bg-gray-600"
                             }`}
                           />
                         )}
@@ -206,25 +195,39 @@ export function RunDetailsDialog({
                         <div className="flex items-center space-x-2">
                           <h4
                             className={`font-medium ${
-                              isActive
-                                ? "text-foreground"
-                                : isDone
-                                ? "text-green-600"
+                              isDone
+                                ? "text-green-600 dark:text-green-400"
+                                : isActive && run.status === "in_progress"
+                                ? "text-blue-600 dark:text-blue-400 font-semibold"
                                 : isError
-                                ? "text-red-600"
+                                ? "text-red-600 dark:text-red-400"
                                 : "text-muted-foreground"
                             }`}
                           >
                             {stage.name}
                           </h4>
                           {isActive && run.status === "in_progress" && (
-                            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                              <Clock className="w-3 h-3" />
-                              <span>In Progress</span>
+                            <div className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400">
+                              <Clock className="w-3 h-3 animate-pulse" />
+                              <span className="font-medium">In Progress</span>
+                            </div>
+                          )}
+                          {isDone && (
+                            <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400">
+                              <CheckCircle className="w-3 h-3" />
+                              <span className="font-medium">Completed</span>
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p
+                          className={`text-sm mt-1 ${
+                            isDone
+                              ? "text-green-700 dark:text-green-300"
+                              : isActive
+                              ? "text-blue-700 dark:text-blue-300"
+                              : "text-muted-foreground"
+                          }`}
+                        >
                           {stage.description}
                         </p>
                       </div>

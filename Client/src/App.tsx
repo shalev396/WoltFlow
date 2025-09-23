@@ -8,7 +8,7 @@ import { Toaster } from "./components/ui/sonner";
 import { queryClient } from "./lib/queryClient";
 import LoadingScreen from "./components/shared/LoadingScreen";
 import { ConsentProvider } from "./contexts/ConsentContext";
-import { ConsentManager } from "./components/consent/ConsentManager";
+import { ConsentManager } from "./components/shared/consent/ConsentManager";
 
 import { router } from "./routers/Router";
 import { checkAuth } from "./store/slices/userSlice";

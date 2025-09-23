@@ -1,5 +1,5 @@
-import { Button } from "../ui/button";
-import { useConsent } from "../../hooks/useConsent";
+import { Button } from "../../ui/button";
+import { useConsent } from "../../../hooks/useConsent";
 import { Cookie, Settings } from "lucide-react";
 
 interface CookieSettingsProps {
