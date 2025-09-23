@@ -153,12 +153,6 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
                     Buy Only
                   </div>
                 </SelectItem>
-                <SelectItem value="cross-account">
-                  <div className="flex items-center gap-2">
-                    <span>⚡</span>
-                    Cross Account
-                  </div>
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -17,52 +17,49 @@ export function AutomationModesHelp() {
   const modes = [
     {
       id: "full-run",
-      name: "Full Auto",
-      description: "Buy gift card and automatically apply it to your account",
+      name: "Complete Automation",
+      description:
+        "Fully automated process from purchase to redemption - no manual steps required",
       flow: [
-        "🔐 Log into your Wolt account",
-        "💳 Buy gift card using your Cibus card",
-        "📧 Get the gift code from your Gmail",
-        "🎁 Apply the gift code to your Wolt account",
+        "🔐 Securely log into your Wolt account",
+        "💳 Purchase gift card using your Cibus balance",
+        "📧 Extract gift code from your WoltFlow inbox",
+        "🎁 Automatically apply the code to your Wolt account",
       ],
-      pros: ["Completely hands-off experience"],
-      cons: ["Requires Gmail access permissions"],
-      requirements: ["Wolt credentials", "Cibus credentials", "Gmail access"],
-      bestFor: "Users who want complete automation",
+      pros: [
+        "Completely hands-off daily automation",
+        "Maximum time savings",
+        "No manual intervention needed",
+      ],
+      cons: ["Requires email forwarding setup"],
+      requirements: [
+        "Wolt account credentials",
+        "Cibus account credentials",
+        "Email forwarding to WoltFlow inbox",
+      ],
+      bestFor:
+        "Users who want complete automation and don't mind setting up email forwarding",
     },
     {
       id: "buy-only",
-      name: "Buy Only",
+      name: "Purchase Only",
       description:
-        "For people who don't want to share email access or redeem the gift card themselves",
+        "Automate the purchase but manually apply gift codes yourself",
       flow: [
-        "🔐 Log into your Wolt account",
-        "💳 Buy gift card using your Cibus card",
-        "✋ Stop here - you manually apply the code later",
+        "🔐 Securely log into your Wolt account",
+        "💳 Purchase gift card using your Cibus balance",
+        "✋ Automation stops - you receive email with gift code",
+        "👤 You manually apply the code to your Wolt account",
       ],
-      pros: ["No email access required"],
-      cons: ["Manual step required to apply gift card"],
-      requirements: ["Wolt credentials", "Cibus credentials"],
-      bestFor:
-        "People who don't want to share email access or redeem the gift card themselves",
-    },
-    {
-      id: "cross-account",
-      name: "Smart Account Strategy",
-      description:
-        "Buy from a secondary WoltFlow account and apply to your main account",
-      flow: [
-        "🔐 Log into WoltFlow Wolt account",
-        "💳 Buy gift card using your Cibus card",
-        "📧 Get the gift code from WoltFlow Gmail",
-        "🔄 Switch to your main Wolt account",
-        "🎁 Apply the gift code to your main account",
+      pros: [
+        "No email forwarding setup required",
+        "Still saves time on daily purchases",
+        "You maintain control over gift code application",
       ],
-      pros: ["Completely hands-off experience", "No Gmail access needed"],
-      cons: ["Reliability (may fail)"],
-      requirements: ["Wolt credentials", "Cibus credentials"],
+      cons: ["Requires daily manual step to apply codes"],
+      requirements: ["Wolt account credentials", "Cibus account credentials"],
       bestFor:
-        "Users who want to complete automation and avoid sharing email access",
+        "Users who prefer not to set up email forwarding or want to manually control gift code redemption",
     },
   ];
 
@@ -78,15 +75,15 @@ export function AutomationModesHelp() {
           <span className="sr-only">Help with automation modes</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] xl:max-w-[85vw] 2xl:max-w-[80vw] w-full max-h-[90vh]">
+      <DialogContent className="max-w-[95vw] lg:max-w-4xl w-full max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-blue-600" />
             Automation Modes Explained
           </DialogTitle>
           <DialogDescription>
-            Choose the automation mode that best fits your needs and comfort
-            level
+            Choose between complete automation or purchase-only mode based on
+            your preferences
           </DialogDescription>
         </DialogHeader>
 
@@ -96,16 +93,17 @@ export function AutomationModesHelp() {
             <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 dark:text-blue-200">
-                <strong>Quick Guide:</strong> Each mode offers different levels
-                of automation and control. Choose based on your comfort with
-                automation and privacy preferences.
+                <strong>Quick Guide:</strong> Complete Automation handles
+                everything automatically including gift code redemption, while
+                Purchase Only stops after buying the gift card and lets you
+                manually apply codes.
               </AlertDescription>
             </Alert>
 
-            {/* Unified Flex Layout for All Breakpoints */}
-            <div className="flex flex-col xl:flex-row gap-4 items-stretch">
+            {/* Improved Layout for 2 Modes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {modes.map((mode) => (
-                <div key={mode.id} className="flex-1 flex flex-col h-full">
+                <div key={mode.id} className="flex flex-col h-full">
                   <AutomationModeCard mode={mode} />
                 </div>
               ))}

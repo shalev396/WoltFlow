@@ -380,7 +380,6 @@ export function RunsDataTable({
                   <SelectItem value="all">All Modes</SelectItem>
                   <SelectItem value="full-run">Full Run</SelectItem>
                   <SelectItem value="buy-only">Buy Only</SelectItem>
-                  <SelectItem value="cross-account">Cross Account</SelectItem>
                 </SelectContent>
               </Select>
             </div>

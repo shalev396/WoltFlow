@@ -44,6 +44,8 @@ provider:
   timeout: 30
   memorySize: 160
   region: il-central-1
+  # Configure log retention for all Lambda functions
+  logRetentionInDays: 30
   apiGateway:
     shouldStartNameWithService: true
   logs:
