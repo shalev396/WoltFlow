@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import {
-  Star,
+  // Star,
   Reply,
   ReplyAll,
   Forward,
@@ -8,7 +8,7 @@ import {
   Trash2,
   MoreHorizontal,
   Mail,
-  MailOpen,
+  // MailOpen,
   Paperclip,
   Download,
   FileText,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AvatarSimple } from "@/components/ui/avatar-simple";
 import {
@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+// import { cn } from "@/lib/utils";
 import { inboxService } from "@/services/inbox";
 import type { Email } from "@/types/inbox";
 
@@ -35,19 +35,19 @@ interface InboxViewerProps {
   onEmailAction: (action: string, emailId: string) => void;
 }
 
-const labelColors: Record<string, string> = {
-  automation:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-  "gift-card":
-    "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
-  error: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
-  alert:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-  summary:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
-  balance:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300",
-};
+// const labelColors: Record<string, string> = {
+//   automation:
+//     "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
+//   "gift-card":
+//     "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+//   error: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
+//   alert:
+//     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
+//   summary:
+//     "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
+//   balance:
+//     "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300",
+// };
 
 export default function InboxViewer({
   email,
@@ -113,15 +113,15 @@ export default function InboxViewer({
               <h1 className="text-xl font-semibold text-foreground truncate">
                 {email.subject}
               </h1>
-              {email.isStarred && (
+              {/* {email.isStarred && (
                 <Star className="h-4 w-4 text-yellow-500 fill-current flex-shrink-0" />
               )}
               {!email.isRead && (
                 <div className="h-2 w-2 bg-blue-600 rounded-full flex-shrink-0" />
-              )}
+              )} */}
             </div>
 
-            {/* Labels */}
+            {/* Labels
             {email.labels.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">
                 {email.labels.map((label: string) => (
@@ -138,35 +138,35 @@ export default function InboxViewer({
                   </Badge>
                 ))}
               </div>
-            )}
+            )} */}
 
             {/* Email details - traditional layout */}
             <div className="space-y-1 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">From:</span>
                 <AvatarSimple
-                  name={email.from.name}
+                  name={email.fromName || ""}
                   className="h-6 w-6 text-xs"
                 />
-                <span>{email.from.name}</span>
+                <span>{email.fromName || ""}</span>
                 <span className="text-muted-foreground">
-                  &lt;{email.from.email}&gt;
+                  &lt;{email.fromEmail}&gt;
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">To:</span>
-                <span className="truncate">{email.to}</span>
+                <span className="truncate">{email.toEmail}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">Date:</span>
-                <span>{format(email.date, "PPP 'at' p")}</span>
+                <span>{format(email.emailDate, "PPP 'at' p")}</span>
               </div>
             </div>
           </div>
 
           {/* Action buttons */}
           <div className="flex-shrink-0 flex items-center gap-2">
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={() =>
@@ -179,9 +179,9 @@ export default function InboxViewer({
               ) : (
                 <MailOpen className="h-4 w-4" />
               )}
-            </Button>
+            </Button> */}
 
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={() => handleAction("star")}
@@ -190,7 +190,7 @@ export default function InboxViewer({
               <Star
                 className={cn("h-4 w-4", email.isStarred && "fill-current")}
               />
-            </Button>
+            </Button> */}
 
             <Separator orientation="vertical" className="h-6" />
 
@@ -249,33 +249,33 @@ export default function InboxViewer({
       </div>
 
       {/* Attachments Section */}
-      {email.hasAttachments && email.attachments && (
+      {email.attachmentUrls && email.attachmentUrls.length > 0 && (
         <div className="flex-shrink-0 border-b bg-muted/20 p-4">
           <div className="flex items-center gap-2 mb-3">
             <Paperclip className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-medium text-muted-foreground">
-              {email.attachments.length} Attachment
-              {email.attachments.length > 1 ? "s" : ""}
+              {email.attachmentUrls.length} Attachment
+              {email.attachmentUrls.length > 1 ? "s" : ""}
             </h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            {email.attachments.map((attachment, index) => {
-              const FileIcon = getFileIcon(attachment.name);
+            {email.attachmentUrls.map((attachment, index) => {
+              const FileIcon = getFileIcon(attachment);
               return (
                 <div
-                  key={attachment.id}
+                  key={attachment}
                   className="flex items-center gap-2 bg-background border rounded-lg p-2 min-w-0 max-w-xs"
                 >
                   <FileIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p
                       className="text-sm font-medium truncate"
-                      title={attachment.name}
+                      title={attachment}
                     >
-                      {attachment.name}
+                      {attachment}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {attachment.type.split("/").pop()?.toUpperCase()}
+                      {attachment.split("/").pop()?.toUpperCase()}
                     </p>
                   </div>
                   <Button
@@ -285,9 +285,9 @@ export default function InboxViewer({
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      handleDownloadAttachment(index, attachment.name);
+                      handleDownloadAttachment(index, attachment);
                     }}
-                    title={`Download ${attachment.name}`}
+                    title={`Download ${attachment}`}
                   >
                     <Download className="h-3 w-3" />
                   </Button>
@@ -302,7 +302,7 @@ export default function InboxViewer({
       <div className="flex-1 overflow-y-auto p-6">
         <div
           className="prose prose-sm max-w-none dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: email.body }}
+          dangerouslySetInnerHTML={{ __html: email.body || "" }}
         />
       </div>
     </div>

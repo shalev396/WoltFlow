@@ -84,7 +84,13 @@ TwoFactorAuthentication.init(
     },
     dataExpiresAt: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: false, // STEP 1: Temporarily nullable for sync
+      defaultValue: () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+        return tomorrow;
+      },
       comment:
         "When this record should be deleted (daily purge per privacy policy)",
     },
@@ -124,12 +130,6 @@ TwoFactorAuthentication.init(
         // Automatically set code expiration to 10 minutes after creation
         const createdAt = instance.createdAt || new Date();
         instance.expiresAt = new Date(createdAt.getTime() + 10 * 60 * 1000); // 10 minutes
-
-        // Set data expiry to end of day (daily purge per privacy policy)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(23, 59, 59, 999);
-        instance.dataExpiresAt = tomorrow;
       },
     },
   }

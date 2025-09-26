@@ -6,3 +6,4 @@ export { twoFactorService } from "./twoFactor";
 export { forwardService } from "./forward";
 export { inboxService } from "./inbox";
 export { dashboardService } from "./dashboard";
+export { userService } from "./user";

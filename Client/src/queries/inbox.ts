@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { inboxService } from "@/services/inbox";
-import type { InboxFilters, InboxResponse } from "@/services/inbox";
+import type { InboxFilters, InboxResponse } from "@/types/index";
 
 /**
  * Get user's inbox and emails with optional filters

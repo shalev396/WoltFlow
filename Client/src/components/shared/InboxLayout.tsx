@@ -10,29 +10,7 @@ import InboxList from "@/components/pages/inbox/InboxList";
 import InboxViewer from "@/components/pages/inbox/InboxViewer";
 import InboxToolbar from "@/components/pages/inbox/InboxToolbar";
 import { useInboxQuery } from "@/queries/inbox";
-import { inboxService, type InboxFilters } from "@/services/inbox";
-
-// Frontend email type (transformed from backend)
-interface Email {
-  id: string;
-  subject: string;
-  from: { name: string; email: string };
-  to: string;
-  date: Date;
-  isRead: boolean;
-  isStarred: boolean;
-  body: string;
-  labels: string[];
-  hasAttachments: boolean;
-  attachments?: Array<{
-    id: string;
-    name: string;
-    size: number;
-    type: string;
-    url?: string;
-  }>;
-  priority: "high" | "normal" | "low";
-}
+import { type InboxFilters } from "@/types/inbox";
 
 export default function InboxLayout() {
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
@@ -64,22 +42,10 @@ export default function InboxLayout() {
   });
 
   // Transform backend emails to frontend format
-  const transformedEmails: Email[] = useMemo(() => {
-    if (!inboxData?.data?.emails) return [];
-
-    return inboxData.data.emails.map((email) => {
-      const transformed = inboxService.transformEmailForUI(email);
-      // Add user's email address as 'to' field
-      if (inboxData.data.inbox) {
-        transformed.to = inboxData.data.inbox.emailAddress;
-      }
-      return transformed;
-    });
-  }, [inboxData]);
 
   // Filter emails by search query and label on frontend
   const filteredEmails = useMemo(() => {
-    let result = transformedEmails;
+    let result = inboxData?.data?.emails || [];
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -87,19 +53,19 @@ export default function InboxLayout() {
       result = result.filter(
         (email) =>
           email.subject.toLowerCase().includes(query) ||
-          email.from.name.toLowerCase().includes(query) ||
-          email.from.email.toLowerCase().includes(query) ||
-          email.body.toLowerCase().includes(query)
+          email.fromName?.toLowerCase().includes(query) ||
+          email.fromEmail.toLowerCase().includes(query) ||
+          email.body?.toLowerCase().includes(query)
       );
     }
 
-    // Filter by label
-    if (selectedLabel) {
-      result = result.filter((email) => email.labels.includes(selectedLabel));
-    }
+    // // Filter by label
+    // if (selectedLabel) {
+    //   result = result.filter((email) => email.labels?.includes(selectedLabel));
+    // }
 
     return result;
-  }, [transformedEmails, searchQuery, selectedLabel]);
+  }, [searchQuery, selectedLabel]);
 
   // Set initial selected email
   useMemo(() => {

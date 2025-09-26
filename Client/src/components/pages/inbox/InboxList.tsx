@@ -1,8 +1,11 @@
 import { useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Star, Paperclip } from "lucide-react";
+import {
+  // Star,
+  Paperclip,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { AvatarSimple } from "@/components/ui/avatar-simple";
 import type { Email } from "@/types/inbox";
 
@@ -14,19 +17,19 @@ interface InboxListProps {
   selectedLabel: string | null;
 }
 
-const labelColors: Record<string, string> = {
-  automation:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-  "gift-card":
-    "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
-  error: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
-  alert:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-  summary:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
-  balance:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300",
-};
+// const labelColors: Record<string, string> = {
+//   automation:
+//     "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
+//   "gift-card":
+//     "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+//   error: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
+//   alert:
+//     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
+//   summary:
+//     "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
+//   balance:
+//     "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300",
+// };
 
 export default function InboxList({
   emails,
@@ -42,17 +45,17 @@ export default function InboxList({
         const searchTerm = searchQuery.toLowerCase();
         const matchesSubject = email.subject.toLowerCase().includes(searchTerm);
         const matchesSender =
-          email.from.name.toLowerCase().includes(searchTerm) ||
-          email.from.email.toLowerCase().includes(searchTerm);
+          email.fromName?.toLowerCase().includes(searchTerm) ||
+          email.fromEmail.toLowerCase().includes(searchTerm);
         if (!matchesSubject && !matchesSender) {
           return false;
         }
       }
 
-      // Label filter
-      if (selectedLabel) {
-        return email.labels.includes(selectedLabel);
-      }
+      // // Label filter
+      // if (selectedLabel) {
+      //   return email.labels.includes(selectedLabel);
+      // }
 
       return true;
     });
@@ -123,8 +126,9 @@ export default function InboxList({
                 "p-3 border-b cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset",
                 email.id === selectedEmailId
                   ? "bg-primary/10 border-primary/20"
-                  : "hover:bg-muted/50",
-                !email.isRead && "bg-blue-50/50 dark:bg-blue-950/20"
+                  : "hover:bg-muted/50"
+                //   ,
+                // !email.isRead && "bg-blue-50/50 dark:bg-blue-950/20"
               )}
             >
               <div className="space-y-2">
@@ -132,26 +136,27 @@ export default function InboxList({
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <AvatarSimple
-                      name={email.from.name}
+                      name={email.fromName || ""}
                       className="h-8 w-8 text-xs flex-shrink-0"
                     />
                     <div className="min-w-0 flex items-center gap-2">
                       <div className="text-sm font-medium text-foreground truncate">
-                        {email.from.name}
+                        {email.fromName || ""}
                       </div>
-                      {email.hasAttachments && (
-                        <Paperclip className="h-3 w-3 text-gray-500 flex-shrink-0" />
-                      )}
-                      {email.isStarred && (
+                      {email.attachmentUrls &&
+                        email.attachmentUrls.length > 0 && (
+                          <Paperclip className="h-3 w-3 text-gray-500 flex-shrink-0" />
+                        )}
+                      {/* {email.isStarred && (
                         <Star className="h-3 w-3 text-yellow-500 fill-current flex-shrink-0" />
                       )}
                       {!email.isRead && (
                         <div className="h-2 w-2 bg-blue-600 rounded-full flex-shrink-0" />
-                      )}
+                      )} */}
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground flex-shrink-0">
-                    {formatDistanceToNow(email.date, { addSuffix: true })}
+                    {formatDistanceToNow(email.emailDate, { addSuffix: true })}
                   </div>
                 </div>
 
@@ -159,15 +164,16 @@ export default function InboxList({
                 <div
                   className={cn(
                     "text-sm truncate",
-                    !email.isRead
-                      ? "font-semibold text-foreground"
-                      : "font-normal text-muted-foreground"
+                    // !email.isRead
+                    //   ? "font-semibold text-foreground"
+                    //   :
+                    "font-normal text-muted-foreground"
                   )}
                 >
                   {email.subject}
                 </div>
 
-                {/* Labels */}
+                {/* Labels
                 {email.labels.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {email.labels.map((label: string) => (
@@ -184,11 +190,11 @@ export default function InboxList({
                       </Badge>
                     ))}
                   </div>
-                )}
+                )} */}
 
                 {/* Preview text */}
                 <div className="text-xs text-muted-foreground line-clamp-2">
-                  {email.body.replace(/<[^>]*>/g, "").substring(0, 120)}...
+                  {email.body?.replace(/<[^>]*>/g, "").substring(0, 120)}...
                 </div>
               </div>
             </div>

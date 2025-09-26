@@ -4,6 +4,21 @@
 // Types related to user settings: notification, Wolt, Cibus, and run settings
 
 // ============================================================================
+// MAIN SETTINGS HUB
+// ============================================================================
+// Main settings hub that connects to all other settings - matches backend Settings model
+export interface Settings {
+  id: string; // UUID
+  userId: string; // Foreign key to Users table
+  notificationSettingsId: string | null; // Foreign key to NotificationSettings table
+  woltSettingsId: string | null; // Foreign key to WoltSettings table
+  cibusSettingsId: string | null; // Foreign key to CibusSettings table
+  runSettingsId: string | null; // Foreign key to RunSettings table
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
 // NOTIFICATION SETTINGS
 // ============================================================================
 export interface NotificationSettings {

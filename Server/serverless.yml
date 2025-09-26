@@ -764,6 +764,23 @@ functions:
           cors: true
 
   # ================================
+  # USER FUNCTIONS
+  # ================================
+  exportUserData:
+    handler: ./build/user/export.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/user/export.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/user/export
+          method: get
+          cors: true
+    # Export all user data - GET request returns complete user data export
+
+  # ================================
   # TEST FUNCTIONS
   # ================================
   testEmail:

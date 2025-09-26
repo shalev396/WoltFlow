@@ -17,6 +17,7 @@ export interface Run {
   automationMode: "full-run" | "buy-only" | "cross-account";
   amount: number | null; // Gift card amount for this run
   errorMessage: string | null;
+  dataExpiresAt: Date; // Data retention expiry (90 days)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +30,7 @@ export interface Screenshot {
   siteUrl: string | null; // URL of the site where screenshot was taken
   screenshotUrl: string; // S3 URL for the screenshot image
   isError: boolean;
+  dataExpiresAt: Date; // Data retention expiry (90 days)
   createdAt: Date;
   updatedAt: Date;
 }

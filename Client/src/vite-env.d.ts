@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_EMAIL_SUBDOMAIN: string; // email.example.com
   readonly VITE_AWS_REGION: string; // il-central-1
   readonly VITE_AWS_REGION_CITY: string; // Tel-Aviv
+  readonly VITE_S3_EMAIL_BUCKET_NAME: string; // email-bucket-name
 }
 
 interface ImportMeta {
