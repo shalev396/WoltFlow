@@ -67,7 +67,8 @@ export function SmsForwardingContent() {
               <h4 className="font-medium mb-2">API Endpoint URL</h4>
               <div className="p-2 sm:p-3 bg-background border rounded overflow-x-auto">
                 <code className="text-xs sm:text-sm font-mono break-all">
-                  POST https://woltflow.shalev396.com/api/forward/sms
+                  POST https://{import.meta.env.VITE_DOMAIN_NAME}
+                  /api/forward/sms
                 </code>
               </div>
             </div>
@@ -354,7 +355,8 @@ export function SmsForwardingContent() {
                         <div>
                           <p className="font-medium mb-1">URL:</p>
                           <code className="bg-muted px-1 py-0.5 rounded text-xs break-all block">
-                            https://woltflow.shalev396.com/api/forward/sms
+                            https://{import.meta.env.VITE_DOMAIN_NAME}
+                            /api/forward/sms
                           </code>
                         </div>
                         <p>

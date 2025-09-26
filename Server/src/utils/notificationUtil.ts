@@ -656,7 +656,7 @@ ${
 Your gift card has been redeemed and the credit is now available in your Wolt account. 
 You can start using it for your next orders right away!
 
-Dashboard: app.woltflow.shalev396.com
+Dashboard: ${process.env.DOMAIN_NAME}/dashboard
 
 © 2025 WoltFlow. Streamlining your Wolt experience.`;
 

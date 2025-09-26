@@ -12,8 +12,6 @@ import {
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log("Test Email Handler - Event:", JSON.stringify(event, null, 2));
-
   try {
     // Parse the request body to get the email address
     const body = event.body ? JSON.parse(event.body) : {};

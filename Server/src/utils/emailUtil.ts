@@ -4,8 +4,8 @@ import {
   type SendEmailCommandInput,
 } from "@aws-sdk/client-ses";
 
-// Initialize SES client for il-central-1 region
-const sesClient = new SESClient({ region: "il-central-1" });
+// Initialize SES client 
+const sesClient = new SESClient({ region: process.env.AWS_REGION });
 
 // Default sender email - must be verified in SES
 const AUTHENTICATOR_SENDER_EMAIL = `authenticator@${process.env.DOMAIN_NAME}`;

@@ -18,7 +18,7 @@ await initDB();
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log("Incoming event:", JSON.stringify(event));
+  // console.log("Incoming event:", JSON.stringify(event));
   // 2. Extract 'code' and 'state'
   const code = event.queryStringParameters?.["code"] || "";
   const rawState = event.queryStringParameters?.["state"] || "";

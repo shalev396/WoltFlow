@@ -9,7 +9,7 @@ const TERMS_CONFIG = {
   effectiveDate: "04/09/2025", // Update this date when you modify the terms
   contactEmail: "shalev396@gmail.com", // Update with your contact email
   ownerOperator: "Shalev Ben-Moshe (individual, side-project)",
-  territory: "AWS, primary region il-central-1 (Tel-Aviv)",
+  territory: `AWS, primary region ${import.meta.env.VITE_AWS_REGION} (${import.meta.env.VITE_AWS_REGION_CITY})`,
   productName: "WoltFlow",
   productDescription:
     "automation that buys Wolt gift credit using a user's Cibus meal benefit and applies it to the user's Wolt account",

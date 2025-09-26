@@ -10,12 +10,12 @@
 #
 # DEPLOYMENT NOTES:
 # 1. SSL Certificates - CREATE MANUALLY in ACM (us-east-1 region):
-#    - Create certificate for dev.woltflow.shalev396.com (add ARN to CERTIFICATE_ARN_DEV)
-#    - Create certificate for woltflow.shalev396.com (add ARN to CERTIFICATE_ARN_PROD)
-# 2. Ensure you have a Route 53 hosted zone for shalev396.com
+#    - Create certificate for development domain (add ARN to CERTIFICATE_ARN_DEV)
+#    - Create certificate for production domain (add ARN to CERTIFICATE_ARN_PROD)
+# 2. Ensure you have a Route 53 hosted zone for the domain
 # 3. Deploy stages separately:
-#    - DEV:  serverless deploy --stage dev  (creates dev.woltflow.shalev396.com)
-#    - PROD: serverless deploy --stage prod (creates woltflow.shalev396.com)
+#    - DEV:  serverless deploy --stage dev  (creates development environment)
+#    - PROD: serverless deploy --stage prod (creates production environment)
 # 4. Each stage gets its own complete infrastructure:
 #    - Separate CloudFront distributions with custom domains
 #    - Separate S3 buckets
@@ -43,7 +43,7 @@ provider:
   runtime: nodejs22.x
   timeout: 30
   memorySize: 160
-  region: il-central-1
+  region: ${env:AWS_REGION}
   # Configure log retention for all Lambda functions
   logRetentionInDays: 30
   apiGateway:
@@ -771,21 +771,6 @@ functions:
           method: post
     # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
-  # VPC Connectivity Test - Debug Lambda VPC issues
-  testConnectivity:
-    handler: ./build/test/testConnectivity.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/test/testConnectivity.mjs"
-        - "package.json"
-    timeout: 30
-    events:
-      - httpApi:
-          path: /api/test/connectivity
-          method: get
-    # Test connectivity: DNS, HTTP, Database connections
-
     # ================================
   # INBOX FUNCTIONS
   # ================================
@@ -1262,7 +1247,7 @@ resources:
         Type: MX
         TTL: 300
         ResourceRecords:
-          - "10 inbound-smtp.il-central-1.amazonaws.com"
+          - "10 inbound-smtp.${env:AWS_REGION}.amazonaws.com"
 
     # TXT Record for SES Domain Verification (if needed)
     SESTXTRecord:

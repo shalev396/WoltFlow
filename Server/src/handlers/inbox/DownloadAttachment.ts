@@ -27,8 +27,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (
     event: ICustomAPIGatewayProxyEventAuth
   ): Promise<APIGatewayProxyResult> => {
-    console.log("Download attachment request:", event);
-
     try {
       const userId = event.userId!;
       const { emailId, attachmentIndex } = event.pathParameters || {};

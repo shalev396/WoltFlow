@@ -57,7 +57,7 @@ export function convertImageToBase64(imagePath: string): string | null {
  * Upload a Base64-encoded image to S3 and return its CloudFront URL.
  * @param base64Image Base64 image string: "data:image/jpeg;base64,<data>"
  * @param folder Folder (key prefix) in S3 bucket (e.g., "images")
- * @returns Full CloudFront URL (e.g., "https://woltflow.shalev396.com/images/UUID.jpg")
+ * @returns Full CloudFront URL (e.g., "https://{DOMAIN_NAME}/images/UUID.jpg")
  */
 export async function uploadImageToS3(
   base64Image: string,

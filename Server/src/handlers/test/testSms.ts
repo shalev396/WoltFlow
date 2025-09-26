@@ -16,8 +16,6 @@ import {
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log("Test SMS Handler - Event:", JSON.stringify(event, null, 2));
-
   try {
     // Check if SMS is enabled via environment variable
     const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";

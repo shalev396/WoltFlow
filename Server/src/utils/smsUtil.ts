@@ -4,8 +4,8 @@ import {
   type PublishCommandInput,
 } from "@aws-sdk/client-sns";
 
-// Initialize SNS client for il-central-1 region
-const snsClient = new SNSClient({ region: "il-central-1" });
+// Initialize SNS client
+const snsClient = new SNSClient({ region: process.env.AWS_REGION });
 
 export interface SendSmsBySenderIDOptions {
   phoneNumber: string;

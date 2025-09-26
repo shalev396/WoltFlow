@@ -108,17 +108,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Reload notification settings to get the updated values
       await notificationSettings.reload();
 
-      console.log(`Notification settings updated for user ${event.userId}:`, {
-        isEnabled: notificationSettings.isEnabled,
-        notificationMethod: notificationSettings.notificationMethod,
-        notificationOnSuccess: notificationSettings.notificationOnSuccess,
-        notificationOnError: notificationSettings.notificationOnError,
-        phoneNumber: notificationSettings.phoneNumber,
-        phoneVerified: notificationSettings.phoneVerified,
-        email: notificationSettings.email,
-        emailVerified: notificationSettings.emailVerified,
-      });
-
       return createSuccessResponse(
         "Notification settings updated successfully",
         {

@@ -77,11 +77,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Reload run settings to get the updated values
       await runSettings.reload();
 
-      console.log(`Run settings updated for user ${event.userId}:`, {
-        automationMode: runSettings.automationMode,
-        giftAmount: runSettings.giftAmount,
-      });
-
       return createSuccessResponse("Run settings updated successfully", {
         runSettings: runSettings,
       });

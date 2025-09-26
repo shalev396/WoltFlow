@@ -2,11 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Mail } from "lucide-react";
 import Layout from "@/components/shared/Layout";
-
 // Configuration variables - update these as needed
 const POLICY_CONFIG = {
   ownerOperator: "Shalev Ben-Moshe (individual, side-project)",
-  territory: "AWS, primary region il-central-1 (Tel-Aviv)",
+  territory: `AWS, primary region ${import.meta.env.VITE_AWS_REGION} (${
+    import.meta.env.VITE_AWS_REGION_CITY
+  })`,
   lastUpdated: "04/09/2025",
   contactEmail: "shalev396@gmail.com",
   productName: "WoltFlow",
@@ -387,10 +388,11 @@ export default function PrivacyPage() {
                       Primary region
                     </h3>
                     <p className="text-muted-foreground">
-                      AWS il-central-1 (Tel-Aviv) for Aurora PostgreSQL, Lambda,
-                      API Gateway, VPC, CloudWatch logs, EventBridge, Step
-                      Functions, CloudFormation, IAM, S3, SES, Certificate
-                      Manager, Route 53, CloudFront.
+                      AWS {import.meta.env.VITE_AWS_REGION} (
+                      {import.meta.env.VITE_AWS_REGION_CITY}) for Aurora
+                      PostgreSQL, Lambda, API Gateway, VPC, CloudWatch logs,
+                      EventBridge, Step Functions, CloudFormation, IAM, S3, SES,
+                      Certificate Manager, Route 53, CloudFront.
                     </p>
                   </div>
 
@@ -401,7 +403,8 @@ export default function PrivacyPage() {
                     <p className="text-muted-foreground">
                       CloudFront serves static web assets and fronts API
                       endpoints globally (edge POPs). Requests ultimately
-                      terminate to our APIs hosted in il-central-1.
+                      terminate to our APIs hosted in{" "}
+                      {import.meta.env.VITE_AWS_REGION}.
                     </p>
                   </div>
 
@@ -410,7 +413,7 @@ export default function PrivacyPage() {
                       If data must move outside Israel for CDN transit or
                       provider operations, we rely on provider safeguards and
                       transmit over TLS; storage location for core records is
-                      il-central-1.
+                      {import.meta.env.VITE_AWS_REGION}.
                     </p>
                   </div>
                 </div>

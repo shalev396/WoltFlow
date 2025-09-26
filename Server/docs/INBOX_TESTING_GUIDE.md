@@ -8,7 +8,7 @@ This guide provides comprehensive instructions for testing the new inbox system 
 
 ### Simple Email Flow:
 
-1. **You get a unique email address**: `{your-user-id}@dev.users.woltflow.shalev396.com`
+1. **You get a unique email address**: `{your-user-id}@{your-domain}`
 2. **Send any email to that address** with PDF attachments
 3. **AWS SES receives it** automatically and triggers processing
 4. **Lambda function processes it** and saves to S3 + database
@@ -17,7 +17,7 @@ This guide provides comprehensive instructions for testing the new inbox system 
 ### Example Email Test:
 
 ```
-To: cd64b806-740b-4afe-aaae-57452d7c69d2@dev.users.woltflow.shalev396.com
+To: cd64b806-740b-4afe-aaae-57452d7c69d2@{your-domain}
 Subject: Test Email with Attachments
 Body: This is a test email to verify the inbox system works correctly.
 Attachments: invoice.pdf, receipt.pdf
@@ -27,7 +27,7 @@ Attachments: invoice.pdf, receipt.pdf
 
 ### Backend Components
 
-- **SES Email Receipt**: AWS SES receives emails to `dev.users.woltflow.shalev396.com`
+- **SES Email Receipt**: AWS SES receives emails to `{your-domain}`
 - **Lambda Function** (`ingestEmail`): Processes incoming emails and stores them in S3
 - **Database Models**: `Inbox` and `Emails` models store email metadata
 - **API Endpoint** (`GET /api/inbox`): Returns user's inbox and emails
@@ -47,8 +47,8 @@ The email subdomain is now configured with defaults, but you can override:
 
 ```bash
 # Backend Environment Variables (Optional - defaults provided)
-EMAIL_SUBDOMAIN_DEV=dev.users.woltflow.shalev396.com
-EMAIL_SUBDOMAIN_PROD=users.woltflow.shalev396.com
+EMAIL_SUBDOMAIN_DEV={your-domain}
+EMAIL_SUBDOMAIN_PROD={your-domain-prod}
 
 S3_EMAIL_BUCKET_NAME_DEV=woltflow-emails-dev
 S3_EMAIL_BUCKET_NAME_PROD=woltflow-emails-prod
@@ -59,8 +59,8 @@ DATABASE_URL_PROD=your_prod_database_url
 
 ### 2. AWS Services Configuration
 
-- **SES Domain Verification**: Verify `dev.users.woltflow.shalev396.com` in AWS SES
-- **DNS Records**: Add MX record pointing to SES for `dev.users.woltflow.shalev396.com`
+- **SES Domain Verification**: Verify `{your-domain}` in AWS SES
+- **DNS Records**: Add MX record pointing to SES for `{your-domain}`
 - **S3 Bucket**: Ensure email bucket exists with proper permissions
 - **Lambda Permissions**: Verify SES can invoke the email processing Lambda
 
@@ -181,7 +181,7 @@ After receiving emails:
 #### 4.1 Quick Email Test
 
 1. **Deploy your app** and go to `/inbox` page
-2. **Copy your custom email** (looks like: `abc123-def456@dev.users.woltflow.shalev396.com`)
+2. **Copy your custom email** (looks like: `abc123-def456@{your-domain}`)
 3. **Send a test email** from Gmail/Outlook:
 
 **Example Test Email**:
@@ -317,7 +317,7 @@ import { sendEmail } from "./email-helper.js";
 
 export default function () {
   const response = sendEmail({
-    to: `${__VU}@inbox.woltflow.shalev396.com`,
+    to: `${__VU}@{DOMAIN_NAME}`,
     subject: `Load Test Email ${__ITER}`,
     body: "Performance testing email",
   });

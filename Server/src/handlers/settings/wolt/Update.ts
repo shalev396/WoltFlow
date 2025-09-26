@@ -77,12 +77,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Reload wolt settings to get the updated values
       await woltSettings.reload();
 
-      console.log(`Wolt settings updated for user ${event.userId}:`, {
-        hasRefreshToken: !!woltSettings.woltRefreshToken,
-        hasAccessToken: !!woltSettings.woltAccessToken,
-        // Don't log actual tokens for security
-      });
-
       return createSuccessResponse("Wolt settings updated successfully", {
         woltSettings: woltSettings,
       });

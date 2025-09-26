@@ -50,7 +50,6 @@ module.exports = {
     // Don't bundle AWS SDK - it's provided by Lambda runtime
     "aws-sdk": "aws-sdk",
     "@aws-sdk/client-s3": "commonjs @aws-sdk/client-s3",
-    "@aws-sdk/client-lambda": "commonjs @aws-sdk/client-lambda",
     "@aws-sdk/client-sns": "commonjs @aws-sdk/client-sns",
     "@aws-sdk/client-ses": "commonjs @aws-sdk/client-ses",
     "@aws-sdk/client-sfn": "commonjs @aws-sdk/client-sfn",

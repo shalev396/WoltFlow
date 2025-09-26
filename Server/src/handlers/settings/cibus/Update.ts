@@ -82,12 +82,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Reload cibus settings to get the updated values
       await cibusSettings.reload();
 
-      console.log(`Cibus settings updated for user ${event.userId}:`, {
-        cibusUsername: cibusSettings.cibusUsername,
-        cibusCompany: cibusSettings.cibusCompany,
-        // Don't log password for security
-      });
-
       return createSuccessResponse("Cibus settings updated successfully", {
         cibusSettings: cibusSettings,
       });

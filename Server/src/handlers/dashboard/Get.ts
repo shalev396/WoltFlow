@@ -67,10 +67,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         );
       }
 
-      console.log(
-        `Getting dashboard analytics for user ${userId}, timeRange: ${timeRange}`
-      );
-
       // Calculate date ranges
       const now = new Date();
       const currentPeriodStart = new Date(
@@ -224,14 +220,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           savingsGrowthPercentage,
         },
       };
-
-      console.log(`Dashboard analytics calculated for user ${userId}:`, {
-        timeRange,
-        totalRuns,
-        successfulRuns: successfulRunsCount,
-        successRate,
-        totalSavings,
-      });
 
       return createSuccessResponse(
         "Dashboard analytics retrieved successfully",

@@ -9,7 +9,6 @@ import {
   type Context,
 } from "aws-lambda";
 import { getErrorMessage } from "../utils/responseUtil.js";
-console.log("authMiddleware");
 export const authMiddleware = (
   handler: CustomAPIGatewayProxyHandler
 ): CustomAPIGatewayProxyHandler => {
@@ -19,13 +18,14 @@ export const authMiddleware = (
     callback: Callback
   ): Promise<APIGatewayProxyResult> => {
     try {
+      console.log("authMiddleware");
       const cookieHeader =
         (event.cookies && event.cookies.join("; ")) ||
         event.headers.cookie ||
         "";
-      console.log("cookieHeader", cookieHeader);
-      console.log("event.cookies", event.cookies);
-      console.log("event.headers.cookie", event.headers.cookie);
+      // console.log("cookieHeader", cookieHeader);
+      // console.log("event.cookies", event.cookies);
+      // console.log("event.headers.cookie", event.headers.cookie);
       const cookies = Object.fromEntries(
         cookieHeader.split("; ").map((p) => p.split("="))
       );
