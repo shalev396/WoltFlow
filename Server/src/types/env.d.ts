@@ -24,6 +24,7 @@ declare global {
       // APP
       ENABLED_SMS: boolean;
       JWT_SECRET: string;
+      ENCRYPTION_KEY: string;
       // GOOGLE
       GOOGLE_CLIENT_ID: string;
       GOOGLE_CLIENT_SECRET: string;
