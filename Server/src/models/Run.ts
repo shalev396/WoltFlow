@@ -16,6 +16,7 @@ export default class Run extends Model {
   declare automationMode: "full-run" | "buy-only" | "cross-account"; // Copied from user settings at creation
   declare amount: number | null; // Gift card amount for this run (copied from user settings at creation)
   declare errorMessage: string | null; // Error message if failed
+  declare dataExpiresAt: Date; // Data retention expiry (90 days)
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -71,6 +72,12 @@ Run.init(
       allowNull: true,
       comment: "Error message if the run failed",
     },
+    dataExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment:
+        "When this record should be deleted (90 days per privacy policy)",
+    },
   },
   {
     sequelize,
@@ -92,7 +99,19 @@ Run.init(
       {
         fields: ["createdAt"],
       },
+      {
+        fields: ["dataExpiresAt"],
+      },
     ],
+    hooks: {
+      beforeCreate: (instance: Run) => {
+        // Set data expiry to 90 days from creation (per privacy policy)
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 90);
+        expiryDate.setHours(23, 59, 59, 999);
+        instance.dataExpiresAt = expiryDate;
+      },
+    },
   }
 );
 

@@ -15,6 +15,7 @@ export default class Emails extends Model {
   declare subject: string; // Email subject
   declare body: string | null; // Email body content
   declare emailDate: Date; // Original email date
+  declare dataExpiresAt: Date; // Data retention expiry (90 days)
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -85,6 +86,12 @@ Emails.init(
       allowNull: false,
       comment: "Original email timestamp",
     },
+    dataExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment:
+        "When this record should be deleted (90 days per privacy policy)",
+    },
   },
   {
     sequelize,
@@ -103,7 +110,19 @@ Emails.init(
       {
         fields: ["toEmail"],
       },
+      {
+        fields: ["dataExpiresAt"],
+      },
     ],
+    hooks: {
+      beforeCreate: (instance: Emails) => {
+        // Set data expiry to 90 days from creation (per privacy policy)
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 90);
+        expiryDate.setHours(23, 59, 59, 999);
+        instance.dataExpiresAt = expiryDate;
+      },
+    },
   }
 );
 

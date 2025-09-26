@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
+import { decrypt, encrypt } from "../utils/encryption.js";
 
 export default class Code extends Model {
   declare id: string;
@@ -8,6 +9,7 @@ export default class Code extends Model {
   declare emailId: string | null; // Foreign key to Emails table (which email contained this code)
   declare code: string; // The actual gift card code
   declare isUsed: boolean; // Whether the code has been used/redeemed
+  declare dataExpiresAt: Date; // Data retention expiry (daily purge)
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -57,12 +59,25 @@ Code.init(
       allowNull: false,
       unique: false,
       comment: "The actual gift card or promo code",
+      get() {
+        const rawValue = this.getDataValue("code");
+        return rawValue ? decrypt(rawValue) : null;
+      },
+      set(value: string | null) {
+        this.setDataValue("code", value ? encrypt(value) : null);
+      },
     },
     isUsed: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
       comment: "Whether the code has been used/redeemed",
+    },
+    dataExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment:
+        "When this record should be deleted (daily purge per privacy policy)",
     },
   },
   {
@@ -86,7 +101,19 @@ Code.init(
       {
         fields: ["isUsed"],
       },
+      {
+        fields: ["dataExpiresAt"],
+      },
     ],
+    hooks: {
+      beforeCreate: (instance: Code) => {
+        // Set data expiry to end of day (daily purge per privacy policy)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+        instance.dataExpiresAt = tomorrow;
+      },
+    },
   }
 );
 

@@ -1,5 +1,6 @@
 import { DataTypes, Model, Op } from "sequelize";
 import sequelize from "../config/database.js";
+import { decrypt, encrypt } from "../utils/encryption.js";
 
 export default class User extends Model {
   declare id: string; // UUID primary key
@@ -29,6 +30,13 @@ User.init(
       type: DataTypes.TEXT,
       allowNull: false,
       comment: "Google OAuth refresh token",
+      get() {
+        const rawValue = this.getDataValue("googleRefreshToken");
+        return rawValue ? decrypt(rawValue) : null;
+      },
+      set(value: string | null) {
+        this.setDataValue("googleRefreshToken", value ? encrypt(value) : null);
+      },
     },
     name: {
       type: DataTypes.STRING,

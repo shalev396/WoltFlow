@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
+import { decrypt, encrypt } from "../utils/encryption.js";
 
 export default class TwoFactorAuthentication extends Model {
   declare id: string; // UUID
@@ -14,6 +15,7 @@ export default class TwoFactorAuthentication extends Model {
     | "sensitive_action"; // Purpose of the 2FA
   declare expiresAt: Date; // When the code expires
   declare verified: boolean; // Whether the code has been used/verified
+  declare dataExpiresAt: Date; // Data retention expiry (daily purge)
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -52,6 +54,13 @@ TwoFactorAuthentication.init(
         is: /^\d{6}$/,
       },
       comment: "6-digit verification code",
+      get() {
+        const rawValue = this.getDataValue("code");
+        return rawValue ? decrypt(rawValue) : null;
+      },
+      set(value: string | null) {
+        this.setDataValue("code", value ? encrypt(value) : null);
+      },
     },
     purpose: {
       type: DataTypes.ENUM(
@@ -72,6 +81,12 @@ TwoFactorAuthentication.init(
       allowNull: false,
       defaultValue: false,
       comment: "Whether the code has been successfully verified",
+    },
+    dataExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment:
+        "When this record should be deleted (daily purge per privacy policy)",
     },
   },
   {
@@ -100,12 +115,21 @@ TwoFactorAuthentication.init(
       {
         fields: ["createdAt"],
       },
+      {
+        fields: ["dataExpiresAt"],
+      },
     ],
     hooks: {
       beforeCreate: (instance: TwoFactorAuthentication) => {
-        // Automatically set expiration to 10 minutes after receivedAt
+        // Automatically set code expiration to 10 minutes after creation
         const createdAt = instance.createdAt || new Date();
         instance.expiresAt = new Date(createdAt.getTime() + 10 * 60 * 1000); // 10 minutes
+
+        // Set data expiry to end of day (daily purge per privacy policy)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+        instance.dataExpiresAt = tomorrow;
       },
     },
   }

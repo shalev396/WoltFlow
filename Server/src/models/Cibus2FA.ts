@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
+import { decrypt, encrypt } from "../utils/encryption.js";
 
 export default class Cibus2FA extends Model {
   declare id: string; // UUID
@@ -10,6 +11,7 @@ export default class Cibus2FA extends Model {
   declare expiresAt: Date; // When the code expires (10 minutes after receivedAt)
   declare isUsed: boolean; // Whether the code has been used
   declare usedAt: Date | null; // When the code was used
+  declare dataExpiresAt: Date; // Data retention expiry (daily purge)
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -39,11 +41,25 @@ Cibus2FA.init(
         is: /^\d{6}$/,
       },
       comment: "6-digit Cibus verification code from SMS",
+      get() {
+        const rawValue = this.getDataValue("code");
+        return rawValue ? decrypt(rawValue) : null;
+      },
+      set(value: string | null) {
+        this.setDataValue("code", value ? encrypt(value) : null);
+      },
     },
     message: {
       type: DataTypes.TEXT,
       allowNull: true,
       comment: "Original SMS message content",
+      get() {
+        const rawValue = this.getDataValue("message");
+        return rawValue ? decrypt(rawValue) : null;
+      },
+      set(value: string | null) {
+        this.setDataValue("message", value ? encrypt(value) : null);
+      },
     },
     receivedAt: {
       type: DataTypes.DATE,
@@ -65,6 +81,12 @@ Cibus2FA.init(
       type: DataTypes.DATE,
       allowNull: true,
       comment: "Timestamp when the code was used",
+    },
+    dataExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment:
+        "When this record should be deleted (daily purge per privacy policy)",
     },
   },
   {
@@ -91,6 +113,9 @@ Cibus2FA.init(
         fields: ["usedAt"],
       },
       {
+        fields: ["dataExpiresAt"],
+      },
+      {
         unique: true,
         fields: ["userId", "code", "receivedAt"],
         name: "unique_user_code_time",
@@ -98,9 +123,15 @@ Cibus2FA.init(
     ],
     hooks: {
       beforeCreate: (instance: Cibus2FA) => {
-        // Automatically set expiration to 10 minutes after receivedAt
+        // Automatically set code expiration to 10 minutes after receivedAt
         const receivedAt = instance.receivedAt || new Date();
         instance.expiresAt = new Date(receivedAt.getTime() + 10 * 60 * 1000); // 10 minutes
+
+        // Set data expiry to end of day (daily purge per privacy policy)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+        instance.dataExpiresAt = tomorrow;
       },
     },
   }

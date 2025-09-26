@@ -794,6 +794,25 @@ functions:
           cors: true
     # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
+  # ================================
+  # DATA CLEANUP FUNCTIONS
+  # ================================
+  dataCleanup:
+    handler: ./build/dataCleanup.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/cleanup/dataCleanup.mjs"
+        - "package.json"
+    timeout: 300
+    memorySize: 512
+    events:
+      - schedule:
+          rate: cron(0 0 * * ? *)
+          description: "Daily data cleanup at 00:00 UTC (privacy policy compliance)"
+          enabled: true
+    # Automated data cleanup function - runs daily at 00:00 UTC (02:00 Israel time) to clean expired data per privacy policy
+
     # ================================
   # INBOX FUNCTIONS
   # ================================

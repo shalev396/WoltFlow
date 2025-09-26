@@ -9,6 +9,7 @@ export default class Screenshot extends Model {
   declare siteUrl: string | null; // URL of the site where screenshot was taken
   declare screenshotUrl: string; // S3 URL for the screenshot image
   declare isError: boolean; // Whether this screenshot shows an error state
+  declare dataExpiresAt: Date; // Data retention expiry (90 days)
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -57,6 +58,12 @@ Screenshot.init(
       defaultValue: false,
       comment: "Whether this screenshot shows an error state",
     },
+    dataExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      comment:
+        "When this record should be deleted (90 days per privacy policy)",
+    },
   },
   {
     sequelize,
@@ -75,7 +82,19 @@ Screenshot.init(
       {
         fields: ["isError"],
       },
+      {
+        fields: ["dataExpiresAt"],
+      },
     ],
+    hooks: {
+      beforeCreate: (instance: Screenshot) => {
+        // Set data expiry to 90 days from creation (per privacy policy)
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 90);
+        expiryDate.setHours(23, 59, 59, 999);
+        instance.dataExpiresAt = expiryDate;
+      },
+    },
   }
 );
 
