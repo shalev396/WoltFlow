@@ -84,7 +84,7 @@ TwoFactorAuthentication.init(
     },
     dataExpiresAt: {
       type: DataTypes.DATE,
-      allowNull: false, // STEP 1: Temporarily nullable for sync
+      allowNull: false,
       defaultValue: () => {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);

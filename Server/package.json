@@ -10,6 +10,8 @@
     "build:tsc": "tsc",
     "build:webpack": "webpack",
     "dev": "npm run build && serverless offline --stage local",
+    "qa": "npm run build && serverless offline --stage dev",
+    "prod": "npm run build && serverless offline --stage prod",
     "deploy:dev": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage dev",
     "deploy:prod": "npm run build && cross-env DOCKER_BUILDKIT=0  serverless deploy --stage prod",
     "test:woltBuyGift": "serverless invoke -f woltBuyGift --path woltBuyGift.json"
