@@ -260,7 +260,8 @@ export default function InboxViewer({
           </div>
           <div className="flex flex-wrap gap-2">
             {email.attachmentUrls.map((attachment, index) => {
-              const FileIcon = getFileIcon(attachment);
+              const filename = attachment.split("/").pop() || attachment;
+              const FileIcon = getFileIcon(filename);
               return (
                 <div
                   key={attachment}
@@ -270,12 +271,9 @@ export default function InboxViewer({
                   <div className="min-w-0 flex-1">
                     <p
                       className="text-sm font-medium truncate"
-                      title={attachment}
+                      title={filename}
                     >
-                      {attachment}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {attachment.split("/").pop()?.toUpperCase()}
+                      {filename}
                     </p>
                   </div>
                   <Button
@@ -285,9 +283,9 @@ export default function InboxViewer({
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      handleDownloadAttachment(index, attachment);
+                      handleDownloadAttachment(index, filename);
                     }}
-                    title={`Download ${attachment}`}
+                    title={`Download ${filename}`}
                   >
                     <Download className="h-3 w-3" />
                   </Button>
