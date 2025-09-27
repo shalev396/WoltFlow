@@ -5,23 +5,60 @@ class UserService {
    * Export all user data as ZIP file and trigger download via presigned S3 URL
    */
   async exportUserData(): Promise<{ success: boolean; filename: string }> {
-    // Get the download URL from the API
-    const response = await api.get("/user/export");
-    const { downloadUrl, filename } = response.data.data;
+    try {
+      // Get the download URL from the API
+      const response = await api.get("/user/export");
+      const { downloadUrl, filename } = response.data.data;
 
-    // Create a temporary link to download the file from S3
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = filename;
-    link.target = "_blank"; // Open in new tab to handle large files better
+      console.log("Download URL received:", downloadUrl);
+      console.log("Filename:", filename);
 
-    document.body.appendChild(link);
-    link.click();
+      // Fetch the file from S3 as a blob to ensure proper download
+      console.log("Fetching ZIP file from S3...");
+      const fileResponse = await fetch(downloadUrl);
 
-    // Cleanup
-    document.body.removeChild(link);
+      if (!fileResponse.ok) {
+        throw new Error(
+          `Failed to fetch file: ${fileResponse.status} ${fileResponse.statusText}`
+        );
+      }
 
-    return { success: true, filename };
+      const blob = await fileResponse.blob();
+      console.log("ZIP file downloaded, size:", blob.size, "bytes");
+
+      // Create a blob URL and trigger download
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename || "woltflow-export.zip";
+      link.style.display = "none";
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        console.log("Download cleanup completed");
+      }, 1000);
+
+      return { success: true, filename: filename || "woltflow-export.zip" };
+    } catch (error) {
+      console.error("Export download failed:", error);
+
+      // Fallback: if blob download fails, try direct URL
+      try {
+        const response = await api.get("/user/export");
+        const { downloadUrl } = response.data.data;
+        console.log("Fallback: Opening download URL in new tab");
+        window.open(downloadUrl, "_blank");
+        return { success: true, filename: "woltflow-export.zip" };
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+        throw error;
+      }
+    }
   }
 
   /**

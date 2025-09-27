@@ -768,7 +768,7 @@ functions:
   # ================================
   exportUserData:
     handler: ./build/user/export.handler
-    # timeout: 300 # 5 minutes for processing large exports with many files
+    timeout: 120 # 2 minutes for processing large exports with many files (REQUIRED!)
     memorySize: 1024 # Increased memory for ZIP creation and file processing
     package:
       patterns:
@@ -963,8 +963,7 @@ resources:
               NoncurrentVersionExpirationInDays: 30
             - Id: DeleteExportFiles
               Status: Enabled
-              Filter:
-                Prefix: exports/
+              Prefix: exports/ # Use Prefix directly, not under Filter
               ExpirationInDays: 1 # Delete export ZIP files after 24 hours (minimum allowed)
             # - Id: DeleteScreenshots
             #   Status: Enabled
