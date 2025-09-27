@@ -159,7 +159,7 @@ export default function InboxViewer({
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground">Date:</span>
-                <span>{format(email.emailDate, "PPP 'at' p")}</span>
+                <span>{format(new Date(email.emailDate), "PPP 'at' p")}</span>
               </div>
             </div>
           </div>

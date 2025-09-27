@@ -38,28 +38,11 @@ export default function InboxList({
   searchQuery,
   selectedLabel,
 }: InboxListProps) {
+  // No need to filter here - InboxLayout already handles all filtering
   const filteredEmails = useMemo(() => {
-    return emails.filter((email) => {
-      // Search query filter
-      if (searchQuery) {
-        const searchTerm = searchQuery.toLowerCase();
-        const matchesSubject = email.subject.toLowerCase().includes(searchTerm);
-        const matchesSender =
-          email.fromName?.toLowerCase().includes(searchTerm) ||
-          email.fromEmail.toLowerCase().includes(searchTerm);
-        if (!matchesSubject && !matchesSender) {
-          return false;
-        }
-      }
-
-      // // Label filter
-      // if (selectedLabel) {
-      //   return email.labels.includes(selectedLabel);
-      // }
-
-      return true;
-    });
-  }, [emails, searchQuery, selectedLabel]);
+    console.log("InboxList: Received emails:", emails);
+    return emails;
+  }, [emails]);
 
   const handleKeyDown = (
     event: React.KeyboardEvent,
@@ -156,7 +139,9 @@ export default function InboxList({
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground flex-shrink-0">
-                    {formatDistanceToNow(email.emailDate, { addSuffix: true })}
+                    {formatDistanceToNow(new Date(email.emailDate), {
+                      addSuffix: true,
+                    })}
                   </div>
                 </div>
 

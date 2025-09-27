@@ -47,6 +47,32 @@ export default function InboxLayout() {
   const filteredEmails = useMemo(() => {
     let result = inboxData?.data?.emails || [];
 
+    console.log("InboxLayout: Raw emails from API:", result);
+    console.log("InboxLayout: Search query:", searchQuery);
+    console.log("InboxLayout: Selected label:", selectedLabel);
+
+    // Transform date strings to Date objects for proper handling
+    result = result.map((email) => ({
+      ...email,
+      emailDate:
+        typeof email.emailDate === "string"
+          ? new Date(email.emailDate)
+          : email.emailDate,
+      createdAt:
+        typeof email.createdAt === "string"
+          ? new Date(email.createdAt)
+          : email.createdAt,
+      updatedAt:
+        typeof email.updatedAt === "string"
+          ? new Date(email.updatedAt)
+          : email.updatedAt,
+      dataExpiresAt: email.dataExpiresAt
+        ? typeof email.dataExpiresAt === "string"
+          ? new Date(email.dataExpiresAt)
+          : email.dataExpiresAt
+        : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // Default to 90 days from now if missing
+    }));
+
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -64,12 +90,21 @@ export default function InboxLayout() {
     //   result = result.filter((email) => email.labels?.includes(selectedLabel));
     // }
 
+    console.log("InboxLayout: Filtered emails:", result);
     return result;
-  }, [searchQuery, selectedLabel]);
+  }, [inboxData?.data?.emails, searchQuery, selectedLabel]);
 
   // Set initial selected email
   useMemo(() => {
+    console.log("InboxLayout: Setting initial email selection");
+    console.log("InboxLayout: filteredEmails.length:", filteredEmails.length);
+    console.log("InboxLayout: selectedEmailId:", selectedEmailId);
+
     if (filteredEmails.length > 0 && !selectedEmailId) {
+      console.log(
+        "InboxLayout: Setting first email as selected:",
+        filteredEmails[0].id
+      );
       setSelectedEmailId(filteredEmails[0].id);
     }
   }, [filteredEmails, selectedEmailId]);

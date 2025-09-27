@@ -44,6 +44,89 @@ function parseS3Url(
 }
 
 /**
+ * Convert CloudFront URL to S3 URL for screenshots
+ * CloudFront format: https://domain.com/images/filename.png
+ * S3 format: s3://bucket-name/images/filename.png
+ */
+function convertCloudFrontUrlToS3Url(cloudFrontUrl: string): string | null {
+  const assetsBucketName = process.env.S3_ASSETS_BUCKET_NAME;
+  if (!assetsBucketName) {
+    console.error(
+      `[DATA_CLEANUP] S3_ASSETS_BUCKET_NAME environment variable not set`
+    );
+    return null;
+  }
+
+  try {
+    const url = new URL(cloudFrontUrl);
+    // Extract the path part (e.g., "/images/filename.png")
+    const pathPart = url.pathname;
+
+    // Remove leading slash and construct S3 URL
+    const objectKey = pathPart.startsWith("/") ? pathPart.slice(1) : pathPart;
+    const s3Url = `s3://${assetsBucketName}/${objectKey}`;
+
+    return s3Url;
+  } catch (error) {
+    console.error(
+      `[DATA_CLEANUP] Invalid CloudFront URL format: ${cloudFrontUrl}`,
+      error
+    );
+    return null;
+  }
+}
+
+/**
+ * Delete screenshot file from S3 and log results
+ */
+async function deleteScreenshotFromS3(
+  screenshotId: string,
+  cloudFrontUrl: string
+): Promise<void> {
+  console.log(`[DATA_CLEANUP] Deleting screenshot ${screenshotId} from S3...`);
+
+  try {
+    // Convert CloudFront URL to S3 URL
+    const s3Url = convertCloudFrontUrlToS3Url(cloudFrontUrl);
+    if (!s3Url) {
+      console.error(
+        `[DATA_CLEANUP] Failed to convert CloudFront URL to S3 URL: ${cloudFrontUrl}`
+      );
+      return;
+    }
+
+    // Parse S3 URL to extract bucket and key
+    const s3Info = parseS3Url(s3Url);
+    if (!s3Info) {
+      console.error(`[DATA_CLEANUP] Failed to parse S3 URL: ${s3Url}`);
+      return;
+    }
+
+    try {
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: s3Info.bucketName,
+          Key: s3Info.objectKey,
+        })
+      );
+      console.log(
+        `[DATA_CLEANUP] Deleted screenshot file: ${cloudFrontUrl} -> ${s3Url}`
+      );
+    } catch (error) {
+      console.error(
+        `[DATA_CLEANUP] Failed to delete screenshot file ${s3Url}:`,
+        error
+      );
+    }
+  } catch (error) {
+    console.error(
+      `[DATA_CLEANUP] Error during S3 deletion for screenshot ${screenshotId}:`,
+      error
+    );
+  }
+}
+
+/**
  * Delete email files from S3 and log results
  */
 async function deleteEmailFromS3(
@@ -137,6 +220,7 @@ async function cleanExpiredData(): Promise<{
     emails: number;
   };
   s3EmailsProcessed: number;
+  s3ScreenshotsProcessed: number;
 }> {
   const now = new Date();
   console.log(`[DATA_CLEANUP] Starting data cleanup at ${now.toISOString()}`);
@@ -188,6 +272,23 @@ async function cleanExpiredData(): Promise<{
   console.log(`[DATA_CLEANUP] Deleted ${expiredRuns} expired Run records`);
 
   console.log("[DATA_CLEANUP] Cleaning expired screenshot records...");
+
+  // First, get the screenshots that will be deleted to clean them from S3
+  const screenshotsToDelete = await Screenshot.findAll({
+    where: {
+      dataExpiresAt: {
+        [Op.lt]: now,
+      },
+    },
+    attributes: ["id", "screenshotUrl"],
+  });
+
+  // Delete each screenshot from S3 before deleting database records
+  for (const screenshot of screenshotsToDelete) {
+    await deleteScreenshotFromS3(screenshot.id, screenshot.screenshotUrl);
+  }
+
+  // Delete the screenshot records from database
   const expiredScreenshots = await Screenshot.destroy({
     where: {
       dataExpiresAt: {
@@ -196,7 +297,7 @@ async function cleanExpiredData(): Promise<{
     },
   });
   console.log(
-    `[DATA_CLEANUP] Deleted ${expiredScreenshots} expired Screenshot records`
+    `[DATA_CLEANUP] Deleted ${expiredScreenshots} expired Screenshot records from database`
   );
 
   // Clean Emails (90 days) - with S3 cleanup
@@ -248,13 +349,14 @@ async function cleanExpiredData(): Promise<{
   };
 
   console.log(
-    `[DATA_CLEANUP] Cleanup completed. Total records deleted: ${totalDeleted}. S3 emails processed: ${emailsToDelete.length}`
+    `[DATA_CLEANUP] Cleanup completed. Total records deleted: ${totalDeleted}. S3 emails processed: ${emailsToDelete.length}. S3 screenshots processed: ${screenshotsToDelete.length}`
   );
 
   return {
     totalDeleted,
     deletedByType,
     s3EmailsProcessed: emailsToDelete.length,
+    s3ScreenshotsProcessed: screenshotsToDelete.length,
   };
 }
 
@@ -273,6 +375,7 @@ export const handler: CustomAPIGatewayProxyHandler = async () => {
       totalDeleted: result.totalDeleted,
       deletedByType: result.deletedByType,
       s3EmailsProcessed: result.s3EmailsProcessed,
+      s3ScreenshotsProcessed: result.s3ScreenshotsProcessed,
     });
   } catch (error) {
     console.error("[DATA_CLEANUP] Error during scheduled cleanup:", error);
