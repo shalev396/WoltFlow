@@ -965,7 +965,7 @@ resources:
               Status: Enabled
               Filter:
                 Prefix: exports/
-              ExpirationInHours: 1 # Delete export ZIP files after 24 hours
+              ExpirationInDays: 1 # Delete export ZIP files after 24 hours (minimum allowed)
             # - Id: DeleteScreenshots
             #   Status: Enabled
             #   Filter:
