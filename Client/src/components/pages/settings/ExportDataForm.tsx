@@ -20,7 +20,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import AsyncButton from "@/components/shared/AsyncButton";
 
 import { useExportUserDataMutation } from "@/queries/user";
-import { exportUserDataAsCSV } from "@/utils/csvExport";
 
 export default function ExportDataForm() {
   const [hasExported, setHasExported] = useState(false);
@@ -30,12 +29,9 @@ export default function ExportDataForm() {
     try {
       const result = await exportMutation.mutateAsync();
 
-      // Generate and download CSV
-      exportUserDataAsCSV(result.data);
-
       setHasExported(true);
       toast.success("Data export completed", {
-        description: "Your data has been downloaded as a CSV file",
+        description: `Your data has been downloaded as ${result.filename}`,
       });
     } catch (error) {
       console.error("Failed to export user data:", error);
@@ -53,7 +49,8 @@ export default function ExportDataForm() {
           Export Your Data
         </CardTitle>
         <CardDescription>
-          Download a complete copy of all your WoltFlow data in CSV format
+          Download a complete copy of all your WoltFlow data including files in
+          a ZIP archive
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
@@ -64,8 +61,8 @@ export default function ExportDataForm() {
             <AlertDescription>
               This export includes all your account data: settings, automation
               runs, emails, codes, screenshots, and more. The data will be
-              downloaded as a CSV file that you can open in Excel or any
-              spreadsheet application.
+              downloaded as a ZIP file containing a CSV with database records
+              plus all your files organized in folders.
             </AlertDescription>
           </Alert>
 
@@ -74,13 +71,13 @@ export default function ExportDataForm() {
             <div className="space-y-2">
               <h4 className="text-sm font-medium">What's included:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Account information and settings</li>
-                <li>• All automation run history</li>
-                <li>• Email inbox and messages</li>
-                <li>• Generated gift codes</li>
-                <li>• Screenshots from automation runs</li>
-                <li>• Two-factor authentication records</li>
-                <li>• All connected platform credentials</li>
+                <li>• Account information and settings (CSV format)</li>
+                <li>• All automation run history (CSV format)</li>
+                <li>• Email inbox and message files (original formats)</li>
+                <li>• Email attachments (original formats)</li>
+                <li>• Screenshots from automation runs (PNG/JPG)</li>
+                <li>• Generated gift codes (CSV format)</li>
+                <li>• Two-factor authentication records (CSV format)</li>
               </ul>
             </div>
           </div>
@@ -93,19 +90,19 @@ export default function ExportDataForm() {
                   <h4 className="text-sm font-medium">Export Your Data</h4>
                   <p className="text-sm text-muted-foreground">
                     Click the button below to generate and download your
-                    complete data export. This may take a few moments to
-                    process.
+                    complete data export as a ZIP file. This may take a few
+                    moments to process as we collect all your files.
                   </p>
                 </div>
                 <AsyncButton
                   onClick={handleExportData}
                   loading={exportMutation.isPending}
-                  loadingText="Exporting Data..."
+                  loadingText="Creating ZIP Archive..."
                   className="w-fit"
                   variant="default"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Export All Data
+                  Download ZIP Archive
                 </AsyncButton>
               </div>
             ) : (
@@ -114,8 +111,8 @@ export default function ExportDataForm() {
                 <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800 dark:text-green-200">
-                    <strong>Export Completed!</strong> Your data has been
-                    successfully downloaded to your computer.
+                    <strong>Export Completed!</strong> Your data ZIP archive has
+                    been successfully downloaded to your computer.
                   </AlertDescription>
                 </Alert>
 
@@ -127,8 +124,8 @@ export default function ExportDataForm() {
                         Need another copy?
                       </h4>
                       <p className="text-xs text-muted-foreground">
-                        You can export your data again at any time. Recent
-                        exports are cached for 5 minutes for faster processing.
+                        You can export your data again at any time. Each export
+                        creates a fresh ZIP archive with current data.
                       </p>
                     </div>
                     <AsyncButton
@@ -137,7 +134,7 @@ export default function ExportDataForm() {
                         handleExportData();
                       }}
                       loading={exportMutation.isPending}
-                      loadingText="Exporting Data..."
+                      loadingText="Creating ZIP Archive..."
                       variant="outline"
                       size="sm"
                       className="w-fit"

@@ -18,10 +18,13 @@ import {
 } from "../../models/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import {
-  createSuccessResponse,
   createErrorResponse,
   getErrorMessage,
 } from "../../utils/responseUtil.js";
+import {
+  createUserExportZip,
+  generateExportFilename,
+} from "../../utils/exportUtil.js";
 
 // Connect to database
 await initDB();
@@ -139,10 +142,29 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         cibus2FAcodes: cibus2FAcodes.map((code) => code.toJSON()),
       };
 
-      return createSuccessResponse(
-        "User data exported successfully",
-        exportData
+      // Create ZIP file with CSV and all files
+      console.log("Creating ZIP export for user:", userId);
+      const zipBuffer = await createUserExportZip(exportData);
+      const filename = generateExportFilename(user.email);
+
+      console.log(
+        `ZIP export created: ${filename}, size: ${zipBuffer.length} bytes`
       );
+
+      // Return ZIP file as binary response
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "Content-Length": zipBuffer.length.toString(),
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+        body: zipBuffer.toString("base64"),
+        isBase64Encoded: true,
+      };
     } catch (error) {
       console.error("Error in user data export:", error);
       return createErrorResponse(getErrorMessage(error));

@@ -1,7 +1,9 @@
 import {
   S3Client,
   PutObjectCommand,
+  GetObjectCommand,
   type PutObjectCommandInput,
+  type GetObjectCommandInput,
 } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
@@ -201,5 +203,92 @@ export async function uploadImageFileToS3AndSaveToDb(
       error
     );
     throw error;
+  }
+}
+
+/**
+ * Download a file from S3 and return its Buffer content.
+ * @param s3Url Full S3 URL (e.g., "https://domain.com/folder/file.jpg")
+ * @returns Buffer containing the file data or null if error
+ */
+export async function downloadFileFromS3(
+  s3Url: string
+): Promise<Buffer | null> {
+  try {
+    // Extract bucket and key from URL
+    // URLs can be:
+    // - https://domain.com/folder/file.jpg (CloudFront)
+    // - https://bucket-name.s3.region.amazonaws.com/folder/file.jpg (direct S3)
+
+    let bucket: string;
+    let key: string;
+
+    if (s3Url.includes("amazonaws.com")) {
+      // Direct S3 URL
+      const url = new URL(s3Url);
+      bucket = url.hostname.split(".")[0] || "";
+      key = url.pathname.substring(1); // Remove leading slash
+    } else {
+      // CloudFront URL - determine bucket from path and environment
+      const url = new URL(s3Url);
+      const pathParts = url.pathname.substring(1).split("/"); // Remove leading slash and split
+
+      // Determine bucket based on path prefix
+      if (pathParts[0] === "images" || pathParts[0] === "screenshots") {
+        bucket = process.env.S3_ASSETS_BUCKET_NAME || "";
+        key = url.pathname.substring(1); // Keep the full path including 'images/' prefix
+      } else {
+        // Assume email bucket for other files
+        bucket = process.env.S3_EMAIL_BUCKET_NAME || "";
+        key = url.pathname.substring(1);
+      }
+    }
+
+    if (!bucket) {
+      console.error(`Could not determine bucket from URL: ${s3Url}`);
+      return null;
+    }
+
+    const params: GetObjectCommandInput = {
+      Bucket: bucket,
+      Key: key,
+    };
+
+    const command = new GetObjectCommand(params);
+    const response = await s3.send(command);
+
+    if (response.Body) {
+      // Convert stream to buffer
+      const chunks: Uint8Array[] = [];
+      const stream = response.Body as any;
+
+      for await (const chunk of stream) {
+        chunks.push(chunk);
+      }
+
+      return Buffer.concat(chunks);
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error downloading file from S3: ${s3Url}`, error);
+    return null;
+  }
+}
+
+/**
+ * Extract filename from S3 URL
+ * @param s3Url Full S3 URL
+ * @returns Filename or generated name if extraction fails
+ */
+export function getFilenameFromS3Url(s3Url: string): string {
+  try {
+    const url = new URL(s3Url);
+    const pathParts = url.pathname.split("/");
+    const filename = pathParts[pathParts.length - 1];
+    return filename || "file";
+  } catch (error) {
+    console.error(`Error extracting filename from URL: ${s3Url}`);
+    return "file";
   }
 }

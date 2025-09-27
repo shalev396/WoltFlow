@@ -22,6 +22,7 @@
     "@aws-sdk/client-sfn": "^3.856.0",
     "@aws-sdk/client-sns": "^3.840.0",
     "@googleapis/oauth2": "^2.0.1",
+    "archiver": "^7.0.1",
     "aws-lambda": "^1.0.7",
     "dotenv": "^16.5.0",
     "google-auth-library": "^10.1.0",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@smithy/types": "^4.5.0",
+    "@types/archiver": "^5.3.4",
     "@types/aws-lambda": "^8.10.150",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mailparser": "^3.4.6",
