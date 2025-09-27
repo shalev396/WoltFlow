@@ -264,9 +264,22 @@ interface ExportFile {
 }
 
 /**
- * Collect all files (screenshots, emails, attachments) for export
+ * Interface for download task
  */
-async function collectExportFiles(exportData: CompleteUserExport): Promise<{
+interface DownloadTask {
+  type: "screenshot" | "email" | "attachment";
+  url: string;
+  filename: string;
+  id: string;
+}
+
+/**
+ * Process downloads in parallel batches to avoid overwhelming S3
+ */
+async function processBatchDownloads(
+  tasks: DownloadTask[],
+  batchSize: number = 15
+): Promise<{
   screenshots: ExportFile[];
   emails: ExportFile[];
   attachments: ExportFile[];
@@ -275,78 +288,162 @@ async function collectExportFiles(exportData: CompleteUserExport): Promise<{
   const emails: ExportFile[] = [];
   const attachments: ExportFile[] = [];
 
-  console.log("Starting to collect files for export...");
-
-  // Collect screenshots
-  for (const screenshot of exportData.screenshots) {
-    if (screenshot.screenshotUrl) {
-      try {
-        const buffer = await downloadFileFromS3(screenshot.screenshotUrl);
-        if (buffer) {
-          const filename = getFilenameFromS3Url(screenshot.screenshotUrl);
-          screenshots.push({
-            filename: `${screenshot.id}_${filename}`,
-            buffer,
-          });
-          console.log(`Downloaded screenshot: ${screenshot.id}`);
-        }
-      } catch (error) {
-        console.error(`Failed to download screenshot ${screenshot.id}:`, error);
-      }
-    }
-  }
-
-  // Collect emails
-  for (const email of exportData.emails) {
-    if (email.s3EmailUrl) {
-      try {
-        const buffer = await downloadFileFromS3(email.s3EmailUrl);
-        if (buffer) {
-          const filename = getFilenameFromS3Url(email.s3EmailUrl);
-          const extension = filename.includes(".") ? "" : ".eml";
-          emails.push({
-            filename: `${email.id}_${filename}${extension}`,
-            buffer,
-          });
-          console.log(`Downloaded email: ${email.id}`);
-        }
-      } catch (error) {
-        console.error(`Failed to download email ${email.id}:`, error);
-      }
-    }
-
-    // Collect attachments for this email
-    if (email.attachmentUrls && Array.isArray(email.attachmentUrls)) {
-      for (let i = 0; i < email.attachmentUrls.length; i++) {
-        const attachmentUrl = email.attachmentUrls[i];
-        if (!attachmentUrl) continue;
-        try {
-          const buffer = await downloadFileFromS3(attachmentUrl);
-          if (buffer) {
-            const filename = getFilenameFromS3Url(attachmentUrl);
-            attachments.push({
-              filename: `${email.id}_attachment_${i + 1}_${filename}`,
-              buffer,
-            });
-            console.log(
-              `Downloaded attachment for email ${email.id}: ${filename}`
-            );
-          }
-        } catch (error) {
-          console.error(
-            `Failed to download attachment for email ${email.id}:`,
-            error
-          );
-        }
-      }
-    }
-  }
-
   console.log(
-    `Collected ${screenshots.length} screenshots, ${emails.length} emails, ${attachments.length} attachments`
+    `Processing ${tasks.length} downloads in batches of ${batchSize}`
+  );
+  const startTime = Date.now();
+
+  // Process tasks in batches
+  for (let i = 0; i < tasks.length; i += batchSize) {
+    const batch = tasks.slice(i, i + batchSize);
+    const batchNum = Math.floor(i / batchSize) + 1;
+    const totalBatches = Math.ceil(tasks.length / batchSize);
+    console.log(
+      `Processing batch ${batchNum}/${totalBatches} (${batch.length} files)`
+    );
+
+    const batchStartTime = Date.now();
+
+    // Download all files in this batch in parallel
+    const downloadPromises = batch.map(async (task) => {
+      try {
+        const buffer = await downloadFileFromS3(task.url);
+        if (buffer) {
+          return {
+            type: task.type,
+            filename: task.filename,
+            buffer,
+            success: true,
+          };
+        }
+        return { type: task.type, success: false, error: "No buffer returned" };
+      } catch (error) {
+        console.error(`Failed to download ${task.type} ${task.id}:`, error);
+        return { type: task.type, success: false, error: error };
+      }
+    });
+
+    // Wait for all downloads in this batch to complete
+    const results = await Promise.allSettled(downloadPromises);
+
+    // Process successful downloads
+    results.forEach((result) => {
+      if (result.status === "fulfilled" && result.value.success) {
+        const file = result.value as {
+          type: string;
+          filename: string;
+          buffer: Buffer;
+          success: boolean;
+        };
+        const exportFile: ExportFile = {
+          filename: file.filename,
+          buffer: file.buffer,
+        };
+
+        switch (file.type) {
+          case "screenshot":
+            screenshots.push(exportFile);
+            break;
+          case "email":
+            emails.push(exportFile);
+            break;
+          case "attachment":
+            attachments.push(exportFile);
+            break;
+        }
+      }
+    });
+
+    const batchDuration = Date.now() - batchStartTime;
+    console.log(
+      `Batch ${batchNum} completed in ${batchDuration}ms. Total downloaded: ${
+        screenshots.length + emails.length + attachments.length
+      } files`
+    );
+  }
+
+  const totalDuration = Date.now() - startTime;
+  console.log(
+    `All batches completed in ${totalDuration}ms. Downloaded: ${
+      screenshots.length + emails.length + attachments.length
+    }/${tasks.length} files`
   );
 
   return { screenshots, emails, attachments };
+}
+
+/**
+ * Collect all files (screenshots, emails, attachments) for export using parallel processing
+ */
+async function collectExportFiles(exportData: CompleteUserExport): Promise<{
+  screenshots: ExportFile[];
+  emails: ExportFile[];
+  attachments: ExportFile[];
+}> {
+  console.log(
+    "Starting to collect files for export with parallel processing..."
+  );
+
+  const downloadTasks: DownloadTask[] = [];
+
+  // Prepare screenshot download tasks
+  exportData.screenshots.forEach((screenshot) => {
+    if (screenshot.screenshotUrl) {
+      const filename = getFilenameFromS3Url(screenshot.screenshotUrl);
+      downloadTasks.push({
+        type: "screenshot",
+        url: screenshot.screenshotUrl,
+        filename: `${screenshot.id}_${filename}`,
+        id: screenshot.id,
+      });
+    }
+  });
+
+  // Prepare email download tasks
+  exportData.emails.forEach((email) => {
+    if (email.s3EmailUrl) {
+      const filename = getFilenameFromS3Url(email.s3EmailUrl);
+      const extension = filename.includes(".") ? "" : ".eml";
+      downloadTasks.push({
+        type: "email",
+        url: email.s3EmailUrl,
+        filename: `${email.id}_${filename}${extension}`,
+        id: email.id,
+      });
+    }
+
+    // Prepare attachment download tasks
+    if (email.attachmentUrls && Array.isArray(email.attachmentUrls)) {
+      email.attachmentUrls.forEach((attachmentUrl, index) => {
+        if (attachmentUrl) {
+          const filename = getFilenameFromS3Url(attachmentUrl);
+          downloadTasks.push({
+            type: "attachment",
+            url: attachmentUrl,
+            filename: `${email.id}_attachment_${index + 1}_${filename}`,
+            id: `${email.id}_${index}`,
+          });
+        }
+      });
+    }
+  });
+
+  console.log(
+    `Prepared ${downloadTasks.length} download tasks (${
+      exportData.screenshots.length
+    } screenshots, ${exportData.emails.length} emails, ${
+      downloadTasks.filter((t) => t.type === "attachment").length
+    } attachments)`
+  );
+
+  // Process all downloads in parallel batches
+  const result = await processBatchDownloads(downloadTasks);
+
+  console.log(
+    `Parallel collection completed: ${result.screenshots.length} screenshots, ${result.emails.length} emails, ${result.attachments.length} attachments`
+  );
+
+  return result;
 }
 
 /**

@@ -53,6 +53,7 @@ module.exports = {
     "@aws-sdk/client-sns": "commonjs @aws-sdk/client-sns",
     "@aws-sdk/client-ses": "commonjs @aws-sdk/client-ses",
     "@aws-sdk/client-sfn": "commonjs @aws-sdk/client-sfn",
+    "@aws-sdk/s3-request-presigner": "commonjs @aws-sdk/s3-request-presigner",
   },
   resolve: {
     extensions: [".ts", ".js", ".json"],

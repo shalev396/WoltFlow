@@ -18,6 +18,7 @@ import {
 } from "../../models/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import {
+  createSuccessResponse,
   createErrorResponse,
   getErrorMessage,
 } from "../../utils/responseUtil.js";
@@ -25,6 +26,7 @@ import {
   createUserExportZip,
   generateExportFilename,
 } from "../../utils/exportUtil.js";
+import { uploadZipToS3AndGetDownloadUrl } from "../../utils/s3Util.js";
 
 // Connect to database
 await initDB();
@@ -151,20 +153,22 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         `ZIP export created: ${filename}, size: ${zipBuffer.length} bytes`
       );
 
-      // Return ZIP file as binary response
-      return {
-        statusCode: 200,
-        headers: {
-          "Content-Type": "application/zip",
-          "Content-Disposition": `attachment; filename="${filename}"`,
-          "Content-Length": zipBuffer.length.toString(),
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-        body: zipBuffer.toString("base64"),
-        isBase64Encoded: true,
-      };
+      // Upload ZIP to S3 and get download URL instead of returning binary data
+      console.log("Uploading ZIP to S3 and generating download URL...");
+      const { downloadUrl } = await uploadZipToS3AndGetDownloadUrl(
+        zipBuffer,
+        filename
+      );
+
+      console.log("ZIP uploaded successfully, returning download URL");
+
+      // Return JSON response with download URL
+      return createSuccessResponse("Export completed successfully", {
+        downloadUrl,
+        filename,
+        size: zipBuffer.length,
+        expiresIn: "24 hours",
+      });
     } catch (error) {
       console.error("Error in user data export:", error);
       return createErrorResponse(getErrorMessage(error));

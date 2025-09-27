@@ -768,6 +768,8 @@ functions:
   # ================================
   exportUserData:
     handler: ./build/user/export.handler
+    # timeout: 300 # 5 minutes for processing large exports with many files
+    memorySize: 1024 # Increased memory for ZIP creation and file processing
     package:
       patterns:
         - "!build/**"
@@ -778,7 +780,7 @@ functions:
           path: /api/user/export
           method: get
           cors: true
-    # Export all user data - GET request returns complete user data export
+    # Export all user data - GET request returns complete ZIP archive with files
 
   # ================================
   # TEST FUNCTIONS
@@ -953,6 +955,22 @@ resources:
         # Enable versioning
         VersioningConfiguration:
           Status: Enabled
+        # Lifecycle configuration for automatic cleanup
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldVersions
+              Status: Enabled
+              NoncurrentVersionExpirationInDays: 30
+            - Id: DeleteExportFiles
+              Status: Enabled
+              Filter:
+                Prefix: exports/
+              ExpirationInHours: 1 # Delete export ZIP files after 24 hours
+            # - Id: DeleteScreenshots
+            #   Status: Enabled
+            #   Filter:
+            #     Prefix: images/
+            #   ExpirationInDays: 90 # Keep screenshots for 90 days (matches privacy policy)
         # CORS configuration for cross-origin requests
         CorsConfiguration:
           CorsRules:

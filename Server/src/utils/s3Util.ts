@@ -5,6 +5,7 @@ import {
   type PutObjectCommandInput,
   type GetObjectCommandInput,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
 import Screenshot from "../models/Screenshot.js";
@@ -207,73 +208,89 @@ export async function uploadImageFileToS3AndSaveToDb(
 }
 
 /**
- * Download a file from S3 and return its Buffer content.
+ * Download a file from S3 and return its Buffer content with retry logic.
  * @param s3Url Full S3 URL (e.g., "https://domain.com/folder/file.jpg")
+ * @param retries Number of retries for failed downloads
  * @returns Buffer containing the file data or null if error
  */
 export async function downloadFileFromS3(
-  s3Url: string
+  s3Url: string,
+  retries: number = 3
 ): Promise<Buffer | null> {
-  try {
-    // Extract bucket and key from URL
-    // URLs can be:
-    // - https://domain.com/folder/file.jpg (CloudFront)
-    // - https://bucket-name.s3.region.amazonaws.com/folder/file.jpg (direct S3)
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      // Extract bucket and key from URL
+      // URLs can be:
+      // - https://domain.com/folder/file.jpg (CloudFront)
+      // - https://bucket-name.s3.region.amazonaws.com/folder/file.jpg (direct S3)
 
-    let bucket: string;
-    let key: string;
+      let bucket: string;
+      let key: string;
 
-    if (s3Url.includes("amazonaws.com")) {
-      // Direct S3 URL
-      const url = new URL(s3Url);
-      bucket = url.hostname.split(".")[0] || "";
-      key = url.pathname.substring(1); // Remove leading slash
-    } else {
-      // CloudFront URL - determine bucket from path and environment
-      const url = new URL(s3Url);
-      const pathParts = url.pathname.substring(1).split("/"); // Remove leading slash and split
-
-      // Determine bucket based on path prefix
-      if (pathParts[0] === "images" || pathParts[0] === "screenshots") {
-        bucket = process.env.S3_ASSETS_BUCKET_NAME || "";
-        key = url.pathname.substring(1); // Keep the full path including 'images/' prefix
+      if (s3Url.includes("amazonaws.com")) {
+        // Direct S3 URL
+        const url = new URL(s3Url);
+        bucket = url.hostname.split(".")[0] || "";
+        key = url.pathname.substring(1); // Remove leading slash
       } else {
-        // Assume email bucket for other files
-        bucket = process.env.S3_EMAIL_BUCKET_NAME || "";
-        key = url.pathname.substring(1);
-      }
-    }
+        // CloudFront URL - determine bucket from path and environment
+        const url = new URL(s3Url);
+        const pathParts = url.pathname.substring(1).split("/"); // Remove leading slash and split
 
-    if (!bucket) {
-      console.error(`Could not determine bucket from URL: ${s3Url}`);
+        // Determine bucket based on path prefix
+        if (pathParts[0] === "images" || pathParts[0] === "screenshots") {
+          bucket = process.env.S3_ASSETS_BUCKET_NAME || "";
+          key = url.pathname.substring(1); // Keep the full path including 'images/' prefix
+        } else {
+          // Assume email bucket for other files
+          bucket = process.env.S3_EMAIL_BUCKET_NAME || "";
+          key = url.pathname.substring(1);
+        }
+      }
+
+      if (!bucket) {
+        console.error(`Could not determine bucket from URL: ${s3Url}`);
+        return null;
+      }
+
+      const params: GetObjectCommandInput = {
+        Bucket: bucket,
+        Key: key,
+      };
+
+      const command = new GetObjectCommand(params);
+      const response = await s3.send(command);
+
+      if (response.Body) {
+        // Convert stream to buffer efficiently
+        const chunks: Uint8Array[] = [];
+        const stream = response.Body as any;
+
+        for await (const chunk of stream) {
+          chunks.push(chunk);
+        }
+
+        return Buffer.concat(chunks);
+      }
+
       return null;
-    }
+    } catch (error: any) {
+      console.error(
+        `Error downloading file from S3 (attempt ${attempt}/${retries}): ${s3Url}`,
+        error?.message || error
+      );
 
-    const params: GetObjectCommandInput = {
-      Bucket: bucket,
-      Key: key,
-    };
-
-    const command = new GetObjectCommand(params);
-    const response = await s3.send(command);
-
-    if (response.Body) {
-      // Convert stream to buffer
-      const chunks: Uint8Array[] = [];
-      const stream = response.Body as any;
-
-      for await (const chunk of stream) {
-        chunks.push(chunk);
+      if (attempt < retries) {
+        // Wait before retry with exponential backoff
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Max 5 seconds delay
+        console.log(`Retrying download in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
-
-      return Buffer.concat(chunks);
     }
-
-    return null;
-  } catch (error) {
-    console.error(`Error downloading file from S3: ${s3Url}`, error);
-    return null;
   }
+
+  console.error(`Failed to download file after ${retries} attempts: ${s3Url}`);
+  return null;
 }
 
 /**
@@ -290,5 +307,64 @@ export function getFilenameFromS3Url(s3Url: string): string {
   } catch (error) {
     console.error(`Error extracting filename from URL: ${s3Url}`);
     return "file";
+  }
+}
+
+/**
+ * Upload ZIP buffer to S3 and generate a presigned download URL
+ * @param zipBuffer The ZIP file buffer to upload
+ * @param filename The filename for the ZIP file
+ * @returns Object with S3 URL and presigned download URL
+ */
+export async function uploadZipToS3AndGetDownloadUrl(
+  zipBuffer: Buffer,
+  filename: string
+): Promise<{ s3Url: string; downloadUrl: string }> {
+  const key = `exports/${filename}`;
+
+  try {
+    // Upload ZIP file to S3
+    const uploadParams: PutObjectCommandInput = {
+      Bucket: process.env.S3_ASSETS_BUCKET_NAME!,
+      Key: key,
+      Body: zipBuffer,
+      ContentType: "application/zip",
+      ContentDisposition: `attachment; filename="${filename}"`,
+      // S3 lifecycle policy will automatically delete this file after 24 hours
+    };
+
+    const uploadCommand = new PutObjectCommand(uploadParams);
+    await s3.send(uploadCommand);
+
+    console.log(
+      `ZIP file uploaded to S3: s3://${process.env.S3_ASSETS_BUCKET_NAME}/${key}`
+    );
+
+    // Generate presigned URL for download (valid for 24 hours)
+    const downloadCommand = new GetObjectCommand({
+      Bucket: process.env.S3_ASSETS_BUCKET_NAME!,
+      Key: key,
+    });
+
+    const downloadUrl = await getSignedUrl(s3, downloadCommand, {
+      expiresIn: 24 * 60 * 60, // 24 hours in seconds
+    });
+
+    const s3Url = `s3://${process.env.S3_ASSETS_BUCKET_NAME}/${key}`;
+
+    console.log(
+      `Generated presigned download URL (expires in 24h): ${downloadUrl.substring(
+        0,
+        100
+      )}...`
+    );
+
+    return {
+      s3Url,
+      downloadUrl,
+    };
+  } catch (error) {
+    console.error("Error uploading ZIP to S3:", error);
+    throw new Error(`Failed to upload ZIP file to S3: ${error}`);
   }
 }
