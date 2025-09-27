@@ -54,14 +54,12 @@ provider:
     cors:
       allowedOrigins:
         - https://${env:DOMAIN_NAME}
+        - http://localhost:5173
       allowedHeaders:
-        - Authorization
         - Content-Type
-        - Set-Cookie
         - Cookie
         - X-API-Key
         - Accept
-        - Origin
         - User-Agent
         - Cache-Control
       allowedMethods:
@@ -443,7 +441,6 @@ functions:
       - httpApi:
           path: /api/auth/me
           method: get
-          cors: true
 
   logout:
     handler: ./build/auth/logout.handler
@@ -456,7 +453,6 @@ functions:
       - httpApi:
           path: /api/auth/logout
           method: post
-          cors: true
 
   oauthCallback:
     handler: ./build/auth/oauthCallback.handler
@@ -469,7 +465,6 @@ functions:
       - httpApi:
           path: /api/oauth2/callback
           method: get
-          cors: true
 
   oauthStart:
     handler: ./build/auth/oauthStart.handler
@@ -482,7 +477,6 @@ functions:
       - httpApi:
           path: /api/oauth2/start
           method: get
-          cors: true
 
   # ================================
   # AUTOMATION FUNCTIONS
@@ -500,7 +494,6 @@ functions:
       - httpApi:
           path: /api/automation/start-chain
           method: get
-          cors: true
       - schedule:
           rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *) # cron(30 17 ? * SUN,MON,TUE,WED,THU *)
           description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
@@ -560,7 +553,6 @@ functions:
       - httpApi:
           path: /api/forward/api/generate
           method: post
-          cors: true
 
   smsForward:
     handler: ./build/forward/sms/create.handler
@@ -573,7 +565,6 @@ functions:
       - httpApi:
           path: /api/forward/sms
           method: post
-          cors: true
 
   # ================================
   # DASHBOARD FUNCTIONS
@@ -589,7 +580,6 @@ functions:
       - httpApi:
           path: /api/dashboard
           method: get
-          cors: true
 
   # ================================
   # HEALTH FUNCTIONS
@@ -605,7 +595,6 @@ functions:
       - httpApi:
           path: /api/health
           method: get
-          cors: true
 
   # ================================
   # RUNS FUNCTIONS
@@ -621,7 +610,6 @@ functions:
       - httpApi:
           path: /api/runs
           method: get
-          cors: true
 
   # ================================
   # SETTINGS FUNCTIONS
@@ -639,7 +627,6 @@ functions:
       - httpApi:
           path: /api/settings/cibus
           method: get
-          cors: true
 
   updateCibusSettings:
     handler: ./build/settings/cibus/Update.handler
@@ -652,7 +639,6 @@ functions:
       - httpApi:
           path: /api/settings/cibus
           method: put
-          cors: true
 
   # Notification Settings
   getNotificationSettings:
@@ -666,7 +652,6 @@ functions:
       - httpApi:
           path: /api/settings/notification
           method: get
-          cors: true
 
   updateNotificationSettings:
     handler: ./build/settings/notification/Update.handler
@@ -679,7 +664,6 @@ functions:
       - httpApi:
           path: /api/settings/notification
           method: put
-          cors: true
 
   # 2FA Functions
   start2FA:
@@ -694,7 +678,6 @@ functions:
       - httpApi:
           path: /api/settings/notification/2fa/start
           method: post
-          cors: true
 
   verify2FA:
     handler: ./build/settings/notification/TwoFactorAuthentication/verify.handler
@@ -707,7 +690,6 @@ functions:
       - httpApi:
           path: /api/settings/notification/2fa/verify
           method: post
-          cors: true
 
   # Run Settings
   getRunSettings:
@@ -721,7 +703,6 @@ functions:
       - httpApi:
           path: /api/settings/run
           method: get
-          cors: true
 
   updateRunSettings:
     handler: ./build/settings/run/Update.handler
@@ -734,7 +715,6 @@ functions:
       - httpApi:
           path: /api/settings/run
           method: put
-          cors: true
 
   # Wolt Settings
   getWoltSettings:
@@ -748,7 +728,6 @@ functions:
       - httpApi:
           path: /api/settings/wolt
           method: get
-          cors: true
 
   updateWoltSettings:
     handler: ./build/settings/wolt/Update.handler
@@ -761,7 +740,6 @@ functions:
       - httpApi:
           path: /api/settings/wolt
           method: put
-          cors: true
 
   # ================================
   # USER FUNCTIONS
@@ -779,8 +757,22 @@ functions:
       - httpApi:
           path: /api/user/export
           method: get
-          cors: true
     # Export all user data - GET request returns complete ZIP archive with files
+
+  deleteUserAccount:
+    handler: ./build/user/delete.handler
+    timeout: 120 # 5 minutes for processing complete user deletion including S3 files
+    memorySize: 512 # Sufficient memory for deletion operations
+    package:
+      patterns:
+        - "!build/**"
+        - "build/user/delete.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/user/delete
+          method: delete
+    # Delete complete user account - DELETE request permanently removes all user data
 
   # ================================
   # TEST FUNCTIONS
@@ -796,7 +788,6 @@ functions:
       - httpApi:
           path: /api/test/email
           method: post
-          cors: true
     # Test Email function - send POST request with { "email": "test@example.com" }
 
   testSms:
@@ -810,7 +801,6 @@ functions:
       - httpApi:
           path: /api/test/sms
           method: post
-          cors: true
     # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
   # ================================
@@ -860,7 +850,6 @@ functions:
       - httpApi:
           path: /api/inbox
           method: get
-          cors: true
 
   # Download email attachment securely
   downloadAttachment:
@@ -876,7 +865,6 @@ functions:
       - httpApi:
           path: /api/inbox/{emailId}/attachment/{attachmentIndex}
           method: get
-          cors: true
 
 # AWS Resources Configuration
 resources:

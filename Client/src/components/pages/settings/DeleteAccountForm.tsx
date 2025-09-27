@@ -24,13 +24,12 @@ import {
 } from "@/components/ui/dialog";
 import AsyncButton from "@/components/shared/AsyncButton";
 
-// import { useDeleteUserAccountMutation } from "@/queries/user";
+import { useDeleteUserAccountMutation } from "@/queries/user";
 
 export default function DeleteAccountForm() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  // const deleteAccountMutation = useDeleteUserAccountMutation();
+  const deleteAccountMutation = useDeleteUserAccountMutation();
 
   const handleDeleteAccount = async () => {
     if (confirmText !== "DELETE MY ACCOUNT") {
@@ -40,21 +39,33 @@ export default function DeleteAccountForm() {
       return;
     }
 
-    setIsLoading(true);
     try {
-      // This is a placeholder - actual implementation will be added later
-      toast.info("Account deletion is not yet implemented", {
-        description: "This feature will be available in a future update",
+      console.log("Initiating account deletion...");
+
+      const result = await deleteAccountMutation.mutateAsync();
+
+      // Show success message with deletion details
+      toast.success("Account successfully deleted", {
+        description:
+          "Your account and all data have been permanently removed. You will be redirected shortly.",
+        duration: 5000,
       });
+
+      // Close dialog and reset form
       setIsDialogOpen(false);
       setConfirmText("");
+
+      console.log("Account deletion completed:", result.summary);
     } catch (error) {
       console.error("Failed to delete account:", error);
-      toast.error("Failed to delete account", {
-        description: "Please try again later or contact support",
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete account";
+
+      toast.error("Account deletion failed", {
+        description: errorMessage,
+        duration: 8000,
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -162,10 +173,13 @@ export default function DeleteAccountForm() {
                   </Button>
                   <AsyncButton
                     onClick={handleDeleteAccount}
-                    loading={isLoading}
+                    loading={deleteAccountMutation.isPending}
                     loadingText="Deleting Account..."
                     variant="destructive"
-                    disabled={confirmText !== "DELETE MY ACCOUNT"}
+                    disabled={
+                      confirmText !== "DELETE MY ACCOUNT" ||
+                      deleteAccountMutation.isPending
+                    }
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Account

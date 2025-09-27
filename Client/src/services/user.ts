@@ -63,11 +63,66 @@ class UserService {
 
   /**
    * Delete user account and all data
-   * Note: This is a placeholder for now - backend implementation will be added later
+   * This permanently deletes the user's account and all associated data
    */
-  async deleteUserAccount(): Promise<{ success: boolean; message: string }> {
-    // This will be implemented later with proper backend endpoint
-    throw new Error("Delete account functionality is not yet implemented");
+  async deleteUserAccount(): Promise<{
+    success: boolean;
+    message: string;
+    summary: {
+      deletedFromS3: {
+        screenshots: number;
+        emails: number;
+        attachments: number;
+      };
+      deletedFromDatabase: {
+        twoFactorAuthentications: number;
+        screenshots: number;
+        codes: number;
+        emails: number;
+        runs: number;
+        cibus2FAcodes: number;
+        inbox: number;
+        settings: number;
+        user: number;
+      };
+    };
+  }> {
+    try {
+      console.log("Starting account deletion...");
+      const response = await api.delete("/user/delete");
+
+      if (response.data.success) {
+        console.log("Account deletion completed:", response.data.data);
+        return {
+          success: true,
+          message: response.data.message,
+          summary: response.data.data.summary,
+        };
+      } else {
+        throw new Error(response.data.message || "Account deletion failed");
+      }
+    } catch (error: unknown) {
+      console.error("Account deletion failed:", error);
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response: { data: { message?: string } };
+        };
+        if (axiosError.response?.data?.message) {
+          throw new Error(axiosError.response.data.message);
+        }
+        // If there's a response but no message, use generic error
+        throw new Error(
+          "Account deletion failed. Please try again or contact support."
+        );
+      } else if (error instanceof Error) {
+        throw new Error(error.message);
+      } else {
+        throw new Error(
+          "Account deletion failed. Please try again or contact support."
+        );
+      }
+    }
   }
 }
 

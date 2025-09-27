@@ -91,7 +91,6 @@ export const handler = async (
       Location: `${process.env.ENV === "local" ? "http" : "https"}://${
         process.env.DOMAIN_NAME
       }/dashboard`,
-      "Access-Control-Allow-Credentials": "true",
     },
     body: "",
   };

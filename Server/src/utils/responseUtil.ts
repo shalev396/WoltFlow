@@ -45,9 +45,7 @@ export function createSuccessResponse(
 
   return {
     statusCode,
-    headers: {
-      "Access-Control-Allow-Credentials": "true",
-    },
+
     body: JSON.stringify(responseBody),
   };
 }
@@ -66,9 +64,7 @@ export function createErrorResponse(
 
   return {
     statusCode,
-    headers: {
-      "Access-Control-Allow-Credentials": "true",
-    },
+
     body: JSON.stringify(responseBody),
   };
 }

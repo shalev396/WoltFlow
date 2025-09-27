@@ -37,7 +37,6 @@ export const handler = async (): Promise<APIGatewayProxyResultV2> => {
     statusCode: 302,
     headers: {
       Location: consentUrl,
-      "Access-Control-Allow-Credentials": "true",
     },
     body: "",
   };
