@@ -5,7 +5,6 @@ import {
   FileText,
   //   AlertCircle,
   CheckCircle,
-  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -151,15 +150,6 @@ export default function ExportDataForm() {
               </div>
             )}
           </div>
-
-          {/* Caching Info */}
-          <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-            <Clock className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800 dark:text-blue-200">
-              <strong>Smart Caching:</strong> Export data is cached for 5
-              minutes to provide faster downloads if you need multiple copies.
-            </AlertDescription>
-          </Alert>
         </div>
       </CardContent>
     </Card>

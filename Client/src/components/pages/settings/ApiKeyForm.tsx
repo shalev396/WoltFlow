@@ -80,7 +80,7 @@ export default function ApiKeyForm() {
           <Key className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           API Key Management
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm leading-relaxed break-words">
           Generate and manage your API key for SMS forwarding and external
           integrations
         </CardDescription>
@@ -91,14 +91,25 @@ export default function ApiKeyForm() {
           <Alert>
             <Key className="h-4 w-4" />
             <AlertDescription className="flex flex-col gap-3">
-              <span>
+              <span className="text-sm leading-relaxed break-words">
                 Your API key allows external services to forward SMS messages to
                 your WoltFlow inbox. Keep it secure and don't share it publicly.
               </span>
-              <Button asChild variant="outline" size="sm" className="w-fit">
-                <Link to="/docs/sms-forwarding">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View SMS Forwarding Documentation
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-fit"
+              >
+                <Link
+                  to="/docs/sms-forwarding"
+                  className="flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">
+                    View SMS Forwarding Documentation
+                  </span>
+                  <span className="sm:hidden">View Documentation</span>
                 </Link>
               </Button>
             </AlertDescription>
@@ -110,7 +121,7 @@ export default function ApiKeyForm() {
               <div className="flex flex-col gap-4">
                 <div className="space-y-2">
                   <Label>Generate API Key</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground leading-relaxed break-words">
                     Click the button below to generate a new API key. This will
                     replace any existing key.
                   </p>
@@ -118,12 +129,13 @@ export default function ApiKeyForm() {
                 <AsyncButton
                   onClick={handleGenerateApiKey}
                   loading={isLoading}
-                  loadingText="Generating Key..."
-                  className="w-fit"
+                  loadingText="Generating..."
+                  className="w-full sm:w-fit"
                   variant="default"
                 >
-                  <Key className="h-4 w-4 mr-2" />
-                  Generate New API Key
+                  <Key className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="hidden sm:inline">Generate New API Key</span>
+                  <span className="sm:hidden">Generate Key</span>
                 </AsyncButton>
               </div>
             ) : (
@@ -131,7 +143,7 @@ export default function ApiKeyForm() {
                 {/* Success message */}
                 <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                   <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800 dark:text-green-200">
+                  <AlertDescription className="text-green-800 dark:text-green-200 text-sm leading-relaxed break-words">
                     <strong>API Key Generated Successfully!</strong> Copy it now
                     as you won't be able to see it again.
                   </AlertDescription>
@@ -141,19 +153,19 @@ export default function ApiKeyForm() {
                 <div className="space-y-2">
                   <Label>Your New API Key</Label>
                   <div className="flex gap-2">
-                    <div className="relative flex-1">
+                    <div className="relative flex-1 min-w-0">
                       <Input
                         value={apiKey}
                         type={showApiKey ? "text" : "password"}
                         readOnly
-                        className="pr-20 font-mono text-sm"
+                        className="pr-16 sm:pr-20 font-mono text-xs sm:text-sm"
                       />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                      <div className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 flex gap-0.5 sm:gap-1">
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0"
+                          className="h-6 w-6 p-0 touch-manipulation"
                           onClick={() => setShowApiKey(!showApiKey)}
                         >
                           {showApiKey ? (
@@ -169,7 +181,7 @@ export default function ApiKeyForm() {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0"
+                          className="h-6 w-6 p-0 touch-manipulation"
                           onClick={handleCopyApiKey}
                         >
                           <Copy className="h-3 w-3" />
@@ -178,7 +190,7 @@ export default function ApiKeyForm() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground leading-relaxed break-words">
                     Store this key securely. You'll need it to configure SMS
                     forwarding services.
                   </p>
@@ -187,7 +199,7 @@ export default function ApiKeyForm() {
                 {/* Warning */}
                 <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
                   <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+                  <AlertDescription className="text-yellow-800 dark:text-yellow-200 text-sm leading-relaxed break-words">
                     <strong>Important:</strong> This key won't be displayed
                     again. Make sure to copy and store it securely before
                     leaving this page.
@@ -199,7 +211,7 @@ export default function ApiKeyForm() {
                   <div className="space-y-3">
                     <div>
                       <h4 className="text-sm font-medium">Need a new key?</h4>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground leading-relaxed break-words">
                         Generating a new key will immediately invalidate the
                         current one.
                       </p>
@@ -211,13 +223,14 @@ export default function ApiKeyForm() {
                         handleGenerateApiKey();
                       }}
                       loading={isLoading}
-                      loadingText="Generating Key..."
+                      loadingText="Generating..."
                       variant="outline"
                       size="sm"
-                      className="w-fit"
+                      className="w-full sm:w-fit touch-manipulation"
                     >
-                      <Key className="h-3 w-3 mr-2" />
-                      Generate New Key
+                      <Key className="h-3 w-3 mr-2 flex-shrink-0" />
+                      <span className="hidden sm:inline">Generate New Key</span>
+                      <span className="sm:hidden">New Key</span>
                     </AsyncButton>
                   </div>
                 </div>

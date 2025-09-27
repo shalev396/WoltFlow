@@ -1,13 +1,6 @@
 import { useState } from "react";
-import {
-  Trash2,
-  AlertTriangle,
-  Shield,
-  Clock,
-  ExternalLink,
-} from "lucide-react";
+import { Trash2, AlertTriangle, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
 
 import {
   Card,
@@ -103,36 +96,6 @@ export default function DeleteAccountForm() {
               </ul>
             </div>
           </div>
-
-          {/* Data retention info */}
-          <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-            <Shield className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800 dark:text-blue-200 space-y-2">
-              <div>
-                <strong>Before you delete:</strong> Consider exporting your data
-                first if you want to keep a copy for your records.
-              </div>
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="w-fit mt-2"
-              >
-                <Link
-                  to="#"
-                  onClick={() => {
-                    // This would scroll to the export section
-                    const exportCard =
-                      document.querySelector("[data-export-card]");
-                    exportCard?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Export Data First
-                </Link>
-              </Button>
-            </AlertDescription>
-          </Alert>
 
           {/* Deletion timeline */}
           <Alert>
