@@ -40,7 +40,6 @@ export default function InboxList({
 }: InboxListProps) {
   // No need to filter here - InboxLayout already handles all filtering
   const filteredEmails = useMemo(() => {
-    console.log("InboxList: Received emails:", emails);
     return emails;
   }, [emails]);
 

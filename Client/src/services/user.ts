@@ -10,11 +10,7 @@ class UserService {
       const response = await api.get("/user/export");
       const { downloadUrl, filename } = response.data.data;
 
-      console.log("Download URL received:", downloadUrl);
-      console.log("Filename:", filename);
-
       // Fetch the file from S3 as a blob to ensure proper download
-      console.log("Fetching ZIP file from S3...");
       const fileResponse = await fetch(downloadUrl);
 
       if (!fileResponse.ok) {
@@ -24,7 +20,6 @@ class UserService {
       }
 
       const blob = await fileResponse.blob();
-      console.log("ZIP file downloaded, size:", blob.size, "bytes");
 
       // Create a blob URL and trigger download
       const blobUrl = window.URL.createObjectURL(blob);
@@ -40,7 +35,6 @@ class UserService {
       setTimeout(() => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(blobUrl);
-        console.log("Download cleanup completed");
       }, 1000);
 
       return { success: true, filename: filename || "woltflow-export.zip" };
@@ -51,7 +45,6 @@ class UserService {
       try {
         const response = await api.get("/user/export");
         const { downloadUrl } = response.data.data;
-        console.log("Fallback: Opening download URL in new tab");
         window.open(downloadUrl, "_blank");
         return { success: true, filename: "woltflow-export.zip" };
       } catch (fallbackError) {
@@ -88,11 +81,9 @@ class UserService {
     };
   }> {
     try {
-      console.log("Starting account deletion...");
       const response = await api.delete("/user/delete");
 
       if (response.data.success) {
-        console.log("Account deletion completed:", response.data.data);
         return {
           success: true,
           message: response.data.message,

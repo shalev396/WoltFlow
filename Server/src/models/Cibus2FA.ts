@@ -35,17 +35,18 @@ Cibus2FA.init(
       comment: "Reference to the user who owns this Cibus 2FA code",
     },
     code: {
-      type: DataTypes.STRING(6),
+      type: DataTypes.TEXT, // Changed to TEXT to accommodate encrypted data
       allowNull: false,
-      validate: {
-        is: /^\d{6}$/,
-      },
-      comment: "6-digit Cibus verification code from SMS",
+      comment: "6-digit Cibus verification code from SMS (encrypted)",
       get() {
         const rawValue = this.getDataValue("code");
         return rawValue ? decrypt(rawValue) : null;
       },
       set(value: string | null) {
+        // Validate the input before encryption
+        if (value && !/^\d{6}$/.test(value)) {
+          throw new Error("Code must be exactly 6 digits");
+        }
         this.setDataValue("code", value ? encrypt(value) : null);
       },
     },
@@ -69,6 +70,11 @@ Cibus2FA.init(
     expiresAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: () => {
+        const expiryTime = new Date();
+        expiryTime.setMinutes(expiryTime.getMinutes() + 10); // 10 minutes from now
+        return expiryTime;
+      },
       comment: "When the verification code expires (10 minutes after received)",
     },
     isUsed: {
@@ -85,6 +91,12 @@ Cibus2FA.init(
     dataExpiresAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: () => {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 1);
+        expiryDate.setHours(23, 59, 59, 999);
+        return expiryDate;
+      },
       comment:
         "When this record should be deleted (daily purge per privacy policy)",
     },
@@ -121,19 +133,6 @@ Cibus2FA.init(
         name: "unique_user_code_time",
       },
     ],
-    hooks: {
-      beforeCreate: (instance: Cibus2FA) => {
-        // Automatically set code expiration to 10 minutes after receivedAt
-        const receivedAt = instance.receivedAt || new Date();
-        instance.expiresAt = new Date(receivedAt.getTime() + 10 * 60 * 1000); // 10 minutes
-
-        // Set data expiry to end of day (daily purge per privacy policy)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(23, 59, 59, 999);
-        instance.dataExpiresAt = tomorrow;
-      },
-    },
   }
 );
 

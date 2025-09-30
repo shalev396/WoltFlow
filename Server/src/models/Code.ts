@@ -76,6 +76,12 @@ Code.init(
     dataExpiresAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: () => {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 1);
+        expiryDate.setHours(23, 59, 59, 999);
+        return expiryDate;
+      },
       comment:
         "When this record should be deleted (daily purge per privacy policy)",
     },
@@ -105,15 +111,6 @@ Code.init(
         fields: ["dataExpiresAt"],
       },
     ],
-    hooks: {
-      beforeCreate: (instance: Code) => {
-        // Set data expiry to end of day (daily purge per privacy policy)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(23, 59, 59, 999);
-        instance.dataExpiresAt = tomorrow;
-      },
-    },
   }
 );
 

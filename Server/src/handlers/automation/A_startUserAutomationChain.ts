@@ -79,6 +79,11 @@ export const handler = async (): Promise<ICustomStepFunctionResult> => {
         }
 
         // Create a new run for this user
+        // // Set data expiry to 90 days from now (ensure field is set)
+        // const dataExpiresAt = new Date();
+        // dataExpiresAt.setDate(dataExpiresAt.getDate() + 90);
+        // dataExpiresAt.setHours(23, 59, 59, 999);
+
         const newRun = await Run.create({
           userId: user.id,
           status: "started",
@@ -86,6 +91,7 @@ export const handler = async (): Promise<ICustomStepFunctionResult> => {
           automationMode: runSettings.automationMode || "full-run",
           amount: runSettings.giftAmount || null,
           errorMessage: null,
+          // dataExpiresAt: dataExpiresAt,
         });
 
         console.log(`Created run ${newRun.id} for user ${user.id}`);
@@ -122,6 +128,27 @@ export const handler = async (): Promise<ICustomStepFunctionResult> => {
             await notifyOnError(
               user.id.toString(),
               failedRun.id,
+              "Automation setup failed"
+            );
+          } else {
+            // No run exists, create a minimal failed run for notification tracking
+            const failedRunForNotification = await Run.create({
+              userId: user.id,
+              status: "failed",
+              stage: "triggered",
+              automationMode: "full-run", // Default since we can't access runSettings here
+              amount: null, // Default since we can't access runSettings here
+              errorMessage: errorMessage,
+              // dataExpiresAt: (() => {
+              //   const expiryDate = new Date();
+              //   expiryDate.setDate(expiryDate.getDate() + 90);
+              //   expiryDate.setHours(23, 59, 59, 999);
+              //   return expiryDate;
+              // })(),
+            });
+            await notifyOnError(
+              user.id.toString(),
+              failedRunForNotification.id,
               "Automation setup failed"
             );
           }

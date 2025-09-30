@@ -18,7 +18,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     connectionTimeoutMillis: 60000,
     statement_timeout: 60000,
   },
-  logging: false, //ENV === "local" ? console.log : false,
+  logging: false,
 });
 
 export default sequelize;

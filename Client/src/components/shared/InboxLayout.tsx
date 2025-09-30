@@ -47,10 +47,6 @@ export default function InboxLayout() {
   const filteredEmails = useMemo(() => {
     let result = inboxData?.data?.emails || [];
 
-    console.log("InboxLayout: Raw emails from API:", result);
-    console.log("InboxLayout: Search query:", searchQuery);
-    console.log("InboxLayout: Selected label:", selectedLabel);
-
     // Transform date strings to Date objects for proper handling
     result = result.map((email) => ({
       ...email,
@@ -90,21 +86,12 @@ export default function InboxLayout() {
     //   result = result.filter((email) => email.labels?.includes(selectedLabel));
     // }
 
-    console.log("InboxLayout: Filtered emails:", result);
     return result;
   }, [inboxData?.data?.emails, searchQuery, selectedLabel]);
 
   // Set initial selected email
   useMemo(() => {
-    console.log("InboxLayout: Setting initial email selection");
-    console.log("InboxLayout: filteredEmails.length:", filteredEmails.length);
-    console.log("InboxLayout: selectedEmailId:", selectedEmailId);
-
     if (filteredEmails.length > 0 && !selectedEmailId) {
-      console.log(
-        "InboxLayout: Setting first email as selected:",
-        filteredEmails[0].id
-      );
       setSelectedEmailId(filteredEmails[0].id);
     }
   }, [filteredEmails, selectedEmailId]);
@@ -283,10 +270,7 @@ export default function InboxLayout() {
                       <div className="h-full">
                         <InboxViewer
                           email={selectedEmail}
-                          onEmailAction={(action, emailId) => {
-                            console.log(
-                              `Email action ${action} triggered for ${emailId}`
-                            );
+                          onEmailAction={() => {
                             // TODO: Implement email actions (mark as read, star, delete, etc.)
                           }}
                         />
@@ -309,10 +293,7 @@ export default function InboxLayout() {
                     ) : (
                       <InboxViewer
                         email={selectedEmail}
-                        onEmailAction={(action, emailId) => {
-                          console.log(
-                            `Email action ${action} triggered for ${emailId}`
-                          );
+                        onEmailAction={() => {
                           // TODO: Implement email actions (mark as read, star, delete, etc.)
                         }}
                       />

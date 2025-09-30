@@ -40,7 +40,6 @@ export default function DeleteAccountForm() {
     }
 
     try {
-      console.log("Initiating account deletion...");
 
       const result = await deleteAccountMutation.mutateAsync();
 
@@ -55,7 +54,6 @@ export default function DeleteAccountForm() {
       setIsDialogOpen(false);
       setConfirmText("");
 
-      console.log("Account deletion completed:", result.summary);
     } catch (error) {
       console.error("Failed to delete account:", error);
 

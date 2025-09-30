@@ -397,7 +397,7 @@ export const handler = async (
         10000
       );
       if (otpInput) {
-        await sleep(10000);
+        await sleep(30000);
 
         // Fetch the most recent unused Cibus 2FA code for this user
         const cibus2FA = await Cibus2FA.findOne({

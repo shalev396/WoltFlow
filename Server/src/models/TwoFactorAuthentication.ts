@@ -48,17 +48,18 @@ TwoFactorAuthentication.init(
       comment: "Phone number (E.164) or email address for code delivery",
     },
     code: {
-      type: DataTypes.STRING(6),
+      type: DataTypes.TEXT, // Changed to TEXT to accommodate encrypted data
       allowNull: false,
-      validate: {
-        is: /^\d{6}$/,
-      },
-      comment: "6-digit verification code",
+      comment: "6-digit verification code (encrypted)",
       get() {
         const rawValue = this.getDataValue("code");
         return rawValue ? decrypt(rawValue) : null;
       },
       set(value: string | null) {
+        // Validate the input before encryption
+        if (value && !/^\d{6}$/.test(value)) {
+          throw new Error("Code must be exactly 6 digits");
+        }
         this.setDataValue("code", value ? encrypt(value) : null);
       },
     },
@@ -74,6 +75,11 @@ TwoFactorAuthentication.init(
     expiresAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: () => {
+        const expiryTime = new Date();
+        expiryTime.setMinutes(expiryTime.getMinutes() + 10); // 10 minutes from now
+        return expiryTime;
+      },
       comment: "When the verification code expires",
     },
     verified: {
@@ -125,13 +131,6 @@ TwoFactorAuthentication.init(
         fields: ["dataExpiresAt"],
       },
     ],
-    hooks: {
-      beforeCreate: (instance: TwoFactorAuthentication) => {
-        // Automatically set code expiration to 10 minutes after creation
-        const createdAt = instance.createdAt || new Date();
-        instance.expiresAt = new Date(createdAt.getTime() + 10 * 60 * 1000); // 10 minutes
-      },
-    },
   }
 );
 

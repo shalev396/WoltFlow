@@ -75,6 +75,12 @@ Run.init(
     dataExpiresAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: () => {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 90);
+        expiryDate.setHours(23, 59, 59, 999);
+        return expiryDate;
+      },
       comment:
         "When this record should be deleted (90 days per privacy policy)",
     },
@@ -103,15 +109,6 @@ Run.init(
         fields: ["dataExpiresAt"],
       },
     ],
-    hooks: {
-      beforeCreate: (instance: Run) => {
-        // Set data expiry to 90 days from creation (per privacy policy)
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 90);
-        expiryDate.setHours(23, 59, 59, 999);
-        instance.dataExpiresAt = expiryDate;
-      },
-    },
   }
 );
 
