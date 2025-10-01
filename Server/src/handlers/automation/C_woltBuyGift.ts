@@ -513,12 +513,24 @@ export const handler = async (
     if (!run) {
       throw new Error("Run not found");
     }
-    let status = "in_progress";
-    let stage = "buying_gift";
-    // Update run status once
-    if (run.automationMode === "buy-only") {
-      status = success ? "completed" : "failed";
-      stage = success ? "completed" : "buying_gift";
+
+    // Determine status and stage based on success and automation mode
+    let status: string;
+    let stage: string;
+
+    if (success) {
+      if (run.automationMode === "buy-only") {
+        status = "completed";
+        stage = "completed";
+      } else {
+        // Full-run mode: continue to next step
+        status = "in_progress";
+        stage = "buying_gift";
+      }
+    } else {
+      // Always mark as failed when success is false, regardless of automation mode
+      status = "failed";
+      stage = "buying_gift";
     }
     await run.update({
       status: status,
