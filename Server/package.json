@@ -17,6 +17,7 @@
     "test:woltBuyGift": "serverless invoke -f woltBuyGift --path woltBuyGift.json"
   },
   "dependencies": {
+    "@aws-sdk/client-pinpoint-sms-voice-v2": "^3.901.0",
     "@aws-sdk/client-s3": "^3.848.0",
     "@aws-sdk/client-ses": "^3.848.0",
     "@aws-sdk/client-sfn": "^3.856.0",

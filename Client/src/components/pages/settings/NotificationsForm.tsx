@@ -43,6 +43,7 @@ import {
   useUpdateNotificationSettingsMutation,
 } from "@/queries/settings";
 import { twoFactorService } from "@/services/twoFactor";
+import { formatPhoneNumber } from "@/utils/validation";
 
 interface VerificationState {
   isVerifying: boolean;
@@ -116,9 +117,10 @@ export default function NotificationsForm() {
   };
 
   const validatePhone = (phone: string): boolean => {
-    // E.164 format validation
-    const phoneRegex = /^\+[1-9]\d{1,14}$/;
-    return phoneRegex.test(phone);
+    if (!phone.trim()) return false;
+    // Use the same formatPhoneNumber function to handle Israeli numbers
+    const formatted = formatPhoneNumber(phone);
+    return formatted !== null;
   };
 
   // Start verification process
@@ -187,7 +189,11 @@ export default function NotificationsForm() {
 
       // Update form with verified contact
       if (verificationState.method === "sms") {
-        form.setValue("phoneNumber", verificationState.contact);
+        const formattedPhone = formatPhoneNumber(verificationState.contact);
+        form.setValue(
+          "phoneNumber",
+          formattedPhone || verificationState.contact
+        );
         form.setValue("phoneVerified", true);
       } else {
         form.setValue("email", verificationState.contact);
@@ -425,7 +431,7 @@ export default function NotificationsForm() {
                             <Input
                               {...field}
                               value={field.value || ""}
-                              placeholder="+972XXXXXXXXX"
+                              placeholder="+972XXXXXXXXX or 0XX-XXX-XXXX"
                               disabled={
                                 isLoading ||
                                 updateNotificationSettings.isPending
@@ -433,7 +439,8 @@ export default function NotificationsForm() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Enter your phone number in international format
+                            Enter your phone number (Israeli format:
+                            0XX-XXX-XXXX or international: +972XXXXXXXXX)
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

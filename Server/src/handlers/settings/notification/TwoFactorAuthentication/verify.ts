@@ -79,10 +79,11 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // 2) Build the where object ONCE (immutable) with conditional spreads.
       //    - It is fully typed as WhereOptions<TFAAttrs>.
       //    - `id` is only added when `sessionId` exists, so no post-hoc mutation.
+      //    - NOTE: We cannot filter by 'code' in the WHERE clause because codes are encrypted
       const whereClause: WhereOptions<TFAAttrs> = {
         notificationSettingsId: notificationSettings.id,
         method, // should match union on your model attribute, e.g. "sms" | "email"
-        code, // string
+        // code removed - we'll check it manually after decryption
         verified: false, // boolean
         expiresAt: { [Op.gte]: new Date() }, // operator is fine on date columns
 
@@ -90,13 +91,26 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         ...(sessionId ? { id: sessionId } : {}),
       } satisfies WhereOptions<TFAAttrs>; // validates shape w/out changing the inferred literal type
 
-      // Find the verification record
-      const verificationRecord = await TwoFactorAuthentication.findOne({
+      // Find all potential verification records (without code filter since codes are encrypted)
+      const verificationRecords = await TwoFactorAuthentication.findAll({
         where: whereClause,
-        order: [["createdAt", "DESC"]], // Get the most recent match
+        order: [["createdAt", "DESC"]], // Get the most recent matches first
       });
 
+      // Find the record with matching decrypted code
+      let verificationRecord: TwoFactorAuthentication | null = null;
+      for (const record of verificationRecords) {
+        if (record.code === code) {
+          // This will use the getter which decrypts
+          verificationRecord = record;
+          break;
+        }
+      }
+
       if (!verificationRecord) {
+        console.log(
+          `Verification failed for user ${event.userId}: Found ${verificationRecords.length} potential records, but none matched the provided code`
+        );
         return createErrorResponse("Invalid or expired verification code", 400);
       }
 

@@ -40,8 +40,8 @@ export default function DeleteAccountForm() {
     }
 
     try {
-
-      const result = await deleteAccountMutation.mutateAsync();
+      // const result =
+      await deleteAccountMutation.mutateAsync();
 
       // Show success message with deletion details
       toast.success("Account successfully deleted", {
@@ -53,7 +53,6 @@ export default function DeleteAccountForm() {
       // Close dialog and reset form
       setIsDialogOpen(false);
       setConfirmText("");
-
     } catch (error) {
       console.error("Failed to delete account:", error);
 

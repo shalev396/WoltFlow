@@ -18,10 +18,10 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     // Check if SMS is enabled via environment variable
-    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    const enabledSMS = process.env.ENABLED_SMS;
     if (!enabledSMS) {
       console.log(
-        `Test SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+        `Test SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
       );
       return createErrorResponse(
         "SMS functionality is currently disabled",
