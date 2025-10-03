@@ -21,7 +21,6 @@
     "@aws-sdk/client-s3": "^3.848.0",
     "@aws-sdk/client-ses": "^3.848.0",
     "@aws-sdk/client-sfn": "^3.856.0",
-    "@aws-sdk/client-sns": "^3.840.0",
     "@aws-sdk/s3-request-presigner": "^3.848.0",
     "@googleapis/oauth2": "^2.0.1",
     "archiver": "^7.0.1",
