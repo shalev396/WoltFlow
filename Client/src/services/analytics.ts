@@ -78,6 +78,8 @@ class AnalyticsService {
     window.gtag("config", GA_TRACKING_ID, {
       page_title: document.title,
       page_location: window.location.href,
+      cookie_domain: "auto", // This is crucial for subdomain tracking
+      debug_mode: import.meta.env.VITE_ENV === "dev",
     });
 
     // Load the Google Analytics script
@@ -133,6 +135,8 @@ class AnalyticsService {
     window.gtag("config", GA_TRACKING_ID, {
       page_path,
       page_title: page_title || document.title,
+      cookie_domain: "auto", // This is crucial for subdomain tracking
+      debug_mode: import.meta.env.VITE_ENV === "dev",
     });
   }
 

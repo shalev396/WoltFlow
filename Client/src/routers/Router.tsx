@@ -9,7 +9,7 @@ import DashboardPage from "../pages/DashboardPage";
 import RunsPage from "../pages/RunsPage";
 import SettingsPage from "../pages/SettingsPage";
 import InboxPage from "../pages/InboxPage";
-import NotFound from "../pages/NotFound";
+import NotFound from "../pages/NotFoundPage";
 
 export const router = createBrowserRouter([
   {

@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import PrivacyPage from "../pages/PrivacyPage";
 import ExtensionPrivacyPage from "../pages/ExtensionPrivacyPage";
-import TermsOfService from "../pages/TermsOfService";
-import NotFound from "@/pages/NotFound";
+import TermsOfService from "../pages/TermsOfServicePage";
+import NotFound from "@/pages/NotFoundPage";
 
 export function LegalRouter() {
   return (

@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { DocsLayout } from "../components/pages/docs/DocsLayout";
-import NotFound from "@/pages/NotFound";
+import NotFound from "@/pages/NotFoundPage";
 
 export function DocsRouter() {
   return (
