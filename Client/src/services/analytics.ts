@@ -6,7 +6,9 @@ declare global {
   }
 }
 
+// Environment variables
 const GA_TRACKING_ID = import.meta.env.VITE_GOOGLE_ANALYTICS_ID;
+const IS_DEVELOPMENT = import.meta.env.VITE_ENV === "dev";
 const GA_SCRIPT_ID = "google-analytics-script";
 
 class AnalyticsService {
@@ -60,10 +62,15 @@ class AnalyticsService {
   }
 
   /**
-   * Load Google Analytics scripts and initialize
+   * Load Google Analytics - Simple implementation like official GA setup
    */
   private loadGoogleAnalytics(): void {
-    // Create dataLayer if it doesn't exist
+    // Don't load if already loaded
+    if (document.getElementById(GA_SCRIPT_ID)) {
+      return;
+    }
+
+    // Create dataLayer
     window.dataLayer = window.dataLayer || [];
 
     // Define gtag function
@@ -71,25 +78,21 @@ class AnalyticsService {
       window.dataLayer?.push(args);
     };
 
-    // Initialize with current date
+    // Initialize
     window.gtag("js", new Date());
-
-    // Configure with tracking ID
     window.gtag("config", GA_TRACKING_ID, {
       page_title: document.title,
       page_location: window.location.href,
       cookie_domain: "auto", // This is crucial for subdomain tracking
-      debug_mode: import.meta.env.VITE_ENV === "dev",
+      debug_mode: IS_DEVELOPMENT,
     });
 
-    // Load the Google Analytics script
-    if (!document.getElementById(GA_SCRIPT_ID)) {
-      const script = document.createElement("script");
-      script.id = GA_SCRIPT_ID;
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`;
-      document.head.appendChild(script);
-    }
+    // Load external script
+    const script = document.createElement("script");
+    script.id = GA_SCRIPT_ID;
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`;
+    document.head.appendChild(script);
 
     this.isInitialized = true;
     console.log("Google Analytics initialized");
@@ -104,39 +107,40 @@ class AnalyticsService {
       `ga-disable-${GA_TRACKING_ID}`
     ] = true;
 
-    // Remove the script if it exists
+    // Remove the script
     const script = document.getElementById(GA_SCRIPT_ID);
-    if (script) {
-      script.remove();
-    }
+    script?.remove();
 
     // Clear gtag function
-    if (window.gtag) {
-      window.gtag = undefined;
-    }
+    window.gtag = undefined;
 
     this.isInitialized = false;
     console.log("Google Analytics disabled");
   }
 
   /**
+   * Check if tracking is allowed and ready
+   */
+  private canTrack(): boolean {
+    return (
+      this.isConfigured() &&
+      this.hasConsent &&
+      this.isInitialized &&
+      !!window.gtag
+    );
+  }
+
+  /**
    * Track page view (only if consent given)
    */
   public trackPageView(page_path: string, page_title?: string): void {
-    if (
-      !this.isConfigured() ||
-      !this.hasConsent ||
-      !this.isInitialized ||
-      !window.gtag
-    ) {
-      return;
-    }
+    if (!this.canTrack()) return;
 
-    window.gtag("config", GA_TRACKING_ID, {
+    window.gtag!("config", GA_TRACKING_ID, {
       page_path,
       page_title: page_title || document.title,
-      cookie_domain: "auto", // This is crucial for subdomain tracking
-      debug_mode: import.meta.env.VITE_ENV === "dev",
+      cookie_domain: "auto",
+      debug_mode: IS_DEVELOPMENT,
     });
   }
 
@@ -149,16 +153,9 @@ class AnalyticsService {
     label?: string,
     value?: number
   ): void {
-    if (
-      !this.isConfigured() ||
-      !this.hasConsent ||
-      !this.isInitialized ||
-      !window.gtag
-    ) {
-      return;
-    }
+    if (!this.canTrack()) return;
 
-    window.gtag("event", action, {
+    window.gtag!("event", action, {
       event_category: category,
       event_label: label,
       value,
