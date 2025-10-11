@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Key,
   Copy,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
 
 import {
   Card,
@@ -27,6 +29,8 @@ import AsyncButton from "@/components/shared/AsyncButton";
 import { settingsService } from "@/services/settings";
 
 export default function ApiKeyForm() {
+  const { t } = useTranslation("settings");
+  const { language } = useLanguage();
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showApiKey, setShowApiKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -78,11 +82,10 @@ export default function ApiKeyForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Key className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-          API Key Management
+          {t("apiKeyForm.title")}
         </CardTitle>
         <CardDescription className="text-sm leading-relaxed break-words">
-          Generate and manage your API key for SMS forwarding and external
-          integrations
+          {t("apiKeyForm.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
@@ -92,8 +95,7 @@ export default function ApiKeyForm() {
             <Key className="h-4 w-4" />
             <AlertDescription className="flex flex-col gap-3">
               <span className="text-sm leading-relaxed break-words">
-                Your API key allows external services to forward SMS messages to
-                your WoltFlow inbox. Keep it secure and don't share it publicly.
+                {t("apiKeyForm.infoAlert")}
               </span>
               <Button
                 asChild
@@ -102,14 +104,16 @@ export default function ApiKeyForm() {
                 className="w-full sm:w-fit"
               >
                 <Link
-                  to="/docs/sms-forwarding"
+                  to={`/${language}/docs/sms-forwarding`}
                   className="flex items-center justify-center gap-2"
                 >
                   <ExternalLink className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline">
-                    View SMS Forwarding Documentation
+                    {t("apiKeyForm.viewDocs")}
                   </span>
-                  <span className="sm:hidden">View Documentation</span>
+                  <span className="sm:hidden">
+                    {t("apiKeyForm.viewDocsShort")}
+                  </span>
                 </Link>
               </Button>
             </AlertDescription>
@@ -120,22 +124,25 @@ export default function ApiKeyForm() {
             {!apiKey ? (
               <div className="flex flex-col gap-4">
                 <div className="space-y-2">
-                  <Label>Generate API Key</Label>
+                  <Label>{t("apiKeyForm.generate.title")}</Label>
                   <p className="text-sm text-muted-foreground leading-relaxed break-words">
-                    Click the button below to generate a new API key. This will
-                    replace any existing key.
+                    {t("apiKeyForm.generate.description")}
                   </p>
                 </div>
                 <AsyncButton
                   onClick={handleGenerateApiKey}
                   loading={isLoading}
-                  loadingText="Generating..."
+                  loadingText={t("apiKeyForm.generate.generating")}
                   className="w-full sm:w-fit"
                   variant="default"
                 >
                   <Key className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="hidden sm:inline">Generate New API Key</span>
-                  <span className="sm:hidden">Generate Key</span>
+                  <span className="hidden sm:inline">
+                    {t("apiKeyForm.generate.button")}
+                  </span>
+                  <span className="sm:hidden">
+                    {t("apiKeyForm.generate.buttonShort")}
+                  </span>
                 </AsyncButton>
               </div>
             ) : (
@@ -144,14 +151,14 @@ export default function ApiKeyForm() {
                 <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800 dark:text-green-200 text-sm leading-relaxed break-words">
-                    <strong>API Key Generated Successfully!</strong> Copy it now
-                    as you won't be able to see it again.
+                    <strong>{t("apiKeyForm.success.title")}</strong>{" "}
+                    {t("apiKeyForm.success.message")}
                   </AlertDescription>
                 </Alert>
 
                 {/* API Key Display */}
                 <div className="space-y-2">
-                  <Label>Your New API Key</Label>
+                  <Label>{t("apiKeyForm.yourKey.label")}</Label>
                   <div className="flex gap-2">
                     <div className="relative flex-1 min-w-0">
                       <Input
@@ -174,7 +181,9 @@ export default function ApiKeyForm() {
                             <Eye className="h-3 w-3" />
                           )}
                           <span className="sr-only">
-                            {showApiKey ? "Hide" : "Show"} API key
+                            {showApiKey
+                              ? t("apiKeyForm.yourKey.hide")
+                              : t("apiKeyForm.yourKey.show")}
                           </span>
                         </Button>
                         <Button
@@ -185,14 +194,15 @@ export default function ApiKeyForm() {
                           onClick={handleCopyApiKey}
                         >
                           <Copy className="h-3 w-3" />
-                          <span className="sr-only">Copy API key</span>
+                          <span className="sr-only">
+                            {t("apiKeyForm.yourKey.copy")}
+                          </span>
                         </Button>
                       </div>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed break-words">
-                    Store this key securely. You'll need it to configure SMS
-                    forwarding services.
+                    {t("apiKeyForm.yourKey.description")}
                   </p>
                 </div>
 
@@ -200,9 +210,8 @@ export default function ApiKeyForm() {
                 <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
                   <AlertTriangle className="h-4 w-4 text-yellow-600" />
                   <AlertDescription className="text-yellow-800 dark:text-yellow-200 text-sm leading-relaxed break-words">
-                    <strong>Important:</strong> This key won't be displayed
-                    again. Make sure to copy and store it securely before
-                    leaving this page.
+                    <strong>{t("apiKeyForm.warning.title")}</strong>{" "}
+                    {t("apiKeyForm.warning.message")}
                   </AlertDescription>
                 </Alert>
 
@@ -210,10 +219,11 @@ export default function ApiKeyForm() {
                 <div className="pt-4 border-t">
                   <div className="space-y-3">
                     <div>
-                      <h4 className="text-sm font-medium">Need a new key?</h4>
+                      <h4 className="text-sm font-medium">
+                        {t("apiKeyForm.regenerate.title")}
+                      </h4>
                       <p className="text-xs text-muted-foreground leading-relaxed break-words">
-                        Generating a new key will immediately invalidate the
-                        current one.
+                        {t("apiKeyForm.regenerate.description")}
                       </p>
                     </div>
                     <AsyncButton
@@ -223,14 +233,18 @@ export default function ApiKeyForm() {
                         handleGenerateApiKey();
                       }}
                       loading={isLoading}
-                      loadingText="Generating..."
+                      loadingText={t("apiKeyForm.generate.generating")}
                       variant="outline"
                       size="sm"
                       className="w-full sm:w-fit touch-manipulation"
                     >
                       <Key className="h-3 w-3 mr-2 flex-shrink-0" />
-                      <span className="hidden sm:inline">Generate New Key</span>
-                      <span className="sm:hidden">New Key</span>
+                      <span className="hidden sm:inline">
+                        {t("apiKeyForm.regenerate.button")}
+                      </span>
+                      <span className="sm:hidden">
+                        {t("apiKeyForm.regenerate.buttonShort")}
+                      </span>
                     </AsyncButton>
                   </div>
                 </div>

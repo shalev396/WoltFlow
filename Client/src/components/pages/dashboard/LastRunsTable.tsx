@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { Eye, ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/hooks/useLanguage";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +64,8 @@ export default function LastRunsTable({
   analytics,
   isLoading,
 }: LastRunsTableProps) {
+  const { t } = useTranslation("dashboard");
+  const { language } = useLanguage();
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -124,19 +128,32 @@ export default function LastRunsTable({
   const getTimeRangeDescription = (timeRange?: string) => {
     switch (timeRange) {
       case "7d":
-        return "Last 7 days";
+        return t("timeRanges.last7Days");
       case "90d":
-        return "Last 90 days";
+        return t("timeRanges.last90Days");
       default:
-        return "Last 30 days";
+        return t("timeRanges.last30Days");
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+    if (status === "in_progress") {
+      return t("recentRuns.statusLabels.inProgress");
+    }
+    // Use the translation key with fallback to capitalized status
+    return t(
+      `recentRuns.statusLabels.${status}`,
+      status.charAt(0).toUpperCase() + status.slice(1)
+    );
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div>
-          <CardTitle className="text-lg font-semibold">Recent Runs</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            {t("recentRuns.title")}
+          </CardTitle>
           {analytics && (
             <p className="text-sm text-muted-foreground mt-1">
               {getTimeRangeDescription(analytics.timeRange)}
@@ -144,8 +161,8 @@ export default function LastRunsTable({
           )}
         </div>
         <Button variant="ghost" size="sm" asChild>
-          <Link to="/runs" className="flex items-center gap-1">
-            View All
+          <Link to={`/${language}/runs`} className="flex items-center gap-1">
+            {t("recentRuns.viewAll")}
             <ExternalLink className="h-3 w-3" />
           </Link>
         </Button>
@@ -166,8 +183,8 @@ export default function LastRunsTable({
           </div>
         ) : !sortedRuns || sortedRuns.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="mb-2">No runs yet</p>
-            <p className="text-sm">Your automation runs will appear here</p>
+            <p className="mb-2">{t("recentRuns.noRuns")}</p>
+            <p className="text-sm">{t("recentRuns.runsWillAppear")}</p>
           </div>
         ) : (
           <div className="rounded-md border">
@@ -175,12 +192,18 @@ export default function LastRunsTable({
               <TableHeader>
                 <TableRow>
                   <TableHead className="py-3">
-                    <SortButton field="createdAt">Date</SortButton>
+                    <SortButton field="createdAt">
+                      {t("recentRuns.date")}
+                    </SortButton>
                   </TableHead>
                   <TableHead className="py-3">
-                    <SortButton field="status">Status</SortButton>
+                    <SortButton field="status">
+                      {t("recentRuns.status")}
+                    </SortButton>
                   </TableHead>
-                  <TableHead className="py-3">Amount</TableHead>
+                  <TableHead className="py-3">
+                    {t("recentRuns.amount")}
+                  </TableHead>
                   <TableHead className="py-3"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -200,10 +223,7 @@ export default function LastRunsTable({
                     <TableCell className="py-3">
                       <span className={getStatusBadge(run.status)}>
                         {getStatusIcon(run.status)}
-                        {run.status === "in_progress"
-                          ? "In Progress"
-                          : run.status.charAt(0).toUpperCase() +
-                            run.status.slice(1)}
+                        {getStatusLabel(run.status)}
                       </span>
                     </TableCell>
                     <TableCell className="py-3">
@@ -223,7 +243,9 @@ export default function LastRunsTable({
                             className="h-8 w-8 p-0"
                           >
                             <Eye className="h-4 w-4" />
-                            <span className="sr-only">View details</span>
+                            <span className="sr-only">
+                              {t("recentRuns.viewDetails")}
+                            </span>
                           </Button>
                         }
                       />

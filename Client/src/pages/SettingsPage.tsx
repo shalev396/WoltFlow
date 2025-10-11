@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import Layout from "@/components/shared/Layout";
 import WoltForm from "@/components/pages/settings/WoltForm";
 import CibusForm from "@/components/pages/settings/CibusForm";
@@ -8,11 +9,10 @@ import ExportDataForm from "@/components/pages/settings/ExportDataForm";
 import DeleteAccountForm from "@/components/pages/settings/DeleteAccountForm";
 
 export default function SettingsPage() {
+  const { t } = useTranslation("settings");
+
   return (
-    <Layout
-      title="Settings"
-      description="Manage your account settings and automation preferences"
-    >
+    <Layout title={t("title")} description={t("description")}>
       <div className="space-y-8">
         {/* API Key Management - Full width at top for prominence */}
         <div className="w-full">
@@ -45,7 +45,9 @@ export default function SettingsPage() {
         {/* Data Management - Full width section */}
         <div className="space-y-6">
           <div className="border-t pt-8">
-            <h3 className="text-lg font-semibold mb-6">Data Management</h3>
+            <h3 className="text-lg font-semibold mb-6">
+              {t("dataManagement.title")}
+            </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               {/* Export Data */}
               <div className="h-full" data-export-card>

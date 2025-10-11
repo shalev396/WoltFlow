@@ -1,4 +1,5 @@
 import { HelpCircle, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -14,52 +15,53 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AutomationModeCard } from "@/components/shared/AutomationModeCard";
 
 export function AutomationModesHelp() {
+  const { t } = useTranslation("settings");
+
   const modes = [
     {
       id: "full-run",
-      name: "Complete Automation",
-      description:
-        "Fully automated process from purchase to redemption - no manual steps required",
+      name: t("automationModesHelp.modes.fullRun.name"),
+      description: t("automationModesHelp.modes.fullRun.description"),
       flow: [
-        "🔐 Securely log into your Wolt account",
-        "💳 Purchase gift card using your Cibus balance",
-        "📧 Extract gift code from your WoltFlow inbox",
-        "🎁 Automatically apply the code to your Wolt account",
+        t("automationModesHelp.modes.fullRun.flow.step1"),
+        t("automationModesHelp.modes.fullRun.flow.step2"),
+        t("automationModesHelp.modes.fullRun.flow.step3"),
+        t("automationModesHelp.modes.fullRun.flow.step4"),
       ],
       pros: [
-        "Completely hands-off daily automation",
-        "Maximum time savings",
-        "No manual intervention needed",
+        t("automationModesHelp.modes.fullRun.pros.pro1"),
+        t("automationModesHelp.modes.fullRun.pros.pro2"),
+        t("automationModesHelp.modes.fullRun.pros.pro3"),
       ],
-      cons: ["Requires email forwarding setup"],
+      cons: [t("automationModesHelp.modes.fullRun.cons.con1")],
       requirements: [
-        "Wolt account credentials",
-        "Cibus account credentials",
-        "Email forwarding to WoltFlow inbox",
+        t("automationModesHelp.modes.fullRun.requirements.req1"),
+        t("automationModesHelp.modes.fullRun.requirements.req2"),
+        t("automationModesHelp.modes.fullRun.requirements.req3"),
       ],
-      bestFor:
-        "Users who want complete automation and don't mind setting up email forwarding",
+      bestFor: t("automationModesHelp.modes.fullRun.bestFor"),
     },
     {
       id: "buy-only",
-      name: "Purchase Only",
-      description:
-        "Automate the purchase but manually apply gift codes yourself",
+      name: t("automationModesHelp.modes.buyOnly.name"),
+      description: t("automationModesHelp.modes.buyOnly.description"),
       flow: [
-        "🔐 Securely log into your Wolt account",
-        "💳 Purchase gift card using your Cibus balance",
-        "✋ Automation stops - you receive email with gift code",
-        "👤 You manually apply the code to your Wolt account",
+        t("automationModesHelp.modes.buyOnly.flow.step1"),
+        t("automationModesHelp.modes.buyOnly.flow.step2"),
+        t("automationModesHelp.modes.buyOnly.flow.step3"),
+        t("automationModesHelp.modes.buyOnly.flow.step4"),
       ],
       pros: [
-        "No email forwarding setup required",
-        "Still saves time on daily purchases",
-        "You maintain control over gift code application",
+        t("automationModesHelp.modes.buyOnly.pros.pro1"),
+        t("automationModesHelp.modes.buyOnly.pros.pro2"),
+        t("automationModesHelp.modes.buyOnly.pros.pro3"),
       ],
-      cons: ["Requires daily manual step to apply codes"],
-      requirements: ["Wolt account credentials", "Cibus account credentials"],
-      bestFor:
-        "Users who prefer not to set up email forwarding or want to manually control gift code redemption",
+      cons: [t("automationModesHelp.modes.buyOnly.cons.con1")],
+      requirements: [
+        t("automationModesHelp.modes.buyOnly.requirements.req1"),
+        t("automationModesHelp.modes.buyOnly.requirements.req2"),
+      ],
+      bestFor: t("automationModesHelp.modes.buyOnly.bestFor"),
     },
   ];
 
@@ -72,18 +74,19 @@ export function AutomationModesHelp() {
           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
         >
           <HelpCircle className="h-4 w-4" />
-          <span className="sr-only">Help with automation modes</span>
+          <span className="sr-only">
+            {t("automationModesHelp.accessibilityLabel")}
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[95vw] lg:max-w-4xl w-full max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-blue-600" />
-            Automation Modes Explained
+            {t("automationModesHelp.title")}
           </DialogTitle>
           <DialogDescription>
-            Choose between complete automation or purchase-only mode based on
-            your preferences
+            {t("automationModesHelp.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,10 +96,8 @@ export function AutomationModesHelp() {
             <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 dark:text-blue-200">
-                <strong>Quick Guide:</strong> Complete Automation handles
-                everything automatically including gift code redemption, while
-                Purchase Only stops after buying the gift card and lets you
-                manually apply codes.
+                <strong>{t("automationModesHelp.quickGuide.title")}</strong>{" "}
+                {t("automationModesHelp.quickGuide.message")}
               </AlertDescription>
             </Alert>
 

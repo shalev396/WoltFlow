@@ -6,7 +6,7 @@ export function DocsRouter() {
   return (
     <Routes>
       {/* Default docs route - redirect to introduction */}
-      <Route index element={<Navigate to="/docs/introduction" replace />} />
+      <Route index element={<Navigate to="introduction" replace />} />
 
       {/* Individual documentation sections */}
       <Route

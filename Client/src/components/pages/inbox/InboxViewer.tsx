@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import {
   // Star,
@@ -53,15 +54,17 @@ export default function InboxViewer({
   email,
   onEmailAction,
 }: InboxViewerProps) {
+  const { t } = useTranslation("inbox");
+
   if (!email) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center text-muted-foreground">
           <Mail className="h-16 w-16 mx-auto mb-4 opacity-50" />
-          <h3 className="text-lg font-medium mb-2">No Email Selected</h3>
-          <p className="text-sm">
-            Select an email from the list to view its contents
-          </p>
+          <h3 className="text-lg font-medium mb-2">
+            {t("viewer.noSelection.title")}
+          </h3>
+          <p className="text-sm">{t("viewer.noSelection.message")}</p>
         </div>
       </div>
     );
@@ -143,7 +146,9 @@ export default function InboxViewer({
             {/* Email details - traditional layout */}
             <div className="space-y-1 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground">From:</span>
+                <span className="font-medium text-foreground">
+                  {t("viewer.from")}
+                </span>
                 <AvatarSimple
                   name={email.fromName || ""}
                   className="h-6 w-6 text-xs"
@@ -154,11 +159,15 @@ export default function InboxViewer({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground">To:</span>
+                <span className="font-medium text-foreground">
+                  {t("viewer.to")}
+                </span>
                 <span className="truncate">{email.toEmail}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground">Date:</span>
+                <span className="font-medium text-foreground">
+                  {t("viewer.date")}
+                </span>
                 <span>{format(new Date(email.emailDate), "PPP 'at' p")}</span>
               </div>
             </div>
@@ -199,6 +208,7 @@ export default function InboxViewer({
               size="sm"
               onClick={() => handleAction("reply")}
               className="h-8"
+              title={t("viewer.actions.reply")}
             >
               <Reply className="h-4 w-4" />
             </Button>
@@ -208,6 +218,7 @@ export default function InboxViewer({
               size="sm"
               onClick={() => handleAction("reply-all")}
               className="h-8"
+              title={t("viewer.actions.replyAll")}
             >
               <ReplyAll className="h-4 w-4" />
             </Button>
@@ -217,6 +228,7 @@ export default function InboxViewer({
               size="sm"
               onClick={() => handleAction("forward")}
               className="h-8"
+              title={t("viewer.actions.forward")}
             >
               <Forward className="h-4 w-4" />
             </Button>
@@ -232,7 +244,7 @@ export default function InboxViewer({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleAction("archive")}>
                   <Archive className="h-4 w-4 mr-2" />
-                  Archive
+                  {t("viewer.actions.archive")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -240,7 +252,7 @@ export default function InboxViewer({
                   className="text-red-600 focus:text-red-600"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {t("viewer.actions.delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -254,8 +266,13 @@ export default function InboxViewer({
           <div className="flex items-center gap-2 mb-3">
             <Paperclip className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-medium text-muted-foreground">
-              {email.attachmentUrls.length} Attachment
-              {email.attachmentUrls.length > 1 ? "s" : ""}
+              {email.attachmentUrls.length === 1
+                ? t("viewer.attachments.title", {
+                    count: email.attachmentUrls.length,
+                  })
+                : t("viewer.attachments.title_plural", {
+                    count: email.attachmentUrls.length,
+                  })}
             </h3>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -285,7 +302,7 @@ export default function InboxViewer({
                       e.stopPropagation();
                       handleDownloadAttachment(index, filename);
                     }}
-                    title={`Download ${filename}`}
+                    title={t("viewer.attachments.download", { filename })}
                   >
                     <Download className="h-3 w-3" />
                   </Button>

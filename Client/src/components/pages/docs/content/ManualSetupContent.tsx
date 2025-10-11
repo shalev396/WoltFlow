@@ -13,28 +13,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useTranslation } from "react-i18next";
 
 export function ManualSetupContent() {
+  const { language } = useLanguage();
+  const { t } = useTranslation("docs/manualSetup");
+
   return (
     <section id="manual-setup" className="space-y-8">
       <div className="flex items-center gap-3">
         <Settings className="h-8 w-8 text-orange-600" />
         <div>
-          <h1 className="text-4xl font-bold">Manual Token Setup</h1>
+          <h1 className="text-4xl font-bold">{t("title")}</h1>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant="secondary">Advanced</Badge>
-            <Badge variant="outline">Alternative Method</Badge>
+            <Badge variant="secondary">{t("badges.advanced")}</Badge>
+            <Badge variant="outline">{t("badges.alternative")}</Badge>
           </div>
         </div>
       </div>
 
       <div className="text-lg text-muted-foreground leading-relaxed">
-        <p>
-          This guide shows you how to manually extract your Wolt authentication
-          tokens using browser developer tools. This method is perfect if you
-          prefer not to install extensions or need more control over the
-          process.
-        </p>
+        <p>{t("description")}</p>
       </div>
 
       <div className="p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -42,28 +42,29 @@ export function ManualSetupContent() {
           <Settings className="h-6 w-6 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-              Prefer the Extension?
+              {t("preferExtension.title")}
             </p>
             <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
-              If you're looking for an easier method, check out our{" "}
+              {t("preferExtension.description")}{" "}
               <Link
-                to="/docs/woltflow-extension"
+                to={`/${language}/docs/woltflow-extension`}
                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium underline"
               >
-                WoltFlow Token Reviewer guide
+                {t("preferExtension.linkText")}
               </Link>{" "}
-              which automates this entire process with a single click.
+              {t("preferExtension.descriptionSuffix")}
             </p>
           </div>
         </div>
       </div>
 
       <div id="understanding-tokens" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Understanding Wolt Tokens</h2>
+        <h2 className="text-3xl font-semibold">
+          {t("understandingTokens.title")}
+        </h2>
 
         <p className="text-muted-foreground leading-relaxed">
-          Wolt uses two types of authentication tokens to manage user sessions.
-          Both are required for WoltFlow to function properly:
+          {t("understandingTokens.description")}
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -71,26 +72,25 @@ export function ManualSetupContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-blue-700 dark:text-blue-300">
                 <Key className="h-5 w-5" />
-                Access Token (wtoken)
+                {t("understandingTokens.accessToken.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  A short-lived token that provides immediate access to Wolt's
-                  API endpoints for making purchases and applying gift cards.
+                  {t("understandingTokens.accessToken.description")}
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    Short-lived
+                    {t("understandingTokens.accessToken.badges.shortLived")}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    Auto-refreshed
+                    {t("understandingTokens.accessToken.badges.autoRefreshed")}
                   </Badge>
                 </div>
                 <div className="p-2 bg-white dark:bg-background rounded border">
                   <code className="text-xs text-muted-foreground font-mono">
-                    Typically starts with: {"{"}"accessToken": "eyJhb...
+                    {t("understandingTokens.accessToken.example")}
                   </code>
                 </div>
               </div>
@@ -101,26 +101,25 @@ export function ManualSetupContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-green-700 dark:text-green-300">
                 <Shield className="h-5 w-5" />
-                Refresh Token (wrtoken)
+                {t("understandingTokens.refreshToken.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  A long-lived token used to automatically generate new access
-                  tokens when they expire, ensuring continuous automation.
+                  {t("understandingTokens.refreshToken.description")}
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    Long-lived
+                    {t("understandingTokens.refreshToken.badges.longLived")}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    Essential
+                    {t("understandingTokens.refreshToken.badges.essential")}
                   </Badge>
                 </div>
                 <div className="p-2 bg-white dark:bg-background rounded border">
                   <code className="text-xs text-muted-foreground font-mono">
-                    Typically starts with: pNNSVDL3O...
+                    {t("understandingTokens.refreshToken.example")}
                   </code>
                 </div>
               </div>
@@ -133,13 +132,10 @@ export function ManualSetupContent() {
             <Monitor className="h-6 w-6 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
-                Device-Specific Tokens
+                {t("understandingTokens.deviceSpecific.title")}
               </p>
               <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
-                Each device and browser generates unique tokens when you log
-                into Wolt. For best results, extract tokens from a device where
-                you won't frequently log in and out of Wolt, as this can
-                invalidate existing tokens.
+                {t("understandingTokens.deviceSpecific.description")}
               </p>
             </div>
           </div>
@@ -147,9 +143,7 @@ export function ManualSetupContent() {
       </div>
 
       <div id="manual-extraction" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">
-          Step-by-Step Token Extraction
-        </h2>
+        <h2 className="text-3xl font-semibold">{t("stepByStep.title")}</h2>
 
         <div className="space-y-6">
           <div className="border rounded-lg p-3 sm:p-6">
@@ -158,30 +152,28 @@ export function ManualSetupContent() {
                 1
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Open Wolt in Your Browser
+                {t("stepByStep.step1.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                Navigate to{" "}
+                {t("stepByStep.step1.description")}{" "}
                 <a
                   href="https://wolt.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono bg-muted px-2 py-1 rounded"
                 >
-                  wolt.com
+                  {t("stepByStep.step1.woltLink")}
                 </a>{" "}
-                and log into your account. Make sure you're fully logged in and
-                can see your profile and browse restaurants normally.
+                {t("stepByStep.step1.descriptionSuffix")}
               </p>
 
               <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  <strong>Important:</strong> You must be logged into Wolt for
-                  the tokens to be available. The extraction process only works
-                  when you have an active session.
+                  <strong>{t("stepByStep.step1.important.label")}</strong>{" "}
+                  {t("stepByStep.step1.important.text")}
                 </p>
               </div>
             </div>
@@ -193,13 +185,13 @@ export function ManualSetupContent() {
                 2
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Open Developer Tools
+                {t("stepByStep.step2.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                Open your browser's developer tools using one of these methods:
+                {t("stepByStep.step2.description")}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
@@ -207,14 +199,14 @@ export function ManualSetupContent() {
                   <div className="flex items-center gap-2 mb-2">
                     <Code className="h-4 w-4" />
                     <span className="font-medium text-sm">
-                      Keyboard Shortcut
+                      {t("stepByStep.step2.keyboardShortcut.title")}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Press F12 or Ctrl+Shift+I (Windows/Linux)
+                    {t("stepByStep.step2.keyboardShortcut.windows")}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Cmd+Option+I (Mac)
+                    {t("stepByStep.step2.keyboardShortcut.mac")}
                   </p>
                 </div>
 
@@ -222,12 +214,11 @@ export function ManualSetupContent() {
                   <div className="flex items-center gap-2 mb-2">
                     <Eye className="h-4 w-4" />
                     <span className="font-medium text-sm">
-                      Right-Click Menu
+                      {t("stepByStep.step2.rightClickMenu.title")}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Right-click anywhere on the page and select "Inspect
-                    Element" or "Inspect"
+                    {t("stepByStep.step2.rightClickMenu.description")}
                   </p>
                 </div>
               </div>
@@ -240,28 +231,27 @@ export function ManualSetupContent() {
                 3
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Navigate to Application Tab
+                {t("stepByStep.step3.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                In the developer tools, look for the "Application" tab
-                (Chrome/Edge) or "Storage" tab (Firefox). Click on it to open
-                the storage inspection panel.
+                {t("stepByStep.step3.description")}
               </p>
 
               <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm font-medium mb-2">
-                  🔍 Can't find the tab?
+                  {t("stepByStep.step3.cantFind.title")}
                 </p>
                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>
-                    Look for a {">"}
-                    {">"} arrow if tabs are collapsed
-                  </li>
-                  <li>Try "Storage" instead of "Application"</li>
-                  <li>Check if developer tools are in a separate window</li>
+                  {(
+                    t("stepByStep.step3.cantFind.tips", {
+                      returnObjects: true,
+                    }) as string[]
+                  ).map((tip: string, idx: number) => (
+                    <li key={idx}>{tip}</li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -273,27 +263,23 @@ export function ManualSetupContent() {
                 4
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Access Cookies
+                {t("stepByStep.step4.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                In the Application tab, expand the "Cookies" section in the left
-                sidebar. You should see "https://wolt.com" listed under the
-                Cookies section.
+                {t("stepByStep.step4.description")}
               </p>
 
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm">
-                  <strong>Path:</strong> Application → Cookies →
-                  https://wolt.com
+                  <strong>{t("stepByStep.step4.path")}</strong>
                 </p>
               </div>
 
               <p className="text-muted-foreground text-sm">
-                Click on the https://wolt.com entry to view all cookies stored
-                by the Wolt website.
+                {t("stepByStep.step4.note")}
               </p>
             </div>
           </div>
@@ -304,42 +290,43 @@ export function ManualSetupContent() {
                 5
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Locate Your Tokens
+                {t("stepByStep.step5.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                In the Cookies view, look for the specific cookie names that
-                contain your authentication tokens:
+                {t("stepByStep.step5.description")}
               </p>
 
               <div className="grid gap-4">
                 <div className="p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/10">
                   <div className="flex items-center gap-2 mb-2">
                     <Key className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium">Access Token</span>
+                    <span className="font-medium">
+                      {t("stepByStep.step5.accessToken.title")}
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Look for the cookie named "__wtoken". This is your access
-                    token and the value will be a long string.
+                    {t("stepByStep.step5.accessToken.description")}
                   </p>
                   <div className="p-2 bg-white dark:bg-background rounded border text-xs font-mono text-muted-foreground">
-                    Cookie name: __wtoken
+                    {t("stepByStep.step5.accessToken.cookieName")}
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/10">
                   <div className="flex items-center gap-2 mb-2">
                     <RefreshCw className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">Refresh Token</span>
+                    <span className="font-medium">
+                      {t("stepByStep.step5.refreshToken.title")}
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Look for the cookie named "__wrtoken". This is your refresh
-                    token and the value will be a long string.
+                    {t("stepByStep.step5.refreshToken.description")}
                   </p>
                   <div className="p-2 bg-white dark:bg-background rounded border text-xs font-mono text-muted-foreground">
-                    Cookie name: __wrtoken
+                    {t("stepByStep.step5.refreshToken.cookieName")}
                   </div>
                 </div>
               </div>
@@ -352,31 +339,29 @@ export function ManualSetupContent() {
                 6
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Copy Token Values
+                {t("stepByStep.step6.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                For each token, click on the value field to select it, then copy
-                the entire token string. Make sure to copy the complete value
-                without any spaces or line breaks.
+                {t("stepByStep.step6.description")}
               </p>
 
               <div className="space-y-3">
-                <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
-                  <Copy className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    Copy the access token (__wtoken) cookie value
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
-                  <Copy className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    Copy the refresh token (__wrtoken) cookie value
-                  </span>
-                </div>
+                {(
+                  t("stepByStep.step6.steps", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((step: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg"
+                  >
+                    <Copy className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{step}</span>
+                  </div>
+                ))}
               </div>
 
               <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
@@ -384,12 +369,10 @@ export function ManualSetupContent() {
                   <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                      Copy Complete Values
+                      {t("stepByStep.step6.warning.title")}
                     </p>
                     <p className="text-sm text-amber-700 dark:text-amber-300">
-                      Make sure you copy the entire token value. These are
-                      usually very long strings (200+ characters). If you copy
-                      only part of the token, authentication will fail.
+                      {t("stepByStep.step6.warning.description")}
                     </p>
                   </div>
                 </div>
@@ -403,28 +386,26 @@ export function ManualSetupContent() {
                 7
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Add to WoltFlow Settings
+                {t("stepByStep.step7.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                Navigate to your WoltFlow Settings page and paste the copied
-                cookie values into the Wolt Credentials section.
+                {t("stepByStep.step7.description")}
               </p>
 
               <Button asChild className="inline-flex">
-                <Link to="/settings">
+                <Link to={`/${language}/settings`}>
                   <Settings className="h-4 w-4 mr-2" />
-                  Open Settings Page
+                  {t("stepByStep.step7.button")}
                 </Link>
               </Button>
 
               <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  <strong>Field Mapping:</strong> Paste the __wtoken cookie
-                  value in the "Wolt Access Token" field and the __wrtoken
-                  cookie value in the "Wolt Refresh Token" field.
+                  <strong>{t("stepByStep.step7.fieldMapping.label")}</strong>{" "}
+                  {t("stepByStep.step7.fieldMapping.description")}
                 </p>
               </div>
             </div>
@@ -433,36 +414,28 @@ export function ManualSetupContent() {
       </div>
 
       <div id="token-security" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">
-          Token Security Best Practices
-        </h2>
+        <h2 className="text-3xl font-semibold">{t("tokenSecurity.title")}</h2>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="border-2 border-red-100 bg-red-50/50 dark:border-red-800/50 dark:bg-red-950/20">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-red-700 dark:text-red-300">
                 <Shield className="h-5 w-5" />
-                Keep Tokens Private
+                {t("tokenSecurity.keepPrivate.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Never share your tokens with anyone
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Don't post them in forums or support channels
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Store them only in WoltFlow settings
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Clear browser history after extraction if on shared devices
-                </li>
+                {(
+                  t("tokenSecurity.keepPrivate.tips", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((tip: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
+                    {tip}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -471,27 +444,21 @@ export function ManualSetupContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-blue-700 dark:text-blue-300">
                 <Monitor className="h-5 w-5" />
-                Device Management
+                {t("tokenSecurity.deviceManagement.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Use a stable device for token extraction
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Avoid frequent Wolt login/logout on that device
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Monitor your Wolt account for unauthorized activity
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Change your Wolt password if you suspect compromise
-                </li>
+                {(
+                  t("tokenSecurity.deviceManagement.tips", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((tip: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                    {tip}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -502,13 +469,10 @@ export function ManualSetupContent() {
             <Shield className="h-6 w-6 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">
-                Critical Security Warning
+                {t("tokenSecurity.securityWarning.title")}
               </p>
               <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
-                Your authentication tokens provide full access to your Wolt
-                account. Treat them with the same care as your password. If you
-                suspect your tokens have been compromised, immediately change
-                your Wolt password and extract new tokens.
+                {t("tokenSecurity.securityWarning.description")}
               </p>
             </div>
           </div>
@@ -520,18 +484,15 @@ export function ManualSetupContent() {
           <Settings className="h-6 w-6 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-              Extraction Complete!
+              {t("extractionComplete.title")}
             </p>
             <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed">
-              Once you've successfully copied your tokens to WoltFlow settings,
-              you can continue with setting up your Cibus credentials and
-              configuring email/SMS forwarding to complete your automation
-              setup.
+              {t("extractionComplete.description")}
             </p>
             <div className="flex gap-2 mt-3">
               <Button asChild size="sm">
-                <Link to="/docs/getting-started#activation-guide">
-                  Continue Setup Guide
+                <Link to={`/${language}/docs/getting-started#activation-guide`}>
+                  {t("extractionComplete.button")}
                 </Link>
               </Button>
             </div>

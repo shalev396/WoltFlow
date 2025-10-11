@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { CreditCard, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
@@ -42,6 +43,7 @@ const cibusCredentialsSchema = z.object({
 type CibusCredentialsFormData = z.infer<typeof cibusCredentialsSchema>;
 
 export default function CibusForm() {
+  const { t } = useTranslation("settings");
   const [showPassword, setShowPassword] = useState(false);
 
   const { data: cibusSettings, isLoading: cibusLoading } =
@@ -89,11 +91,9 @@ export default function CibusForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          Cibus Account
+          {t("cibusForm.title")}
         </CardTitle>
-        <CardDescription>
-          Configure your Cibus meal benefits account credentials
-        </CardDescription>
+        <CardDescription>{t("cibusForm.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Form {...form}>
@@ -102,8 +102,7 @@ export default function CibusForm() {
               <Alert>
                 <CreditCard className="h-4 w-4" />
                 <AlertDescription>
-                  Your credentials are encrypted and stored securely. They're
-                  only used to purchase gift cards on your behalf.
+                  {t("cibusForm.securityAlert")}
                 </AlertDescription>
               </Alert>
 
@@ -113,12 +112,12 @@ export default function CibusForm() {
                 name="cibusUsername"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>{t("cibusForm.username.label")}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         value={field.value || ""}
-                        placeholder="Enter your Cibus username..."
+                        placeholder={t("cibusForm.username.placeholder")}
                         disabled={isLoading || isSubmitting}
                       />
                     </FormControl>
@@ -133,14 +132,14 @@ export default function CibusForm() {
                 name="cibusPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t("cibusForm.password.label")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
                           value={field.value || ""}
                           type={showPassword ? "text" : "password"}
-                          placeholder="Enter your Cibus password..."
+                          placeholder={t("cibusForm.password.placeholder")}
                           className="pr-10"
                           disabled={isLoading || isSubmitting}
                         />
@@ -157,7 +156,9 @@ export default function CibusForm() {
                             <Eye className="h-3 w-3" />
                           )}
                           <span className="sr-only">
-                            {showPassword ? "Hide" : "Show"} password
+                            {showPassword
+                              ? t("cibusForm.password.hide")
+                              : t("cibusForm.password.show")}
                           </span>
                         </Button>
                       </div>
@@ -173,16 +174,16 @@ export default function CibusForm() {
                 name="cibusCompany"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company</FormLabel>
+                    <FormLabel>{t("cibusForm.company.label")}</FormLabel>
                     <FormDescription>
-                      Enter your company name as it appears in Cibus
+                      {t("cibusForm.company.description")}
                     </FormDescription>
                     <FormControl>
                       <Input
                         {...field}
                         value={field.value || ""}
                         type="text"
-                        placeholder="Enter your company name..."
+                        placeholder={t("cibusForm.company.placeholder")}
                         disabled={isLoading || isSubmitting}
                       />
                     </FormControl>
@@ -201,7 +202,7 @@ export default function CibusForm() {
                 disabled={isLoading || !form.formState.isDirty}
                 className="min-w-32"
               >
-                Save Changes
+                {t("cibusForm.saveChanges")}
               </AsyncButton>
             </div>
           </form>

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import {
   // Star,
@@ -38,6 +39,8 @@ export default function InboxList({
   searchQuery,
   selectedLabel,
 }: InboxListProps) {
+  const { t } = useTranslation("inbox");
+
   // No need to filter here - InboxLayout already handles all filtering
   const filteredEmails = useMemo(() => {
     return emails;
@@ -77,21 +80,23 @@ export default function InboxList({
     <div className="h-full overflow-hidden">
       <div className="p-3 border-b bg-muted/30">
         <h2 className="font-semibold text-sm text-muted-foreground">
-          INBOX ({filteredEmails.length})
+          {t("list.header", { count: filteredEmails.length })}
         </h2>
       </div>
 
       <div
         className="h-full overflow-y-auto"
         role="listbox"
-        aria-label="Email list"
+        aria-label={t("list.accessibility.emailList")}
       >
         {filteredEmails.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-muted-foreground text-sm">No emails found</p>
+            <p className="text-muted-foreground text-sm">
+              {t("list.noEmails")}
+            </p>
             {(searchQuery || selectedLabel) && (
               <p className="text-xs text-muted-foreground mt-2">
-                Try adjusting your search or filter
+                {t("list.adjustFilters")}
               </p>
             )}
           </div>

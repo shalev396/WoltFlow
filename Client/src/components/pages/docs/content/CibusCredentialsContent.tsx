@@ -14,40 +14,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useTranslation } from "react-i18next";
 
 export function CibusCredentialsContent() {
+  const { language } = useLanguage();
+  const { t } = useTranslation("docs/cibusCredentials");
+
   return (
     <section id="cibus-credentials" className="space-y-8">
       <div className="flex items-center gap-3">
         <CreditCard className="h-8 w-8 text-blue-600" />
         <div>
-          <h1 className="text-4xl font-bold">Cibus Credentials</h1>
+          <h1 className="text-4xl font-bold">{t("title")}</h1>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant="secondary">Required</Badge>
-            <Badge variant="outline">Account Setup</Badge>
+            <Badge variant="secondary">{t("badges.required")}</Badge>
+            <Badge variant="outline">{t("badges.accountSetup")}</Badge>
           </div>
         </div>
       </div>
 
       <div className="text-lg text-muted-foreground leading-relaxed">
-        <p>
-          Your Cibus credentials are essential for WoltFlow to access your meal
-          benefits and automatically purchase Wolt gift cards on your behalf.
-          These credentials are input in your settings and used by the
-          automation to log into your Cibus account during each run.
-        </p>
+        <p>{t("description")}</p>
       </div>
 
       <div id="what-is-cibus" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">
-          Understanding Cibus Integration
-        </h2>
+        <h2 className="text-3xl font-semibold">{t("whatIsCibus.title")}</h2>
 
         <p className="text-muted-foreground leading-relaxed">
-          Cibus is a popular meal benefits platform used by many companies to
-          provide food allowances to their employees. WoltFlow connects to your
-          Cibus account to automatically convert your meal benefits into Wolt
-          gift cards, streamlining your food ordering experience.
+          {t("whatIsCibus.description")}
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -55,27 +50,21 @@ export function CibusCredentialsContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-blue-700 dark:text-blue-300">
                 <CreditCard className="h-5 w-5" />
-                What WoltFlow Does
+                {t("whatIsCibus.whatWoltFlowDoes.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Logs into your Cibus account securely
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Purchases Wolt gift cards using your meal benefits
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Handles 2FA verification automatically
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Operates within your benefit allowance limits
-                </li>
+                {(
+                  t("whatIsCibus.whatWoltFlowDoes.features", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                    {feature}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -84,27 +73,21 @@ export function CibusCredentialsContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-green-700 dark:text-green-300">
                 <Shield className="h-5 w-5" />
-                Security & Privacy
+                {t("whatIsCibus.securityPrivacy.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                  All credentials are encrypted at rest
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                  Secure transmission over HTTPS
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                  No credential sharing or third-party access
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                  You can delete your data at any time
-                </li>
+                {(
+                  t("whatIsCibus.securityPrivacy.features", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                    {feature}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -112,11 +95,12 @@ export function CibusCredentialsContent() {
       </div>
 
       <div id="required-credentials" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Required Credentials</h2>
+        <h2 className="text-3xl font-semibold">
+          {t("requiredCredentials.title")}
+        </h2>
 
         <p className="text-muted-foreground leading-relaxed">
-          To set up the Cibus integration, you'll need to provide three pieces
-          of information that you use to log into your Cibus account:
+          {t("requiredCredentials.description")}
         </p>
 
         <div className="space-y-4">
@@ -124,20 +108,26 @@ export function CibusCredentialsContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="h-5 w-5 text-blue-600" />
-                Username/Email
+                {t("requiredCredentials.username.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  The email address or username you use to log into your Cibus
-                  account. This is typically your work email address.
+                  {t("requiredCredentials.username.description")}
                 </p>
                 <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs font-medium mb-1">Examples:</p>
+                  <p className="text-xs font-medium mb-1">
+                    {t("requiredCredentials.username.exampleLabel")}
+                  </p>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• john.doe@company.com</li>
-                    <li>• johndoe (if using a username)</li>
+                    {(
+                      t("requiredCredentials.username.examples", {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((example, idx) => (
+                      <li key={idx}>• {example}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -148,26 +138,23 @@ export function CibusCredentialsContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Lock className="h-5 w-5 text-orange-600" />
-                Password
+                {t("requiredCredentials.password.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Your Cibus account password. This will be encrypted and stored
-                  securely in our systems and never transmitted in plain text.
+                  {t("requiredCredentials.password.description")}
                 </p>
                 <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
                   <div className="flex items-start gap-2">
                     <Shield className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-xs font-medium text-amber-900 dark:text-amber-100">
-                        Password Security
+                        {t("requiredCredentials.password.securityTitle")}
                       </p>
                       <p className="text-xs text-amber-700 dark:text-amber-300">
-                        We use industry-standard AES encryption to protect your
-                        password. Only the automation system can decrypt it
-                        during runs.
+                        {t("requiredCredentials.password.securityNote")}
                       </p>
                     </div>
                   </div>
@@ -180,26 +167,26 @@ export function CibusCredentialsContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Building className="h-5 w-5 text-purple-600" />
-                Company Name
+                {t("requiredCredentials.companyName.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Your company identifier in Cibus. This is usually your
-                  company's name as it appears in the Cibus system, used to
-                  direct the login to the correct company portal.
+                  {t("requiredCredentials.companyName.description")}
                 </p>
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-xs font-medium mb-2">
-                    How to find your company name:
+                    {t("requiredCredentials.companyName.tipsLabel")}
                   </p>
                   <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                    <li>Log into your Cibus account normally</li>
-                    <li>Check the URL or company branding on the login page</li>
-                    <li>
-                      Look for the company identifier in your account settings
-                    </li>
+                    {(
+                      t("requiredCredentials.companyName.tips", {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((tip, idx) => (
+                      <li key={idx}>{tip}</li>
+                    ))}
                   </ol>
                 </div>
               </div>
@@ -209,7 +196,9 @@ export function CibusCredentialsContent() {
       </div>
 
       <div id="setup-instructions" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Setting Up Your Credentials</h2>
+        <h2 className="text-3xl font-semibold">
+          {t("setupInstructions.title")}
+        </h2>
 
         <div className="space-y-6">
           <div className="border rounded-lg p-3 sm:p-6">
@@ -218,20 +207,19 @@ export function CibusCredentialsContent() {
                 1
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Access WoltFlow Settings
+                {t("setupInstructions.step1.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                Navigate to your WoltFlow settings page where you can configure
-                all your account credentials and automation preferences.
+                {t("setupInstructions.step1.description")}
               </p>
 
               <Button asChild className="inline-flex">
-                <Link to="/settings">
+                <Link to={`/${language}/settings`}>
                   <Settings className="h-4 w-4 mr-2" />
-                  Open Settings Page
+                  {t("setupInstructions.step1.buttonText")}
                 </Link>
               </Button>
             </div>
@@ -243,15 +231,13 @@ export function CibusCredentialsContent() {
                 2
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Locate Cibus Credentials Section
+                {t("setupInstructions.step2.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                In the settings page, find the "Cibus Credentials" section. This
-                is where you'll input your login information that the automation
-                will use to access your Cibus account.
+                {t("setupInstructions.step2.description")}
               </p>
             </div>
           </div>
@@ -262,33 +248,35 @@ export function CibusCredentialsContent() {
                 3
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Enter Your Credentials
+                {t("setupInstructions.step3.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                Fill in all three required fields with your Cibus login
-                information. Make sure the information matches exactly what you
-                use to log into Cibus manually.
+                {t("setupInstructions.step3.description")}
               </p>
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    Enter your Cibus username/email
+                    {t("setupInstructions.step3.fields.username")}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                   <Lock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Enter your Cibus password</span>
+                  <span className="text-sm">
+                    {t("setupInstructions.step3.fields.password")}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                   <Building className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Enter your company name</span>
+                  <span className="text-sm">
+                    {t("setupInstructions.step3.fields.companyName")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -300,15 +288,13 @@ export function CibusCredentialsContent() {
                 4
               </div>
               <h3 className="text-lg sm:text-xl font-semibold break-words">
-                Save and Test
+                {t("setupInstructions.step4.title")}
               </h3>
             </div>
 
             <div className="ml-0 sm:ml-11 space-y-4">
               <p className="text-muted-foreground">
-                Save your credentials and test the connection to ensure WoltFlow
-                can successfully access your Cibus account. The system will
-                verify your credentials during the next automation run.
+                {t("setupInstructions.step4.description")}
               </p>
 
               <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -316,12 +302,10 @@ export function CibusCredentialsContent() {
                   <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                      Testing Your Setup
+                      {t("setupInstructions.step4.testTitle")}
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      The best way to test your Cibus credentials is to trigger
-                      a manual automation run after setting up all your
-                      credentials and forwarding configurations.
+                      {t("setupInstructions.step4.testDescription")}
                     </p>
                   </div>
                 </div>
@@ -332,15 +316,10 @@ export function CibusCredentialsContent() {
       </div>
 
       <div id="cibus-2fa" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">
-          Two-Factor Authentication (2FA)
-        </h2>
+        <h2 className="text-3xl font-semibold">{t("twoFactorAuth.title")}</h2>
 
         <p className="text-muted-foreground leading-relaxed">
-          If your Cibus account has two-factor authentication enabled via SMS,
-          WoltFlow can handle verification codes automatically through SMS
-          forwarding. This ensures seamless automation even with enhanced
-          security measures.
+          {t("twoFactorAuth.description")}
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -348,27 +327,21 @@ export function CibusCredentialsContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Smartphone className="h-5 w-5" />
-                SMS 2FA Support
+                {t("twoFactorAuth.smsSupport.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
-                  Automatic SMS code detection
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
-                  Real-time code processing during runs
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
-                  No manual intervention required
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
-                  Works with all major SMS providers
-                </li>
+                {(
+                  t("twoFactorAuth.smsSupport.features", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -377,19 +350,24 @@ export function CibusCredentialsContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Setup Requirements
+                {t("twoFactorAuth.setupRequirements.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                <li>Configure SMS forwarding in your settings</li>
-                <li>Ensure your phone number matches Cibus registration</li>
-                <li>Test the forwarding with a manual 2FA trigger</li>
-                <li>Verify automation can receive and process codes</li>
+                {(
+                  t("twoFactorAuth.setupRequirements.steps", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((step, idx) => (
+                  <li key={idx}>{step}</li>
+                ))}
               </ol>
               <div className="mt-4">
                 <Button asChild size="sm" variant="outline">
-                  <Link to="/docs/sms-forwarding">Setup SMS Forwarding</Link>
+                  <Link to={`/${language}/docs/sms-forwarding`}>
+                    {t("twoFactorAuth.setupRequirements.buttonText")}
+                  </Link>
                 </Button>
               </div>
             </CardContent>
@@ -401,13 +379,10 @@ export function CibusCredentialsContent() {
             <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-                Seamless Integration
+                {t("twoFactorAuth.seamlessIntegration.title")}
               </p>
               <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed">
-                Once SMS forwarding is configured, 2FA codes are processed
-                completely automatically during automation runs. You don't need
-                to manually enter codes or monitor the process - WoltFlow
-                handles everything behind the scenes.
+                {t("twoFactorAuth.seamlessIntegration.description")}
               </p>
             </div>
           </div>
@@ -415,62 +390,62 @@ export function CibusCredentialsContent() {
       </div>
 
       <div id="troubleshooting" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Troubleshooting</h2>
+        <h2 className="text-3xl font-semibold">{t("troubleshooting.title")}</h2>
 
         <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <AlertTriangle className="h-5 w-5 text-amber-600" />
-                Common Issues
+                {t("troubleshooting.commonIssues.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
                   <p className="font-medium text-sm mb-2">
-                    Login Failed - Invalid Credentials
+                    {t("troubleshooting.commonIssues.invalidCredentials.title")}
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-4">
-                    <li>
-                      Double-check your username, password, and company name
-                    </li>
-                    <li>
-                      Try logging into Cibus manually to verify credentials
-                    </li>
-                    <li>Ensure there are no extra spaces or typos</li>
+                    {(
+                      t(
+                        "troubleshooting.commonIssues.invalidCredentials.solutions",
+                        { returnObjects: true }
+                      ) as string[]
+                    ).map((solution, idx) => (
+                      <li key={idx}>{solution}</li>
+                    ))}
                   </ul>
                 </div>
 
                 <div>
                   <p className="font-medium text-sm mb-2">
-                    2FA Codes Not Being Processed
+                    {t("troubleshooting.commonIssues.twoFACodes.title")}
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-4">
-                    <li>Verify SMS forwarding is configured correctly</li>
-                    <li>
-                      Check that your phone number matches Cibus registration
-                    </li>
-                    <li>
-                      Test SMS forwarding manually by triggering a 2FA code
-                    </li>
+                    {(
+                      t("troubleshooting.commonIssues.twoFACodes.solutions", {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((solution, idx) => (
+                      <li key={idx}>{solution}</li>
+                    ))}
                   </ul>
                 </div>
 
                 <div>
-                  <p className="font-medium text-sm mb-2">Company Not Found</p>
+                  <p className="font-medium text-sm mb-2">
+                    {t("troubleshooting.commonIssues.companyNotFound.title")}
+                  </p>
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-4">
-                    <li>
-                      Contact your HR department for the correct company
-                      identifier
-                    </li>
-                    <li>
-                      Check the Cibus login page URL for company information
-                    </li>
-                    <li>
-                      Try variations of your company name (with/without spaces,
-                      abbreviations)
-                    </li>
+                    {(
+                      t(
+                        "troubleshooting.commonIssues.companyNotFound.solutions",
+                        { returnObjects: true }
+                      ) as string[]
+                    ).map((solution, idx) => (
+                      <li key={idx}>{solution}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -484,20 +459,21 @@ export function CibusCredentialsContent() {
           <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-              Credentials Setup Complete!
+              {t("conclusion.title")}
             </p>
             <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed">
-              Once your Cibus credentials are configured, you can continue with
-              the remaining setup steps including SMS forwarding, email
-              forwarding, and automation settings to complete your WoltFlow
-              configuration.
+              {t("conclusion.description")}
             </p>
             <div className="flex gap-2 mt-3">
               <Button asChild size="sm">
-                <Link to="/docs/getting-started">Continue Setup Guide</Link>
+                <Link to={`/${language}/docs/getting-started`}>
+                  {t("conclusion.continueButton")}
+                </Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link to="/docs/sms-forwarding">Setup SMS Forwarding</Link>
+                <Link to={`/${language}/docs/sms-forwarding`}>
+                  {t("conclusion.setupSmsButton")}
+                </Link>
               </Button>
             </div>
           </div>

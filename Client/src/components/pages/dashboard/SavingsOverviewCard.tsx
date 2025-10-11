@@ -1,4 +1,5 @@
 import { TrendingUp, DollarSign, Target } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardAnalytics } from "@/types/api";
 
@@ -11,6 +12,8 @@ export default function SavingsOverviewCard({
   analytics,
   isLoading,
 }: SavingsOverviewCardProps) {
+  const { t } = useTranslation("dashboard");
+
   // Use analytics data
   const totalSavings = analytics?.totalSavings ?? 0;
   const successfulRuns = analytics?.successfulRuns ?? 0;
@@ -21,11 +24,11 @@ export default function SavingsOverviewCard({
   const getTimeRangeLabel = (timeRange?: string) => {
     switch (timeRange) {
       case "7d":
-        return "this week";
+        return t("timeRanges.thisWeek");
       case "90d":
-        return "last 3 months";
+        return t("timeRanges.last3Months");
       default:
-        return "this month";
+        return t("timeRanges.thisMonth");
     }
   };
 
@@ -36,7 +39,7 @@ export default function SavingsOverviewCard({
           <div className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
             <span className="text-green-800 dark:text-green-200">
-              Total Savings
+              {t("savingsOverview.title")}
             </span>
           </div>
           <div className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
@@ -60,8 +63,9 @@ export default function SavingsOverviewCard({
               )}
             </div>
             <p className="text-green-700 dark:text-green-300 text-sm">
-              Saved {getTimeRangeLabel(analytics?.timeRange)} from automated
-              claims
+              {t("savingsOverview.savedFrom", {
+                period: getTimeRangeLabel(analytics?.timeRange),
+              })}
             </p>
           </div>
 
@@ -76,7 +80,7 @@ export default function SavingsOverviewCard({
                 )}
               </div>
               <p className="text-xs text-green-700 dark:text-green-300">
-                Successful claims
+                {t("savingsOverview.successfulClaims")}
               </p>
             </div>
             <div>
@@ -84,7 +88,7 @@ export default function SavingsOverviewCard({
                 ₪{avgSavingsPerRun}
               </div>
               <p className="text-xs text-green-700 dark:text-green-300">
-                Average per claim
+                {t("savingsOverview.avgPerClaim")}
               </p>
             </div>
           </div>
@@ -96,10 +100,12 @@ export default function SavingsOverviewCard({
                 <Target className="h-4 w-4" />
                 <span>
                   {savingsGrowthPercentage >= 0
-                    ? `Growing ${savingsGrowthPercentage}% vs previous period`
-                    : `Down ${Math.abs(
-                        savingsGrowthPercentage
-                      )}% vs previous period`}
+                    ? t("savingsOverview.growing", {
+                        percent: savingsGrowthPercentage,
+                      })
+                    : t("savingsOverview.down", {
+                        percent: Math.abs(savingsGrowthPercentage),
+                      })}
                 </span>
               </div>
             </div>

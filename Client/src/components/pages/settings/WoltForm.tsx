@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { Settings, Key, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
@@ -36,6 +37,7 @@ import {
 } from "@/queries/settings";
 
 export default function WoltForm() {
+  const { t } = useTranslation("settings");
   const [showRefreshToken, setShowRefreshToken] = useState(false);
   const [showAccessToken, setShowAccessToken] = useState(false);
 
@@ -73,11 +75,9 @@ export default function WoltForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          Wolt Settings
+          {t("woltForm.title")}
         </CardTitle>
-        <CardDescription>
-          Configure your Wolt account tokens for automated gift card application
-        </CardDescription>
+        <CardDescription>{t("woltForm.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Form {...form}>
@@ -87,10 +87,7 @@ export default function WoltForm() {
               <Alert>
                 <Key className="h-4 w-4" />
                 <AlertDescription className="flex items-start justify-between">
-                  <span>
-                    You'll need to obtain these tokens from your Wolt account.
-                    Tokens are required for automated gift card application.
-                  </span>
+                  <span>{t("woltForm.helpAlert")}</span>
                   <WoltCredentialsHelp />
                 </AlertDescription>
               </Alert>
@@ -101,9 +98,9 @@ export default function WoltForm() {
                 name="woltRefreshToken"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Refresh Token</FormLabel>
+                    <FormLabel>{t("woltForm.refreshToken.label")}</FormLabel>
                     <FormDescription>
-                      Long-term token used to obtain new access tokens
+                      {t("woltForm.refreshToken.description")}
                     </FormDescription>
                     <FormControl>
                       <div className="relative">
@@ -111,7 +108,7 @@ export default function WoltForm() {
                           {...field}
                           value={field.value || ""}
                           type={showRefreshToken ? "text" : "password"}
-                          placeholder="Enter your Wolt refresh token..."
+                          placeholder={t("woltForm.refreshToken.placeholder")}
                           className="pr-10 font-mono"
                           disabled={isLoading || updateWoltSettings.isPending}
                         />
@@ -128,7 +125,9 @@ export default function WoltForm() {
                             <Eye className="h-3 w-3" />
                           )}
                           <span className="sr-only">
-                            {showRefreshToken ? "Hide" : "Show"} refresh token
+                            {showRefreshToken
+                              ? t("woltForm.refreshToken.hide")
+                              : t("woltForm.refreshToken.show")}
                           </span>
                         </Button>
                       </div>
@@ -144,10 +143,9 @@ export default function WoltForm() {
                 name="woltAccessToken"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Access Token</FormLabel>
+                    <FormLabel>{t("woltForm.accessToken.label")}</FormLabel>
                     <FormDescription>
-                      Short-term token used for API requests (optional - will be
-                      generated from refresh token)
+                      {t("woltForm.accessToken.description")}
                     </FormDescription>
                     <FormControl>
                       <div className="relative">
@@ -155,7 +153,7 @@ export default function WoltForm() {
                           {...field}
                           value={field.value || ""}
                           type={showAccessToken ? "text" : "password"}
-                          placeholder="Enter your Wolt access token (optional)..."
+                          placeholder={t("woltForm.accessToken.placeholder")}
                           className="pr-10 font-mono"
                           disabled={isLoading || updateWoltSettings.isPending}
                         />
@@ -172,7 +170,9 @@ export default function WoltForm() {
                             <Eye className="h-3 w-3" />
                           )}
                           <span className="sr-only">
-                            {showAccessToken ? "Hide" : "Show"} access token
+                            {showAccessToken
+                              ? t("woltForm.accessToken.hide")
+                              : t("woltForm.accessToken.show")}
                           </span>
                         </Button>
                       </div>
@@ -192,7 +192,7 @@ export default function WoltForm() {
                 disabled={isLoading || !form.formState.isDirty}
                 className="min-w-32"
               >
-                Save Changes
+                {t("woltForm.saveChanges")}
               </AsyncButton>
             </div>
           </form>

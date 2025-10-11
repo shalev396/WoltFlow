@@ -13,6 +13,8 @@ import {
 
 import type { RootState } from "@/store/store";
 import { ModeToggle } from "@/components/shared/mode-toggle";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { useLanguage } from "@/hooks/useLanguage";
 import LoginButton from "@/components/shared/LoginButton";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "react-i18next";
 
 import {
   Sheet,
@@ -47,38 +50,41 @@ export default function Navbar() {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.user
   );
+  const { language } = useLanguage();
+  const { t } = useTranslation("navbar");
 
   const [isOpen, setIsOpen] = useState(false);
 
   const location = useLocation();
 
+  // Generate routes with language prefix
   const routeList: RouteProps[] = [
     {
-      href: "/dashboard",
-      label: "Dashboard",
+      href: `/${language}/dashboard`,
+      label: t("routes.dashboard"),
       icon: Home,
     },
     {
-      href: "/runs",
-      label: "Runs",
+      href: `/${language}/runs`,
+      label: t("routes.runs"),
       icon: Activity,
     },
     {
-      href: "/inbox",
-      label: "Inbox",
+      href: `/${language}/inbox`,
+      label: t("routes.inbox"),
       icon: Mail,
     },
     {
-      href: "/settings",
-      label: "Settings",
+      href: `/${language}/settings`,
+      label: t("routes.settings"),
       icon: Settings,
     },
   ];
 
   const isActivePage = (path: string) => {
     // For docs pages, check if we're on any docs route
-    if (path === "/docs") {
-      return location.pathname.startsWith("/docs");
+    if (path.endsWith("/docs")) {
+      return location.pathname.includes("/docs");
     }
     return location.pathname === path;
   };
@@ -137,7 +143,7 @@ export default function Navbar() {
                 className="w-full justify-start h-8 px-2 py-1.5 font-normal text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t("auth.logout")}</span>
               </LogoutButton>
             </DropdownMenuItem>
             {/* Future options can be added here */}
@@ -156,7 +162,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="font-bold flex items-center">
             <Link
-              to="/"
+              to={`/${language}`}
               className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
             >
               WoltFlow
@@ -165,6 +171,7 @@ export default function Navbar() {
 
           {/* Mobile Navigation */}
           <div className="flex lg:hidden items-center gap-2">
+            <LanguageSwitcher />
             <ModeToggle />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger className="px-2">
@@ -208,17 +215,17 @@ export default function Navbar() {
                   <nav className="flex flex-col gap-2 mt-6 flex-1">
                     {/* Public Docs Link - Always Visible */}
                     <Link
-                      to="/docs"
+                      to={`/${language}/docs`}
                       onClick={() => setIsOpen(false)}
                       className={cn(
                         buttonVariants({ variant: "ghost" }),
                         "justify-start h-12 px-4",
-                        isActivePage("/docs") &&
+                        isActivePage(`/${language}/docs`) &&
                           "bg-accent text-accent-foreground"
                       )}
                     >
                       <BookOpen className="mr-3 h-5 w-5" />
-                      Documentation
+                      {t("routes.documentation")}
                     </Link>
 
                     {isAuthenticated ? (
@@ -256,7 +263,7 @@ export default function Navbar() {
                         className="w-full h-12"
                         onLogoutComplete={() => setIsOpen(false)}
                       >
-                        Logout
+                        {t("auth.logout")}
                       </LogoutButton>
                     </div>
                   )}
@@ -269,15 +276,16 @@ export default function Navbar() {
           <nav className="hidden lg:flex gap-1">
             {/* Public Documentation Link */}
             <Link
-              to="/docs"
+              to={`/${language}/docs`}
               className={cn(
                 buttonVariants({ variant: "ghost" }),
                 "h-9 px-4 py-2",
-                isActivePage("/docs") && "bg-accent text-accent-foreground"
+                isActivePage(`/${language}/docs`) &&
+                  "bg-accent text-accent-foreground"
               )}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Documentation
+              {t("routes.documentation")}
             </Link>
 
             {/* Authenticated User Routes */}
@@ -302,9 +310,10 @@ export default function Navbar() {
               })}
           </nav>
 
-          {/* Right side - Auth buttons and theme toggle */}
+          {/* Right side - Auth buttons, language switcher, and theme toggle */}
           <div className="hidden lg:flex gap-2 items-center">
             <AuthButtons />
+            <LanguageSwitcher />
             <ModeToggle />
           </div>
         </NavigationMenuList>

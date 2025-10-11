@@ -1,4 +1,5 @@
 import { TrendingUp, Calendar, CheckCircle, CalendarDays } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import StatCard from "@/components/shared/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,6 +24,8 @@ export default function MetricsGrid({
   timeRange = "30d",
   onTimeRangeChange,
 }: MetricsGridProps) {
+  const { t } = useTranslation("dashboard");
+
   // Use analytics data if available, fallback to 0
   const totalRuns = analytics?.totalRuns ?? 0;
   const successfulRuns = analytics?.successfulRuns ?? 0;
@@ -35,46 +38,46 @@ export default function MetricsGrid({
   const getTimeRangeDescription = (range: TimeRange) => {
     switch (range) {
       case "7d":
-        return "Last 7 days";
+        return t("timeRanges.last7Days");
       case "90d":
-        return "Last 90 days";
+        return t("timeRanges.last90Days");
       default:
-        return "Last 30 days";
+        return t("timeRanges.last30Days");
     }
   };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <StatCard
-        title="Total Savings"
+        title={t("metrics.totalSavings")}
         value={`₪${totalSavings.toLocaleString()}`}
         description={getTimeRangeDescription(timeRange)}
         icon={TrendingUp}
         trend={{
           value: Math.abs(savingsGrowth),
           isPositive: savingsGrowth >= 0,
-          label: "vs previous period",
+          label: t("metrics.vsPreviousPeriod"),
         }}
         isLoading={isLoading}
         variant="success"
       />
 
       <StatCard
-        title="Success Rate"
+        title={t("metrics.successRate")}
         value={`${successRate}%`}
-        description={`${successfulRuns} successful runs`}
+        description={`${successfulRuns} ${t("metrics.successfulRuns")}`}
         icon={CheckCircle}
         trend={{
           value: Math.abs(runsGrowth),
           isPositive: runsGrowth >= 0,
-          label: "vs previous period",
+          label: t("metrics.vsPreviousPeriod"),
         }}
         isLoading={isLoading}
         variant="default"
       />
 
       <StatCard
-        title="Total Runs"
+        title={t("metrics.totalRuns")}
         value={totalRuns.toString()}
         description={getTimeRangeDescription(timeRange)}
         icon={Calendar}
@@ -86,7 +89,7 @@ export default function MetricsGrid({
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <CalendarDays className="h-4 w-4" />
-            Analytics Period
+            {t("metrics.analyticsPeriod")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -102,12 +105,18 @@ export default function MetricsGrid({
                 onValueChange={(value: TimeRange) => onTimeRangeChange?.(value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select period" />
+                  <SelectValue placeholder={t("metrics.selectPeriod")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                  <SelectItem value="90d">Last 90 days</SelectItem>
+                  <SelectItem value="7d">
+                    {t("timeRanges.last7Days")}
+                  </SelectItem>
+                  <SelectItem value="30d">
+                    {t("timeRanges.last30Days")}
+                  </SelectItem>
+                  <SelectItem value="90d">
+                    {t("timeRanges.last90Days")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">

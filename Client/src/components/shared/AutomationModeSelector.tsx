@@ -1,4 +1,5 @@
 import { Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   FormControl,
   FormDescription,
@@ -31,6 +32,8 @@ export function AutomationModeSelector<
     automationMode: "full-run" | "buy-only" | "cross-account";
   }
 >({ control, name }: AutomationModeSelectorProps<T>) {
+  const { t } = useTranslation("settings");
+
   return (
     <FormField
       control={control}
@@ -41,10 +44,12 @@ export function AutomationModeSelector<
             <div className="space-y-0.5">
               <FormLabel className="text-base flex items-center gap-2">
                 <Settings className="h-4 w-4 text-purple-600" />
-                Automation Mode
+                {t("automationModeSelector.label")}
                 <AutomationModesHelp />
               </FormLabel>
-              <FormDescription>Choose automation behavior</FormDescription>
+              <FormDescription>
+                {t("automationModeSelector.description")}
+              </FormDescription>
             </div>
           </div>
           <FormControl>
@@ -53,16 +58,22 @@ export function AutomationModeSelector<
               onValueChange={field.onChange}
             >
               <SelectTrigger className="bg-card w-full">
-                <SelectValue placeholder="Select automation mode" />
+                <SelectValue
+                  placeholder={t("automationModeSelector.placeholder")}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="full-run">
                   <div className="flex items-center gap-2">
                     <span>🚀</span>
                     <div>
-                      <p className="font-medium">Full Auto</p>
+                      <p className="font-medium">
+                        {t("automationModeSelector.options.fullRun.label")}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        Buy & apply auto
+                        {t(
+                          "automationModeSelector.options.fullRun.description"
+                        )}
                       </p>
                     </div>
                   </div>
@@ -71,9 +82,13 @@ export function AutomationModeSelector<
                   <div className="flex items-center gap-2">
                     <span>🛒</span>
                     <div>
-                      <p className="font-medium">Buy Only</p>
+                      <p className="font-medium">
+                        {t("automationModeSelector.options.buyOnly.label")}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        Purchase only
+                        {t(
+                          "automationModeSelector.options.buyOnly.description"
+                        )}
                       </p>
                     </div>
                   </div>

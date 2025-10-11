@@ -1,0 +1,12 @@
+{
+  "banner": {
+    "title": "We use cookies to improve your experience",
+    "description": "We use essential cookies to make our website work and optional analytics cookies to understand how you interact with it. Essential cookies cannot be disabled as they are necessary for the website to function properly.",
+    "acceptAll": "Accept All Cookies",
+    "essentialOnly": "Essential Only"
+  },
+  "settings": {
+    "button": "Cookie Preferences",
+    "link": "Cookie Preferences"
+  }
+}

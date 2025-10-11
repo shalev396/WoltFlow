@@ -1,4 +1,5 @@
 import { HelpCircle, AlertTriangle, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
 export function WoltCredentialsHelp() {
+  const { t } = useTranslation("settings");
+
   const handleOpenExtension = () => {
     window.open(
       "https://chromewebstore.google.com/detail/woltflow-token-reviewer/ghlbloemllihpoephjhmimdodfodnmcf?authuser=0&hl=iw",
@@ -29,18 +32,17 @@ export function WoltCredentialsHelp() {
           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
         >
           <HelpCircle className="h-4 w-4" />
-          <span className="sr-only">Help with Wolt credentials</span>
+          <span className="sr-only">{t("woltCredentialsHelp.title")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[95vw] lg:max-w-[80vw] xl:max-w-[70vw] 2xl:max-w-[60vw] w-full max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-blue-600" />
-            How to Get Your Wolt Credentials
+            {t("woltCredentialsHelp.title")}
           </DialogTitle>
           <DialogDescription>
-            Use our extension to easily extract your Wolt tokens for automated
-            gift card purchases
+            {t("woltCredentialsHelp.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -50,17 +52,17 @@ export function WoltCredentialsHelp() {
             <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
               <AlertTriangle className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800 dark:text-orange-200">
-                <strong>Important:</strong> These tokens are device-specific and
-                will log you out of Wolt on the device you're using. It's
-                recommended to do this on a device you don't mind being logged
-                out of Wolt from.
+                <strong>
+                  {t("woltCredentialsHelp.importantNotice.title")}
+                </strong>{" "}
+                {t("woltCredentialsHelp.importantNotice.message")}
               </AlertDescription>
             </Alert>
 
             {/* Step-by-step instructions */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">
-                Step-by-Step Instructions:
+                {t("woltCredentialsHelp.steps.title")}
               </h3>
 
               <div className="space-y-4">
@@ -73,11 +75,10 @@ export function WoltCredentialsHelp() {
                   </Badge>
                   <div className="flex-1">
                     <p className="font-medium">
-                      Install WoltFlow Token Reviewer
+                      {t("woltCredentialsHelp.steps.step1.title")}
                     </p>
                     <p className="text-sm text-muted-foreground mb-3">
-                      First, you need to install our browser extension that will
-                      help you extract the tokens automatically.
+                      {t("woltCredentialsHelp.steps.step1.description")}
                     </p>
                     <Button
                       onClick={handleOpenExtension}
@@ -85,7 +86,7 @@ export function WoltCredentialsHelp() {
                       size="sm"
                     >
                       <ExternalLink className="h-4 w-4" />
-                      Install Extension
+                      {t("woltCredentialsHelp.steps.step1.button")}
                     </Button>
                   </div>
                 </div>
@@ -98,18 +99,11 @@ export function WoltCredentialsHelp() {
                     2
                   </Badge>
                   <div className="flex-1">
-                    <p className="font-medium">Go to Wolt.com and Log In</p>
+                    <p className="font-medium">
+                      {t("woltCredentialsHelp.steps.step2.title")}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      Open your web browser and go to{" "}
-                      <a
-                        href="https://wolt.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        wolt.com
-                      </a>
-                      . Make sure you're logged in to your Wolt account.
+                      {t("woltCredentialsHelp.steps.step2.description")}
                     </p>
                   </div>
                 </div>
@@ -122,11 +116,11 @@ export function WoltCredentialsHelp() {
                     3
                   </Badge>
                   <div className="flex-1">
-                    <p className="font-medium">Use the Extension</p>
+                    <p className="font-medium">
+                      {t("woltCredentialsHelp.steps.step3.title")}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      Once you're logged in, click on the WoltFlow Token
-                      Reviewer extension icon in your browser toolbar. The
-                      extension will automatically extract your tokens.
+                      {t("woltCredentialsHelp.steps.step3.description")}
                     </p>
                   </div>
                 </div>
@@ -139,10 +133,11 @@ export function WoltCredentialsHelp() {
                     4
                   </Badge>
                   <div className="flex-1">
-                    <p className="font-medium">Copy the Tokens</p>
+                    <p className="font-medium">
+                      {t("woltCredentialsHelp.steps.step4.title")}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      The extension will display your refresh token and access
-                      token. Copy both tokens from the extension popup.
+                      {t("woltCredentialsHelp.steps.step4.description")}
                     </p>
                   </div>
                 </div>
@@ -155,11 +150,11 @@ export function WoltCredentialsHelp() {
                     5
                   </Badge>
                   <div className="flex-1">
-                    <p className="font-medium">Paste and Save</p>
+                    <p className="font-medium">
+                      {t("woltCredentialsHelp.steps.step5.title")}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      Return to this settings page and paste the refresh token
-                      in the "Wolt Refresh Token" field and the access token in
-                      the "Wolt Access Token" field. Then click "Save Changes".
+                      {t("woltCredentialsHelp.steps.step5.description")}
                     </p>
                   </div>
                 </div>
@@ -168,41 +163,29 @@ export function WoltCredentialsHelp() {
 
             {/* Additional tips */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">💡 Tips:</h3>
+              <h3 className="text-lg font-semibold">
+                {t("woltCredentialsHelp.tips.title")}
+              </h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-green-600">•</span>
-                  <span>
-                    Make sure you're logged in to Wolt before using the
-                    extension
-                  </span>
+                  <span>{t("woltCredentialsHelp.tips.tip1")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600">•</span>
-                  <span>
-                    If the extension doesn't show tokens, try refreshing the
-                    Wolt page and try again
-                  </span>
+                  <span>{t("woltCredentialsHelp.tips.tip2")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600">•</span>
-                  <span>
-                    These tokens are device-specific, so you might want to do
-                    this on a device you don't use frequently for Wolt
-                  </span>
+                  <span>{t("woltCredentialsHelp.tips.tip3")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600">•</span>
-                  <span>
-                    These tokens will expire eventually, so you may need to
-                    repeat this process periodically
-                  </span>
+                  <span>{t("woltCredentialsHelp.tips.tip4")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600">•</span>
-                  <span>
-                    Keep your tokens secure and don't share them with anyone
-                  </span>
+                  <span>{t("woltCredentialsHelp.tips.tip5")}</span>
                 </li>
               </ul>
             </div>

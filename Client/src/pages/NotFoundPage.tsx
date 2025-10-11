@@ -1,10 +1,14 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Home, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/shared/Layout";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useTranslation } from "react-i18next";
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const { t } = useTranslation("notFound");
 
   return (
     <Layout>
@@ -12,14 +16,13 @@ export default function NotFound() {
         {/* 404 Illustration */}
         <div className="mb-8">
           <div className="text-8xl md:text-9xl font-bold text-muted-foreground/20 mb-4">
-            404
+            {t("code")}
           </div>
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight mb-4">
-            Page Not Found
+            {t("title")}
           </h1>
           <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
-            The page you're looking for doesn't exist or has been moved to
-            another location.
+            {t("message")}
           </p>
         </div>
 
@@ -32,56 +35,57 @@ export default function NotFound() {
             className="min-w-[160px]"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back
+            {t("actions.goBack")}
           </Button>
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate(`/${language}`)}
             size="lg"
             className="min-w-[160px]"
           >
             <Home className="mr-2 h-4 w-4" />
-            Go Home
+            {t("actions.goHome")}
           </Button>
         </div>
 
         {/* Additional Help */}
         <div className="mt-12 p-6 border border-border rounded-lg bg-muted/30">
-          <h2 className="text-xl font-semibold mb-3">Need Help?</h2>
+          <h2 className="text-xl font-semibold mb-3">
+            {t("help.title")}
+          </h2>
           <p className="text-muted-foreground mb-4">
-            If you believe this is an error or you're looking for something
-            specific, here are some helpful links:
+            {t("help.description")}
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
-            <a
-              href="/dashboard"
+            <Link
+              to={`/${language}/dashboard`}
               className="text-blue-600 hover:text-blue-700 underline"
             >
-              Dashboard
-            </a>
-            <a
-              href="/runs"
+              {t("help.links.dashboard")}
+            </Link>
+            <Link
+              to={`/${language}/runs`}
               className="text-blue-600 hover:text-blue-700 underline"
             >
-              Automation Runs
-            </a>
-            <a
-              href="/inbox"
+              {t("help.links.runs")}
+            </Link>
+            <Link
+              to={`/${language}/inbox`}
               className="text-blue-600 hover:text-blue-700 underline"
             >
-              Inbox
-            </a>
-            <a
-              href="/settings"
+              {t("help.links.inbox")}
+            </Link>
+            <Link
+              to={`/${language}/settings`}
               className="text-blue-600 hover:text-blue-700 underline"
             >
-              Settings
-            </a>
-            <a
-              href="/legal/privacy-policy"
+              {t("help.links.settings")}
+            </Link>
+            <Link
+              to={`/${language}/legal/privacy-policy`}
               className="text-blue-600 hover:text-blue-700 underline"
             >
-              Privacy Policy
-            </a>
+              {t("help.links.privacy")}
+            </Link>
           </div>
         </div>
       </div>

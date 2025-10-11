@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Mail, Loader2, AlertCircle, Inbox, ArrowLeft } from "lucide-react";
 import {
   ResizablePanelGroup,
@@ -13,6 +14,7 @@ import { useInboxQuery } from "@/queries/inbox";
 import { type InboxFilters } from "@/types/inbox";
 
 export default function InboxLayout() {
+  const { t } = useTranslation("inbox");
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
@@ -87,7 +89,7 @@ export default function InboxLayout() {
     // }
 
     return result;
-  }, [inboxData?.data?.emails, searchQuery, selectedLabel]);
+  }, [inboxData?.data?.emails, searchQuery]);
 
   // Set initial selected email
   useMemo(() => {
@@ -119,10 +121,8 @@ export default function InboxLayout() {
         <main className="h-screen pt-16 flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
-            <h2 className="text-xl font-semibold">Loading your inbox...</h2>
-            <p className="text-muted-foreground">
-              Fetching your emails and settings
-            </p>
+            <h2 className="text-xl font-semibold">{t("loading.title")}</h2>
+            <p className="text-muted-foreground">{t("loading.subtitle")}</p>
           </div>
         </main>
       </div>
@@ -137,16 +137,15 @@ export default function InboxLayout() {
         <main className="h-screen pt-16 flex items-center justify-center">
           <div className="text-center space-y-4 max-w-md">
             <AlertCircle className="h-8 w-8 mx-auto text-red-600" />
-            <h2 className="text-xl font-semibold">Unable to load inbox</h2>
+            <h2 className="text-xl font-semibold">{t("error.title")}</h2>
             <p className="text-muted-foreground">
-              {error?.message ||
-                "There was a problem loading your emails. Please try again."}
+              {error?.message || t("error.message")}
             </p>
             <button
               onClick={() => refetch()}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
-              Try Again
+              {t("error.tryAgain")}
             </button>
           </div>
         </main>
@@ -168,11 +167,11 @@ export default function InboxLayout() {
                 <div className="flex flex-col gap-1">
                   <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight flex items-center gap-2">
                     <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                    Inbox
+                    {t("title")}
                   </h1>
                   {/* Description - only on larger screens */}
                   <p className="text-muted-foreground text-sm hidden lg:block">
-                    Automation notifications and email summaries
+                    {t("description")}
                   </p>
                 </div>
               </div>
@@ -181,7 +180,7 @@ export default function InboxLayout() {
               {inboxData?.data?.inbox?.emailAddress && (
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <span className="text-sm text-muted-foreground font-medium">
-                    Your custom email:
+                    {t("customEmail")}
                   </span>
                   <code className="bg-muted px-3 py-2 rounded-md text-sm font-mono text-blue-600 break-all sm:max-w-none lg:max-w-lg xl:max-w-xl">
                     {inboxData.data.inbox.emailAddress}
@@ -197,14 +196,16 @@ export default function InboxLayout() {
               <div className="text-center space-y-4">
                 <Inbox className="h-16 w-16 mx-auto text-muted-foreground/50" />
                 <h2 className="text-xl font-semibold text-muted-foreground">
-                  No emails yet
+                  {t("empty.title")}
                 </h2>
                 <p className="text-muted-foreground max-w-md">
                   {searchQuery || selectedLabel
-                    ? "No emails match your current filters. Try adjusting your search or filters."
+                    ? t("empty.withFilters")
                     : inboxData?.data?.inbox?.emailAddress
-                    ? `Send an email to ${inboxData.data.inbox.emailAddress} to see it appear here.`
-                    : "Your inbox is empty. Emails sent to your custom address will appear here."}
+                    ? t("empty.withEmail", {
+                        email: inboxData.data.inbox.emailAddress,
+                      })
+                    : t("empty.noFilters")}
                 </p>
               </div>
             </div>
@@ -222,7 +223,7 @@ export default function InboxLayout() {
                       className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      Back to emails
+                      {t("navigation.backToEmails")}
                     </button>
                   )}
                 </div>

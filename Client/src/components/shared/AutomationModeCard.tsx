@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useTranslation } from "react-i18next";
 
 interface Mode {
   id: string;
@@ -18,6 +19,8 @@ interface AutomationModeCardProps {
 }
 
 export function AutomationModeCard({ mode }: AutomationModeCardProps) {
+  const { t } = useTranslation("settings");
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-4">
@@ -37,7 +40,9 @@ export function AutomationModeCard({ mode }: AutomationModeCardProps) {
       <CardContent className="flex-1 space-y-4">
         {/* Flow */}
         <div>
-          <h4 className="font-medium text-sm mb-2">How it works:</h4>
+          <h4 className="font-medium text-sm mb-2">
+            {t("automationModesHelp.card.howItWorks")}
+          </h4>
           <div className="space-y-1">
             {mode.flow.map((step, index) => (
               <div key={index} className="text-xs flex items-center gap-2">
@@ -56,7 +61,7 @@ export function AutomationModeCard({ mode }: AutomationModeCardProps) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <h5 className="font-medium text-xs text-green-700 dark:text-green-400 mb-1">
-              Pros
+              {t("automationModesHelp.card.pros")}
             </h5>
             <ul className="space-y-1">
               {mode.pros.map((pro, index) => (
@@ -72,7 +77,7 @@ export function AutomationModeCard({ mode }: AutomationModeCardProps) {
           </div>
           <div>
             <h5 className="font-medium text-xs text-red-700 dark:text-red-400 mb-1">
-              Cons
+              {t("automationModesHelp.card.cons")}
             </h5>
             <ul className="space-y-1">
               {mode.cons.map((con, index) => (
@@ -92,7 +97,9 @@ export function AutomationModeCard({ mode }: AutomationModeCardProps) {
 
         {/* Requirements */}
         <div>
-          <h5 className="font-medium text-xs mb-2">Requirements:</h5>
+          <h5 className="font-medium text-xs mb-2">
+            {t("automationModesHelp.card.requirements")}
+          </h5>
           <div className="flex flex-wrap gap-1">
             {mode.requirements.map((req, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
@@ -105,7 +112,10 @@ export function AutomationModeCard({ mode }: AutomationModeCardProps) {
         {/* Best for */}
         <div className="mt-auto pt-2">
           <p className="text-xs text-muted-foreground">
-            <span className="font-medium">Best for:</span> {mode.bestFor}
+            <span className="font-medium">
+              {t("automationModesHelp.card.bestFor")}
+            </span>{" "}
+            {mode.bestFor}
           </p>
         </div>
       </CardContent>

@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface LoadingScreenProps {
   message?: string;
@@ -6,9 +7,10 @@ interface LoadingScreenProps {
 }
 
 export default function LoadingScreen({
-  message = "Loading...",
+  message,
   fullScreen = true,
 }: LoadingScreenProps) {
+  const { t } = useTranslation("common");
   const containerClasses = fullScreen
     ? "fixed inset-0 bg-background z-50 flex items-center justify-center"
     : "flex items-center justify-center p-4 sm:p-8";
@@ -22,7 +24,7 @@ export default function LoadingScreen({
             WoltFlow
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Automated Wolt Gift Card Management
+            {t("loading.tagline")}
           </p>
         </div>
 
@@ -39,11 +41,11 @@ export default function LoadingScreen({
         {/* Loading Message */}
         <div className="space-y-1 sm:space-y-2">
           <p className="text-base sm:text-lg font-medium text-foreground">
-            {message}
+            {message || t("loading.defaultMessage")}
           </p>
           {fullScreen && (
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Initializing your session...
+              {t("loading.initializingSession")}
             </p>
           )}
         </div>

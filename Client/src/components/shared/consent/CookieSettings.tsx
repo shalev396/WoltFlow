@@ -1,6 +1,7 @@
 import { Button } from "../../ui/button";
 import { useConsent } from "../../../hooks/useConsent";
 import { Cookie, Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface CookieSettingsProps {
   variant?: "button" | "link";
@@ -16,6 +17,7 @@ export function CookieSettings({
   className = "",
 }: CookieSettingsProps) {
   const { showConsentBanner } = useConsent();
+  const { t } = useTranslation("legal");
 
   if (variant === "link") {
     return (
@@ -24,7 +26,7 @@ export function CookieSettings({
         className={`inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline ${className}`}
       >
         <Cookie className="w-4 h-4" />
-        Cookie Preferences
+        {t("consent.settings.link")}
       </button>
     );
   }
@@ -37,7 +39,7 @@ export function CookieSettings({
       className={`gap-2 ${className}`}
     >
       <Settings className="w-4 h-4" />
-      Cookie Preferences
+      {t("consent.settings.button")}
     </Button>
   );
 }

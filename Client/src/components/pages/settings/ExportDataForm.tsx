@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Download,
   Database,
@@ -22,6 +23,7 @@ import AsyncButton from "@/components/shared/AsyncButton";
 import { useExportUserDataMutation } from "@/queries/user";
 
 export default function ExportDataForm() {
+  const { t } = useTranslation("settings");
   const [hasExported, setHasExported] = useState(false);
   const exportMutation = useExportUserDataMutation();
 
@@ -46,38 +48,32 @@ export default function ExportDataForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          Export Your Data
+          {t("exportForm.title")}
         </CardTitle>
-        <CardDescription>
-          Download a complete copy of all your WoltFlow data including files in
-          a ZIP archive
-        </CardDescription>
+        <CardDescription>{t("exportForm.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <div className="flex-1 space-y-6">
           {/* Info Alert */}
           <Alert>
             <FileText className="h-4 w-4" />
-            <AlertDescription>
-              This export includes all your account data: settings, automation
-              runs, emails, codes, screenshots, and more. The data will be
-              downloaded as a ZIP file containing a CSV with database records
-              plus all your files organized in folders.
-            </AlertDescription>
+            <AlertDescription>{t("exportForm.infoAlert")}</AlertDescription>
           </Alert>
 
           {/* Export Details */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">What's included:</h4>
+              <h4 className="text-sm font-medium">
+                {t("exportForm.whatsIncluded.title")}
+              </h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Account information and settings (CSV format)</li>
-                <li>• All automation run history (CSV format)</li>
-                <li>• Email inbox and message files (original formats)</li>
-                <li>• Email attachments (original formats)</li>
-                <li>• Screenshots from automation runs (PNG/JPG)</li>
-                <li>• Generated gift codes (CSV format)</li>
-                <li>• Two-factor authentication records (CSV format)</li>
+                <li>• {t("exportForm.whatsIncluded.accountInfo")}</li>
+                <li>• {t("exportForm.whatsIncluded.runHistory")}</li>
+                <li>• {t("exportForm.whatsIncluded.emails")}</li>
+                <li>• {t("exportForm.whatsIncluded.attachments")}</li>
+                <li>• {t("exportForm.whatsIncluded.screenshots")}</li>
+                <li>• {t("exportForm.whatsIncluded.codes")}</li>
+                <li>• {t("exportForm.whatsIncluded.twoFactor")}</li>
               </ul>
             </div>
           </div>
@@ -87,22 +83,22 @@ export default function ExportDataForm() {
             {!hasExported ? (
               <div className="flex flex-col gap-4">
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Export Your Data</h4>
+                  <h4 className="text-sm font-medium">
+                    {t("exportForm.export.title")}
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    Click the button below to generate and download your
-                    complete data export as a ZIP file. This may take a few
-                    moments to process as we collect all your files.
+                    {t("exportForm.export.description")}
                   </p>
                 </div>
                 <AsyncButton
                   onClick={handleExportData}
                   loading={exportMutation.isPending}
-                  loadingText="Creating ZIP Archive..."
+                  loadingText={t("exportForm.export.creating")}
                   className="w-fit"
                   variant="default"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Download ZIP Archive
+                  {t("exportForm.export.button")}
                 </AsyncButton>
               </div>
             ) : (
@@ -111,8 +107,8 @@ export default function ExportDataForm() {
                 <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800 dark:text-green-200">
-                    <strong>Export Completed!</strong> Your data ZIP archive has
-                    been successfully downloaded to your computer.
+                    <strong>{t("exportForm.success.title")}</strong>{" "}
+                    {t("exportForm.success.message")}
                   </AlertDescription>
                 </Alert>
 
@@ -121,11 +117,10 @@ export default function ExportDataForm() {
                   <div className="space-y-3">
                     <div>
                       <h4 className="text-sm font-medium">
-                        Need another copy?
+                        {t("exportForm.exportAgain.title")}
                       </h4>
                       <p className="text-xs text-muted-foreground">
-                        You can export your data again at any time. Each export
-                        creates a fresh ZIP archive with current data.
+                        {t("exportForm.exportAgain.description")}
                       </p>
                     </div>
                     <AsyncButton
@@ -134,13 +129,13 @@ export default function ExportDataForm() {
                         handleExportData();
                       }}
                       loading={exportMutation.isPending}
-                      loadingText="Creating ZIP Archive..."
+                      loadingText={t("exportForm.export.creating")}
                       variant="outline"
                       size="sm"
                       className="w-fit"
                     >
                       <Download className="h-3 w-3 mr-2" />
-                      Export Again
+                      {t("exportForm.exportAgain.button")}
                     </AsyncButton>
                   </div>
                 </div>

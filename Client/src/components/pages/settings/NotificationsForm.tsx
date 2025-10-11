@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { Bell, Mail, Phone, Shield, Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,6 +57,7 @@ interface VerificationState {
 }
 
 export default function NotificationsForm() {
+  const { t } = useTranslation("settings");
   const [verificationState, setVerificationState] = useState<VerificationState>(
     {
       isVerifying: false,
@@ -132,10 +134,12 @@ export default function NotificationsForm() {
       method === "sms" ? validatePhone(contact) : validateEmail(contact);
 
     if (!isValid) {
+      const contactType =
+        method === "sms"
+          ? t("notificationsForm.toast.phoneNumber")
+          : t("notificationsForm.toast.emailAddress");
       toast.error(
-        `Please enter a valid ${
-          method === "sms" ? "phone number" : "email address"
-        }`
+        t("notificationsForm.toast.invalidContact", { type: contactType })
       );
       return;
     }
@@ -155,11 +159,15 @@ export default function NotificationsForm() {
         isLoadingVerification: false,
       });
 
+      const methodName =
+        method === "sms"
+          ? t("notificationsForm.toast.phone")
+          : t("notificationsForm.toast.email");
       toast.success(
-        `Verification code sent to your ${method === "sms" ? "phone" : "email"}`
+        t("notificationsForm.toast.codeSent", { method: methodName })
       );
     } catch {
-      toast.error(`Failed to send verification code`);
+      toast.error(t("notificationsForm.toast.sendFailed"));
       setVerificationState((prev) => ({
         ...prev,
         isLoadingVerification: false,
@@ -174,7 +182,7 @@ export default function NotificationsForm() {
       !verificationState.method ||
       !verificationState.sessionId
     ) {
-      toast.error("Please enter the verification code");
+      toast.error(t("notificationsForm.toast.enterCode"));
       return;
     }
 
@@ -210,10 +218,12 @@ export default function NotificationsForm() {
         isLoadingVerification: false,
       });
 
+      const methodName =
+        verificationState.method === "sms"
+          ? t("notificationsForm.toast.phone")
+          : t("notificationsForm.toast.email");
       toast.success(
-        `${
-          verificationState.method === "sms" ? "Phone" : "Email"
-        } verified successfully!`
+        t("notificationsForm.verificationSuccess", { method: methodName })
       );
 
       // Reset to input step after 2 seconds
@@ -221,7 +231,7 @@ export default function NotificationsForm() {
         setVerificationState((prev) => ({ ...prev, step: "input" }));
       }, 2000);
     } catch {
-      toast.error("Invalid verification code");
+      toast.error(t("notificationsForm.toast.invalidCode"));
       setVerificationState((prev) => ({
         ...prev,
         isLoadingVerification: false,
@@ -260,11 +270,9 @@ export default function NotificationsForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bell className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-          Notification Settings
+          {t("notificationsForm.title")}
         </CardTitle>
-        <CardDescription>
-          Configure when and how you receive notifications about automation runs
-        </CardDescription>
+        <CardDescription>{t("notificationsForm.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Form {...form}>
@@ -285,10 +293,10 @@ export default function NotificationsForm() {
                               : "h-4 w-4 text-muted-foreground"
                           }
                         />
-                        Enable Notifications
+                        {t("notificationsForm.enableNotifications.label")}
                       </FormLabel>
                       <FormDescription>
-                        Receive notifications about automation runs and results
+                        {t("notificationsForm.enableNotifications.description")}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -313,10 +321,10 @@ export default function NotificationsForm() {
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">
-                          Successful Runs
+                          {t("notificationsForm.successfulRuns.label")}
                         </FormLabel>
                         <FormDescription>
-                          Notify when automation completes successfully
+                          {t("notificationsForm.successfulRuns.description")}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -342,10 +350,10 @@ export default function NotificationsForm() {
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">
-                            Failed Runs
+                            {t("notificationsForm.failedRuns.label")}
                           </FormLabel>
                           <FormDescription>
-                            Notify when automation encounters errors or fails
+                            {t("notificationsForm.failedRuns.description")}
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -373,7 +381,9 @@ export default function NotificationsForm() {
                   <FormItem
                     className={!form.watch("isEnabled") ? "opacity-50" : ""}
                   >
-                    <FormLabel>Contact Method</FormLabel>
+                    <FormLabel>
+                      {t("notificationsForm.contactMethod.label")}
+                    </FormLabel>
                     <Select
                       value={field.value || "none"}
                       onValueChange={(value) =>
@@ -387,27 +397,33 @@ export default function NotificationsForm() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Choose how to receive notifications..." />
+                          <SelectValue
+                            placeholder={t(
+                              "notificationsForm.contactMethod.placeholder"
+                            )}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="none">
+                          {t("notificationsForm.contactMethod.none")}
+                        </SelectItem>
                         <SelectItem value="sms">
                           <div className="flex items-center gap-2">
                             <Phone className="h-4 w-4" />
-                            SMS
+                            {t("notificationDialog.primaryMethod.sms")}
                           </div>
                         </SelectItem>
                         <SelectItem value="email">
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
-                            Email
+                            {t("notificationDialog.primaryMethod.email")}
                           </div>
                         </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Choose how you want to receive notifications
+                      {t("notificationsForm.contactMethod.description")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -425,13 +441,15 @@ export default function NotificationsForm() {
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <Phone className="h-4 w-4" />
-                            Phone Number
+                            {t("notificationsForm.phoneNumber.label")}
                           </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
                               value={field.value || ""}
-                              placeholder="+972XXXXXXXXX or 0XX-XXX-XXXX"
+                              placeholder={t(
+                                "notificationsForm.phoneNumber.placeholder"
+                              )}
                               disabled={
                                 isLoading ||
                                 updateNotificationSettings.isPending
@@ -439,8 +457,7 @@ export default function NotificationsForm() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Enter your phone number (Israeli format:
-                            0XX-XXX-XXXX or international: +972XXXXXXXXX)
+                            {t("notificationsForm.phoneNumber.description")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -454,14 +471,16 @@ export default function NotificationsForm() {
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
-                            Email Address
+                            {t("notificationsForm.email.label")}
                           </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
                               value={field.value || ""}
                               type="email"
-                              placeholder="your.email@example.com"
+                              placeholder={t(
+                                "notificationsForm.email.placeholder"
+                              )}
                               disabled={
                                 isLoading ||
                                 updateNotificationSettings.isPending
@@ -469,8 +488,7 @@ export default function NotificationsForm() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Enter the email address where you want to receive
-                            notifications
+                            {t("notificationsForm.email.description")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -486,7 +504,7 @@ export default function NotificationsForm() {
                         <div className="flex items-center gap-2">
                           <Shield className="h-3 w-3 text-muted-foreground" />
                           <span className="text-xs font-medium">
-                            Verification Status
+                            {t("notificationsForm.verificationStatus.label")}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -496,7 +514,9 @@ export default function NotificationsForm() {
                               className="bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800 text-xs py-0 px-2"
                             >
                               <Check className="h-2 w-2 mr-1 text-green-600 dark:text-green-400" />
-                              Verified
+                              {t(
+                                "notificationsForm.verificationStatus.verified"
+                              )}
                             </Badge>
                           ) : (
                             <>
@@ -505,7 +525,9 @@ export default function NotificationsForm() {
                                 className="bg-yellow-50 dark:bg-yellow-950/50 border-yellow-200 dark:border-yellow-800 text-xs py-0 px-2"
                               >
                                 <X className="h-2 w-2 mr-1 text-yellow-600 dark:text-yellow-400" />
-                                Not Verified
+                                {t(
+                                  "notificationsForm.verificationStatus.notVerified"
+                                )}
                               </Badge>
                               {!verificationState.isVerifying &&
                                 verificationState.step === "input" &&
@@ -531,7 +553,9 @@ export default function NotificationsForm() {
                                     {verificationState.isLoadingVerification ? (
                                       <Loader2 className="h-3 w-3 animate-spin mr-1" />
                                     ) : null}
-                                    Verify
+                                    {t(
+                                      "notificationsForm.verificationStatus.verify"
+                                    )}
                                   </Button>
                                 )}
                             </>
@@ -546,15 +570,19 @@ export default function NotificationsForm() {
                             <div className="flex items-center gap-2">
                               <Shield className="h-3 w-3 text-blue-600" />
                               <span className="text-xs font-medium">
-                                Enter Verification Code
+                                {t("notificationsForm.enterCode.title")}
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Code sent to {verificationState.contact}
+                              {t("notificationsForm.enterCode.subtitle", {
+                                contact: verificationState.contact,
+                              })}
                             </p>
                             <div className="flex gap-2">
                               <Input
-                                placeholder="Enter code"
+                                placeholder={t(
+                                  "notificationsForm.enterCode.placeholder"
+                                )}
                                 value={verificationState.code}
                                 onChange={(e) =>
                                   setVerificationState((prev) => ({
@@ -577,7 +605,7 @@ export default function NotificationsForm() {
                                 {verificationState.isLoadingVerification ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />
                                 ) : (
-                                  "Verify"
+                                  t("notificationsForm.enterCode.verify")
                                 )}
                               </Button>
                             </div>
@@ -590,10 +618,12 @@ export default function NotificationsForm() {
                           <div className="flex items-center gap-2">
                             <Check className="h-3 w-3 text-green-600" />
                             <span className="text-xs font-medium text-green-800 dark:text-green-200">
-                              {verificationState.method === "sms"
-                                ? "Phone"
-                                : "Email"}{" "}
-                              verified successfully!
+                              {t("notificationsForm.verificationSuccess", {
+                                method:
+                                  verificationState.method === "sms"
+                                    ? t("notificationsForm.toast.phone")
+                                    : t("notificationsForm.toast.email"),
+                              })}
                             </span>
                           </div>
                         </div>
@@ -606,8 +636,9 @@ export default function NotificationsForm() {
                           <Alert className="py-2">
                             <Shield className="h-3 w-3" />
                             <AlertDescription className="text-xs">
-                              You need to verify your {verificationStatus.type}{" "}
-                              before notifications can be sent.
+                              {t("notificationsForm.verificationWarning", {
+                                type: verificationStatus.type,
+                              })}
                             </AlertDescription>
                           </Alert>
                         )}
@@ -626,7 +657,7 @@ export default function NotificationsForm() {
                 disabled={isLoading || !form.formState.isDirty}
                 className="min-w-32"
               >
-                Save Changes
+                {t("notificationsForm.saveChanges")}
               </AsyncButton>
             </div>
           </form>

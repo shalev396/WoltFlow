@@ -1,4 +1,5 @@
 import { Bot, BotOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   FormControl,
   FormDescription,
@@ -19,6 +20,8 @@ interface AutomationToggleProps<
 export function AutomationToggle<
   T extends Record<string, unknown> & { automationEnabled: boolean }
 >({ control, name }: AutomationToggleProps<T>) {
+  const { t } = useTranslation("settings");
+
   return (
     <FormField
       control={control}
@@ -32,12 +35,12 @@ export function AutomationToggle<
               ) : (
                 <BotOff className="h-4 w-4 text-muted-foreground" />
               )}
-              Automation
+              {t("automationToggle.label")}
             </FormLabel>
             <FormDescription>
               {field.value
-                ? "Automation is enabled and ready to run"
-                : "Enable automation to start scheduled runs"}
+                ? t("automationToggle.enabledDescription")
+                : t("automationToggle.disabledDescription")}
             </FormDescription>
           </div>
           <FormControl>

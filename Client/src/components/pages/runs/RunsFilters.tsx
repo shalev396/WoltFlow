@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Filter, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,6 +18,7 @@ interface RunsFiltersProps {
 }
 
 export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
+  const { t } = useTranslation("runs");
   const [filters, setFilters] = useState<RunFilters>({});
 
   const handleFilterChange = (
@@ -45,7 +47,7 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Filter className="h-4 w-4" />
-            Filters
+            {t("filters.title")}
             {activeFilterCount > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {activeFilterCount}
@@ -60,7 +62,7 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
               className="flex items-center gap-1"
             >
               <X className="h-3 w-3" />
-              Clear
+              {t("filters.clear")}
             </Button>
           )}
         </div>
@@ -69,32 +71,34 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Status Filter */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Status</label>
+            <label className="text-sm font-medium mb-2 block">
+              {t("filters.status")}
+            </label>
             <Select
               value={filters.status || "all"}
               onValueChange={(value) => handleFilterChange("status", value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All statuses" />
+                <SelectValue placeholder={t("filters.allStatuses")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
                 <SelectItem value="completed">
                   <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full bg-green-500" />
-                    Completed
+                    {t("table.status.completed")}
                   </div>
                 </SelectItem>
                 <SelectItem value="failed">
                   <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full bg-red-500" />
-                    Failed
+                    {t("table.status.failed")}
                   </div>
                 </SelectItem>
                 <SelectItem value="in_progress">
                   <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full bg-yellow-500" />
-                    In Progress
+                    {t("table.status.inProgress")}
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -103,33 +107,45 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
 
           {/* Stage Filter */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Stage</label>
+            <label className="text-sm font-medium mb-2 block">
+              {t("filters.stage")}
+            </label>
             <Select
               value={filters.stage || "all"}
               onValueChange={(value) => handleFilterChange("stage", value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All stages" />
+                <SelectValue placeholder={t("filters.allStages")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All stages</SelectItem>
-                <SelectItem value="triggered">Triggered</SelectItem>
+                <SelectItem value="all">{t("filters.allStages")}</SelectItem>
+                <SelectItem value="triggered">
+                  {t("table.stages.triggered")}
+                </SelectItem>
                 <SelectItem value="refreshing_tokens">
-                  Refreshing Tokens
+                  {t("table.stages.refreshingTokens")}
                 </SelectItem>
-                <SelectItem value="buying_gift">Buying Gift</SelectItem>
+                <SelectItem value="buying_gift">
+                  {t("table.stages.buyingGift")}
+                </SelectItem>
                 <SelectItem value="getting_code_from_email">
-                  Getting Code from Email
+                  {t("table.stages.gettingCode")}
                 </SelectItem>
-                <SelectItem value="applying_gift">Applying Gift</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="applying_gift">
+                  {t("table.stages.applyingGift")}
+                </SelectItem>
+                <SelectItem value="completed">
+                  {t("table.stages.completed")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Automation Mode Filter */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Mode</label>
+            <label className="text-sm font-medium mb-2 block">
+              {t("filters.mode")}
+            </label>
             <Select
               value={filters.automationMode || "all"}
               onValueChange={(value) =>
@@ -137,20 +153,20 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="All modes" />
+                <SelectValue placeholder={t("filters.allModes")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All modes</SelectItem>
+                <SelectItem value="all">{t("filters.allModes")}</SelectItem>
                 <SelectItem value="full-run">
                   <div className="flex items-center gap-2">
                     <span>🚀</span>
-                    Complete Automation
+                    {t("filters.completeAutomation")}
                   </div>
                 </SelectItem>
                 <SelectItem value="buy-only">
                   <div className="flex items-center gap-2">
                     <span>🛒</span>
-                    Buy Only
+                    {t("table.mode.buyOnly")}
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -163,11 +179,11 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
           <div className="mt-4 pt-4 border-t">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-medium text-muted-foreground">
-                Active filters:
+                {t("filters.activeFilters")}
               </span>
               {filters.status && (
                 <Badge variant="outline" className="flex items-center gap-1">
-                  Status: {filters.status}
+                  {t("filters.statusLabel", { status: filters.status })}
                   <button
                     onClick={() => handleFilterChange("status", undefined)}
                     className="ml-1 hover:text-destructive"
@@ -178,7 +194,9 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
               )}
               {filters.stage && (
                 <Badge variant="outline" className="flex items-center gap-1">
-                  Stage: {filters.stage.replace("_", " ")}
+                  {t("filters.stageLabel", {
+                    stage: filters.stage.replace("_", " "),
+                  })}
                   <button
                     onClick={() => handleFilterChange("stage", undefined)}
                     className="ml-1 hover:text-destructive"
@@ -189,7 +207,7 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
               )}
               {filters.automationMode && (
                 <Badge variant="outline" className="flex items-center gap-1">
-                  Mode: {filters.automationMode}
+                  {t("filters.modeLabel", { mode: filters.automationMode })}
                   <button
                     onClick={() =>
                       handleFilterChange("automationMode", undefined)

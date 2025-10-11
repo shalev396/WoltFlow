@@ -1,6 +1,7 @@
 "use client";
 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -35,6 +36,7 @@ export default function SavingsTrendChart({
   isLoading,
   timeRange,
 }: SavingsTrendChartProps) {
+  const { t } = useTranslation("dashboard");
   const rawChartData = analytics?.chartData || [];
   const totalSavings = analytics?.totalSavings || 0;
 
@@ -60,11 +62,11 @@ export default function SavingsTrendChart({
   const getTimeRangeLabel = (range: TimeRange) => {
     switch (range) {
       case "7d":
-        return "Last 7 days";
+        return t("timeRanges.last7Days");
       case "90d":
-        return "Last 3 months";
+        return t("timeRanges.last3Months");
       default:
-        return "Last 30 days";
+        return t("timeRanges.last30Days");
     }
   };
 
@@ -74,27 +76,28 @@ export default function SavingsTrendChart({
         <div className="grid flex-1 gap-1">
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
-            <span>Savings Trend</span>
+            <span>{t("savingsTrend.title")}</span>
           </CardTitle>
           <CardDescription>
-            Showing cumulative savings over{" "}
-            {getTimeRangeLabel(timeRange).toLowerCase()}
+            {t("savingsTrend.showingCumulative", {
+              period: getTimeRangeLabel(timeRange).toLowerCase(),
+            })}
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {isLoading ? (
           <div className="h-[250px] flex items-center justify-center">
-            <div className="text-muted-foreground">Loading chart...</div>
+            <div className="text-muted-foreground">
+              {t("savingsTrend.loadingChart")}
+            </div>
           </div>
         ) : !chartData || chartData.length === 0 ? (
           <div className="h-[250px] flex items-center justify-center">
             <div className="text-center text-muted-foreground">
               <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No savings data available yet</p>
-              <p className="text-sm">
-                Complete your first automated run to see trends
-              </p>
+              <p>{t("savingsTrend.noDataYet")}</p>
+              <p className="text-sm">{t("savingsTrend.completeFirstRun")}</p>
             </div>
           </div>
         ) : (
@@ -148,11 +151,15 @@ export default function SavingsTrendChart({
             {/* Summary */}
             <div className="flex items-center justify-between text-sm text-muted-foreground mt-4 pt-4 border-t">
               <span>
-                Average daily savings: ₪{averageDailySavings.toFixed(2)}
+                {t("savingsTrend.avgDailySavings", {
+                  amount: averageDailySavings.toFixed(2),
+                })}
               </span>
               <span>
-                Over {totalDaysInRange} days (
-                {getTimeRangeLabel(timeRange).toLowerCase()})
+                {t("savingsTrend.overDays", {
+                  days: totalDaysInRange,
+                  period: getTimeRangeLabel(timeRange).toLowerCase(),
+                })}
               </span>
             </div>
           </>

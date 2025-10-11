@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -89,7 +90,9 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
+const createColumns = (
+  t: (key: string) => string
+): ColumnDef<RunWithScreenshots>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -99,14 +102,14 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label={t("table.accessibility.selectAll")}
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label={t("table.accessibility.selectRow")}
       />
     ),
     enableSorting: false,
@@ -114,7 +117,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
   },
   {
     accessorKey: "id",
-    header: "ID",
+    header: t("table.columns.id"),
     cell: ({ row }) => <div className="font-medium">#{row.getValue("id")}</div>,
   },
   {
@@ -126,7 +129,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="h-auto p-0 font-medium"
         >
-          Date
+          {t("table.columns.date")}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -154,7 +157,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="h-auto p-0 font-medium"
         >
-          Status
+          {t("table.columns.status")}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -171,7 +174,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
   },
   {
     accessorKey: "stage",
-    header: "Stage",
+    header: t("table.columns.stage"),
     cell: ({ row }) => (
       <span className="text-sm text-muted-foreground capitalize">
         {(row.getValue("stage") as string).replace(/_/g, " ")}
@@ -180,7 +183,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
   },
   {
     accessorKey: "amount",
-    header: "Amount",
+    header: t("table.columns.amount"),
     cell: ({ row }) => {
       const amount = row.getValue("amount") as number | null;
       return (
@@ -192,7 +195,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
   },
   {
     id: "screenshots",
-    header: "Screenshots",
+    header: t("table.columns.screenshots"),
     cell: ({ row }) => {
       const screenshots = row.original.screenshots;
       return screenshots && screenshots.length > 0 ? (
@@ -201,7 +204,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
           {screenshots.length}
         </Button>
       ) : (
-        <span className="text-xs text-muted-foreground">None</span>
+        <span className="text-xs text-muted-foreground">{t("table.none")}</span>
       );
     },
   },
@@ -215,16 +218,16 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{t("table.actions.openMenu")}</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("table.columns.actions")}</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(run.id)}
             >
-              Copy run ID
+              {t("table.actions.copyRunId")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <RunDetailsDialog
@@ -232,7 +235,7 @@ const createColumns = (): ColumnDef<RunWithScreenshots>[] => [
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Eye className="h-4 w-4 mr-2" />
-                  View details
+                  {t("table.actions.viewDetails")}
                 </DropdownMenuItem>
               }
             />
@@ -252,7 +255,8 @@ export function RunsDataTable({
   filters,
   onFiltersChange,
 }: RunsDataTableProps) {
-  const columns = React.useMemo(() => createColumns(), []);
+  const { t } = useTranslation("runs");
+  const columns = React.useMemo(() => createColumns(t), [t]);
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -329,9 +333,9 @@ export function RunsDataTable({
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-500 mb-4">
-              {error instanceof Error ? error.message : "Failed to load runs"}
+              {error instanceof Error ? error.message : t("table.failedToLoad")}
             </p>
-            <Button onClick={() => refetch()}>Try Again</Button>
+            <Button onClick={() => refetch()}>{t("table.tryAgain")}</Button>
           </div>
         </CardContent>
       </Card>
@@ -342,9 +346,11 @@ export function RunsDataTable({
     <div className="w-full">
       <Card>
         <CardHeader>
-          <CardTitle>All Runs</CardTitle>
+          <CardTitle>{t("table.title")}</CardTitle>
           <CardDescription>
-            {isLoading ? "Loading..." : `${totalCount} total runs found`}
+            {isLoading
+              ? t("table.loading")
+              : t("table.totalRunsFound", { count: totalCount })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -357,14 +363,26 @@ export function RunsDataTable({
                 onValueChange={handleStatusFilter}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue
+                    placeholder={t("table.filters.filterByStatus")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="started">Started</SelectItem>
+                  <SelectItem value="all">
+                    {t("table.status.allStatuses")}
+                  </SelectItem>
+                  <SelectItem value="completed">
+                    {t("table.status.completed")}
+                  </SelectItem>
+                  <SelectItem value="failed">
+                    {t("table.status.failed")}
+                  </SelectItem>
+                  <SelectItem value="in_progress">
+                    {t("table.status.inProgress")}
+                  </SelectItem>
+                  <SelectItem value="started">
+                    {t("table.status.started")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -374,12 +392,18 @@ export function RunsDataTable({
                 onValueChange={handleModeFilter}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by mode" />
+                  <SelectValue placeholder={t("table.filters.filterByMode")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Modes</SelectItem>
-                  <SelectItem value="full-run">Full Run</SelectItem>
-                  <SelectItem value="buy-only">Buy Only</SelectItem>
+                  <SelectItem value="all">
+                    {t("table.mode.allModes")}
+                  </SelectItem>
+                  <SelectItem value="full-run">
+                    {t("table.mode.fullRun")}
+                  </SelectItem>
+                  <SelectItem value="buy-only">
+                    {t("table.mode.buyOnly")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -388,7 +412,8 @@ export function RunsDataTable({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                  {t("table.filters.columns")}{" "}
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -468,7 +493,7 @@ export function RunsDataTable({
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No runs found.
+                      {t("table.noRuns")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -480,13 +505,17 @@ export function RunsDataTable({
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
             <div className="flex items-center space-x-2">
               <p className="text-sm text-muted-foreground">
-                {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                {totalCount} row(s) selected.
+                {t("table.pagination.rowsSelected", {
+                  selected: table.getFilteredSelectedRowModel().rows.length,
+                  total: totalCount,
+                })}
               </p>
               {isFetching && (
                 <div className="flex items-center space-x-1 text-blue-600">
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600" />
-                  <span className="text-xs">Updating...</span>
+                  <span className="text-xs">
+                    {t("table.pagination.updating")}
+                  </span>
                 </div>
               )}
             </div>
@@ -519,7 +548,7 @@ export function RunsDataTable({
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
                 >
-                  Previous
+                  {t("table.pagination.previous")}
                 </Button>
                 <Button
                   variant="outline"
@@ -527,7 +556,7 @@ export function RunsDataTable({
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
                 >
-                  Next
+                  {t("table.pagination.next")}
                 </Button>
               </div>
             </div>

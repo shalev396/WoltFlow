@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock, Play } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function NextRunBanner() {
+  const { t } = useTranslation("runs");
   const [timeUntilNextRun, setTimeUntilNextRun] = useState<string>("");
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export default function NextRunBanner() {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          Next Automation Run
+          {t("nextRunBanner.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
@@ -79,13 +81,13 @@ export default function NextRunBanner() {
             <div
               className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20 border border-blue-200/50 dark:border-blue-700/50"
               aria-live="polite"
-              aria-label="Time until next run"
+              aria-label={t("table.accessibility.timeUntilNextRun")}
             >
               <p className="text-sm font-medium text-muted-foreground mb-2">
-                Time Until Next Run
+                {t("nextRunBanner.timeUntilRun")}
               </p>
               <p className="text-xl sm:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {timeUntilNextRun || "Calculating..."}
+                {timeUntilNextRun || t("nextRunBanner.calculating")}
               </p>
             </div>
           </div>
@@ -95,28 +97,28 @@ export default function NextRunBanner() {
             <div className="p-3 rounded-lg bg-white/30 dark:bg-black/10">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Status
+                  {t("nextRunBanner.status")}
                 </p>
                 <Badge
                   variant="outline"
                   className="bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800"
                 >
                   <div className="size-2 rounded-full bg-green-500 mr-1" />
-                  Active
+                  {t("nextRunBanner.active")}
                 </Badge>
               </div>
             </div>
             <div className="p-3 rounded-lg bg-white/30 dark:bg-black/10">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Schedule
+                  {t("nextRunBanner.schedule")}
                 </p>
                 <div className="text-right">
                   <div className="text-sm font-semibold text-foreground">
-                    Daily at 12:00 PM
+                    {t("nextRunBanner.dailyTime")}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Mon-Thu & Sun
+                    {t("nextRunBanner.runDays")}
                   </div>
                 </div>
               </div>
@@ -127,10 +129,10 @@ export default function NextRunBanner() {
         <div className="mt-4 flex items-center justify-between text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Play className="h-4 w-4" />
-            <span>Automatic execution enabled</span>
+            <span>{t("nextRunBanner.automaticExecution")}</span>
           </div>
           <div className="text-muted-foreground">
-            <span>Next: weekday at noon</span>
+            <span>{t("nextRunBanner.nextRun")}</span>
           </div>
         </div>
       </CardContent>

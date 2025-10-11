@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import type { RootState } from "@/store/store";
 
 import Layout from "@/components/shared/Layout";
@@ -13,6 +14,7 @@ import type { TimeRange } from "@/types/api";
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.user);
+  const { t } = useTranslation("dashboard");
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
   const {
@@ -24,14 +26,14 @@ export default function DashboardPage() {
   if (error) {
     return (
       <Layout
-        title="Dashboard"
-        description={user?.name ? `Welcome back, ${user.name}` : undefined}
+        title={t("title")}
+        description={
+          user?.name ? t("welcomeBack", { name: user.name }) : undefined
+        }
       >
         <Card className="border-destructive">
           <CardContent className="pt-6">
-            <p className="text-destructive">
-              Failed to load dashboard data. Please refresh the page.
-            </p>
+            <p className="text-destructive">{t("error.loadFailed")}</p>
           </CardContent>
         </Card>
       </Layout>
@@ -40,8 +42,10 @@ export default function DashboardPage() {
 
   return (
     <Layout
-      title="Dashboard"
-      description={user?.name ? `Welcome back, ${user.name}` : undefined}
+      title={t("title")}
+      description={
+        user?.name ? t("welcomeBack", { name: user.name }) : undefined
+      }
     >
       {/* Metrics grid */}
       <MetricsGrid

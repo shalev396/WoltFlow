@@ -9,39 +9,38 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useTranslation } from "react-i18next";
 
 export function IntroductionContent() {
+  const { language } = useLanguage();
+  const { t } = useTranslation("docs/introduction");
+
   return (
     <section id="introduction" className="space-y-8">
       <div className="flex items-center gap-3">
         <BookOpen className="h-8 w-8 text-blue-600" />
-        <h1 className="text-4xl font-bold">Welcome to WoltFlow</h1>
+        <h1 className="text-4xl font-bold">{t("title")}</h1>
       </div>
 
       <div className="text-lg text-muted-foreground leading-relaxed">
-        <p>
-          WoltFlow is an automation solution that helps you maximize your meal
-          benefits by automatically claiming your Cibus credits and converting
-          them to Wolt gift cards every day.
-        </p>
+        <p>{t("description")}</p>
       </div>
 
       <div id="what-is-woltflow" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">What is WoltFlow?</h2>
+        <h2 className="text-3xl font-semibold">{t("whatIsWoltflow.title")}</h2>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="border-2 border-blue-100 bg-blue-50/50 dark:border-blue-800/50 dark:bg-blue-950/20">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-blue-700 dark:text-blue-300">
                 <Zap className="h-5 w-5" />
-                Automated Solution
+                {t("whatIsWoltflow.automatedSolution.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                A comprehensive automation system that handles your entire meal
-                benefit workflow, from claiming to redemption, without any
-                manual intervention required.
+                {t("whatIsWoltflow.automatedSolution.description")}
               </p>
             </CardContent>
           </Card>
@@ -50,14 +49,12 @@ export function IntroductionContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-green-700 dark:text-green-300">
                 <CheckCircle className="h-5 w-5" />
-                Daily Benefits
+                {t("whatIsWoltflow.dailyBenefits.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Automatically claims your daily Cibus meal allowance and
-                converts it to Wolt credits, ensuring you never miss out on your
-                benefits.
+                {t("whatIsWoltflow.dailyBenefits.description")}
               </p>
             </CardContent>
           </Card>
@@ -65,22 +62,20 @@ export function IntroductionContent() {
 
         <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg border">
           <h3 className="text-xl font-semibold mb-3 text-blue-800 dark:text-blue-200">
-            Transform Your Meal Benefits Workflow
+            {t("whatIsWoltflow.transformWorkflow.title")}
           </h3>
           <p className="text-muted-foreground mb-4">
-            Instead of manually logging into Cibus daily, purchasing gift cards,
-            waiting for emails, and then redeeming codes on Wolt, WoltFlow
-            handles this entire process automatically.
+            {t("whatIsWoltflow.transformWorkflow.description")}
           </p>
           <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
             <Clock className="h-4 w-4" />
-            <span>Save 5-10 minutes daily with automated processing</span>
+            <span>{t("whatIsWoltflow.transformWorkflow.timeSaver")}</span>
           </div>
         </div>
       </div>
 
       <div id="how-it-works" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">How It Works</h2>
+        <h2 className="text-3xl font-semibold">{t("howItWorks.title")}</h2>
 
         <div className="space-y-4">
           <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
@@ -89,11 +84,10 @@ export function IntroductionContent() {
             </div>
             <div>
               <h3 className="font-semibold text-lg mb-2">
-                Daily Automation Trigger
+                {t("howItWorks.steps.1.title")}
               </h3>
               <p className="text-muted-foreground">
-                Every day at 12:00 PM Israel time (noon), our secure automation
-                system initiates your personalized meal benefit process.
+                {t("howItWorks.steps.1.description")}
               </p>
             </div>
           </div>
@@ -104,11 +98,10 @@ export function IntroductionContent() {
             </div>
             <div>
               <h3 className="font-semibold text-lg mb-2">
-                Secure Account Access
+                {t("howItWorks.steps.2.title")}
               </h3>
               <p className="text-muted-foreground">
-                Using your encrypted credentials, the system securely logs into
-                both your Cibus and Wolt accounts to begin the transfer process.
+                {t("howItWorks.steps.2.description")}
               </p>
             </div>
           </div>
@@ -118,11 +111,11 @@ export function IntroductionContent() {
               3
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">Gift Card Purchase</h3>
+              <h3 className="font-semibold text-lg mb-2">
+                {t("howItWorks.steps.3.title")}
+              </h3>
               <p className="text-muted-foreground">
-                The automation purchases a Wolt gift card using your available
-                Cibus balance, with the amount you've configured in your
-                settings.
+                {t("howItWorks.steps.3.description")}
               </p>
             </div>
           </div>
@@ -132,16 +125,18 @@ export function IntroductionContent() {
               4
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">Email Processing</h3>
+              <h3 className="font-semibold text-lg mb-2">
+                {t("howItWorks.steps.4.title")}
+              </h3>
               <p className="text-muted-foreground">
-                The gift card code is forwarded to{" "}
+                {t("howItWorks.steps.4.descriptionPart1")}{" "}
                 <Link
-                  to="/docs/inbox"
+                  to={`/${language}/docs/inbox`}
                   className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
-                  your personalized WoltFlow email address
+                  {t("howItWorks.steps.4.inboxLink")}
                 </Link>
-                , where our system automatically extracts the redemption code.
+                {t("howItWorks.steps.4.descriptionPart2")}
               </p>
             </div>
           </div>
@@ -152,12 +147,10 @@ export function IntroductionContent() {
             </div>
             <div>
               <h3 className="font-semibold text-lg mb-2">
-                Automatic Redemption
+                {t("howItWorks.steps.5.title")}
               </h3>
               <p className="text-muted-foreground">
-                The extracted gift card code is automatically applied to your
-                Wolt account, instantly adding the credit balance for your next
-                order.
+                {t("howItWorks.steps.5.description")}
               </p>
             </div>
           </div>
@@ -168,11 +161,10 @@ export function IntroductionContent() {
             <Clock className="h-6 w-6 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-                Perfect Timing, Every Day
+                {t("howItWorks.perfectTiming.title")}
               </p>
               <p className="text-sm text-green-700 dark:text-green-300">
-                We run the automation at 12:00 PM Israel time, ensuring maximum
-                success rates for your daily claims.
+                {t("howItWorks.perfectTiming.description")}
               </p>
             </div>
           </div>
@@ -180,30 +172,28 @@ export function IntroductionContent() {
       </div>
 
       <div id="security-privacy" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Security & Privacy</h2>
+        <h2 className="text-3xl font-semibold">{t("securityPrivacy.title")}</h2>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="border-2 border-orange-100 bg-orange-50/50 dark:border-orange-800/50 dark:bg-orange-950/20">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-orange-700 dark:text-orange-300">
                 <Shield className="h-5 w-5" />
-                Bank-Level Encryption
+                {t("securityPrivacy.bankLevelEncryption.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  All credentials encrypted with AES-256
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  Secure AWS infrastructure hosting
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  TLS 1.3 for all data transmission
-                </li>
+                {(
+                  t("securityPrivacy.bankLevelEncryption.features", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((feature: string, index: number) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-600" />
+                    {feature}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -212,23 +202,21 @@ export function IntroductionContent() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-xl text-purple-700 dark:text-purple-300">
                 <Shield className="h-5 w-5" />
-                Individual Privacy
+                {t("securityPrivacy.individualPrivacy.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  Unique email address per user
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  Complete data isolation
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  No cross-user data mixing
-                </li>
+                {(
+                  t("securityPrivacy.individualPrivacy.features", {
+                    returnObjects: true,
+                  }) as string[]
+                ).map((feature: string, index: number) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-600" />
+                    {feature}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -239,14 +227,10 @@ export function IntroductionContent() {
             <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                Your Data, Your Control
+                {t("securityPrivacy.yourDataYourControl.title")}
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
-                Each user receives a completely isolated email address and data
-                environment. We only access the minimum information required for
-                the automation to function, and all data is encrypted both in
-                transit and at rest. You can delete your account and all
-                associated data at any time.
+                {t("securityPrivacy.yourDataYourControl.description")}
               </p>
             </div>
           </div>
@@ -255,13 +239,15 @@ export function IntroductionContent() {
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
         <Button asChild size="lg" className="group">
-          <Link to="/docs/getting-started">
-            Get Started Now
+          <Link to={`/${language}/docs/getting-started`}>
+            {t("cta.getStarted")}
             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </Button>
         <Button variant="outline" size="lg" asChild>
-          <Link to="/docs/woltflow-extension">Download Extension</Link>
+          <Link to={`/${language}/docs/woltflow-extension`}>
+            {t("cta.downloadExtension")}
+          </Link>
         </Button>
       </div>
     </section>

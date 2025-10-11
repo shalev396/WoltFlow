@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { Settings, DollarSign } from "lucide-react";
 
 import {
@@ -41,6 +42,7 @@ import {
 } from "@/queries/settings";
 
 export default function AutomationSettingsForm() {
+  const { t } = useTranslation("settings");
   const { data: runSettings } = useRunSettingsQuery();
   const updateRunSettingsMutation = useUpdateRunSettingsMutation();
 
@@ -95,11 +97,9 @@ export default function AutomationSettingsForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="h-5 w-5 text-green-600 dark:text-green-400" />
-          Automation Settings
+          {t("automationForm.title")}
         </CardTitle>
-        <CardDescription>
-          Configure your automation preferences and gift card amounts
-        </CardDescription>
+        <CardDescription>{t("automationForm.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Form {...form}>
@@ -133,7 +133,7 @@ export default function AutomationSettingsForm() {
                   >
                     <FormLabel className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4" />
-                      Gift Card Amount (₪)
+                      {t("automationForm.giftAmount.label")}
                     </FormLabel>
                     <Select
                       value={field.value?.toString()}
@@ -142,7 +142,11 @@ export default function AutomationSettingsForm() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select amount" />
+                          <SelectValue
+                            placeholder={t(
+                              "automationForm.giftAmount.placeholder"
+                            )}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -181,8 +185,7 @@ export default function AutomationSettingsForm() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Choose the amount for each automated gift card purchase.
-                      Higher amounts may require more Cibus balance.
+                      {t("automationForm.giftAmount.description")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -194,9 +197,10 @@ export default function AutomationSettingsForm() {
                 form.watch("automationEnabled") && (
                   <Alert>
                     <AlertDescription>
-                      <strong>Note:</strong> Higher gift card amounts require
-                      sufficient Cibus balance. Make sure your account can cover
-                      ₪{form.watch("giftAmount")} per purchase.
+                      <strong>{t("automationForm.note")}</strong>{" "}
+                      {t("automationForm.highAmountWarning", {
+                        amount: form.watch("giftAmount"),
+                      })}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -208,11 +212,11 @@ export default function AutomationSettingsForm() {
                 type="submit"
                 onClick={form.handleSubmit(onSubmit)}
                 loading={isLoading}
-                loadingText="Saving Changes..."
+                loadingText={t("automationForm.savingChanges")}
                 disabled={isLoading || !form.formState.isDirty}
                 className="min-w-32"
               >
-                Save Changes
+                {t("automationForm.saveChanges")}
               </AsyncButton>
             </div>
           </form>

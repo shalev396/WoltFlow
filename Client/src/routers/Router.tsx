@@ -1,5 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { ProtectedRoute } from "@/routers/ProtectedRoute";
+import { LanguageLayout } from "@/routers/LanguageLayout";
+import { RootRedirect } from "@/routers/RootRedirect";
 import { DocsRouter } from "@/components/pages/docs";
 import { LegalRouter } from "@/routers/LegalRouter";
 
@@ -12,52 +14,70 @@ import InboxPage from "../pages/InboxPage";
 import NotFound from "../pages/NotFoundPage";
 
 export const router = createBrowserRouter([
+  // All routes with language prefix
   {
-    path: "/",
-    element: <LandingPage />,
+    path: "/:lng",
+    element: <LanguageLayout />,
+    children: [
+      // Landing page
+      {
+        index: true,
+        element: <LandingPage />,
+      },
+      // Protected routes
+      {
+        path: "dashboard",
+        element: (
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "runs",
+        element: (
+          <ProtectedRoute>
+            <RunsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "inbox",
+        element: (
+          <ProtectedRoute>
+            <InboxPage />
+          </ProtectedRoute>
+        ),
+      },
+      // Legal routes
+      {
+        path: "legal/*",
+        element: <LegalRouter />,
+      },
+      // Docs routes
+      {
+        path: "docs/*",
+        element: <DocsRouter />,
+      },
+      // 404 for language-prefixed routes
+      {
+        path: "*",
+        element: <NotFound />,
+      },
+    ],
   },
-  {
-    path: "/dashboard",
-    element: (
-      <ProtectedRoute>
-        <DashboardPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/runs",
-    element: (
-      <ProtectedRoute>
-        <RunsPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/settings",
-    element: (
-      <ProtectedRoute>
-        <SettingsPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/inbox",
-    element: (
-      <ProtectedRoute>
-        <InboxPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/legal/*",
-    element: <LegalRouter />,
-  },
-  {
-    path: "/docs/*",
-    element: <DocsRouter />,
-  },
+  // Catch-all: redirect any path without language to language-prefixed version
+  // This must be AFTER the /:lng routes so it doesn't match first
   {
     path: "*",
-    element: <NotFound />,
+    element: <RootRedirect />,
   },
 ]);

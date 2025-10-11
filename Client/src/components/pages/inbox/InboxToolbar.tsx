@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Search, Filter, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,21 +18,22 @@ interface InboxToolbarProps {
   onLabelChange: (label: string | null) => void;
 }
 
-const labels = [
-  { value: "automation", label: "Automation", color: "blue" },
-  { value: "gift-card", label: "Gift Card", color: "green" },
-  { value: "error", label: "Error", color: "red" },
-  { value: "alert", label: "Alert", color: "yellow" },
-  { value: "summary", label: "Summary", color: "purple" },
-  { value: "balance", label: "Balance", color: "orange" },
-];
-
 export default function InboxToolbar({
   searchQuery,
   onSearchChange,
   selectedLabel,
   onLabelChange,
 }: InboxToolbarProps) {
+  const { t } = useTranslation("inbox");
+
+  const labels = [
+    { value: "automation", label: t("labels.automation"), color: "blue" },
+    { value: "gift-card", label: t("labels.giftCard"), color: "green" },
+    { value: "error", label: t("labels.error"), color: "red" },
+    { value: "alert", label: t("labels.alert"), color: "yellow" },
+    { value: "summary", label: t("labels.summary"), color: "purple" },
+    { value: "balance", label: t("labels.balance"), color: "orange" },
+  ];
   const clearFilters = () => {
     onSearchChange("");
     onLabelChange(null);
@@ -47,7 +49,7 @@ export default function InboxToolbar({
           <div className="relative flex-1 sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search emails..."
+              placeholder={t("toolbar.search.placeholder")}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-9 text-sm"
@@ -66,10 +68,12 @@ export default function InboxToolbar({
                 }
               >
                 <SelectTrigger className="w-32 sm:w-48 text-sm">
-                  <SelectValue placeholder="Filter..." />
+                  <SelectValue placeholder={t("toolbar.filter.placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All labels</SelectItem>
+                  <SelectItem value="all">
+                    {t("toolbar.filter.allLabels")}
+                  </SelectItem>
                   {labels.map((label) => (
                     <SelectItem key={label.value} value={label.value}>
                       <div className="flex items-center gap-2">
@@ -94,8 +98,10 @@ export default function InboxToolbar({
                 className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
               >
                 <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Clear filters</span>
-                <span className="sm:hidden">Clear</span>
+                <span className="hidden sm:inline">
+                  {t("toolbar.clearFilters")}
+                </span>
+                <span className="sm:hidden">{t("toolbar.clear")}</span>
               </Button>
             )}
           </div>
@@ -105,7 +111,7 @@ export default function InboxToolbar({
         {hasActiveFilters && (
           <div className="mt-2 sm:mt-3 flex items-start sm:items-center gap-2 flex-wrap">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground whitespace-nowrap">
-              Active:
+              {t("toolbar.activeFilters")}
             </span>
 
             {searchQuery && (
@@ -113,7 +119,9 @@ export default function InboxToolbar({
                 variant="outline"
                 className="flex items-center gap-1 text-xs sm:text-sm"
               >
-                <span className="hidden sm:inline">Search:</span>
+                <span className="hidden sm:inline">
+                  {t("toolbar.search.label")}
+                </span>
                 <span className="sm:hidden">🔍</span>
                 <span className="truncate max-w-24 sm:max-w-none">
                   "{searchQuery}"
@@ -133,7 +141,9 @@ export default function InboxToolbar({
                 variant="outline"
                 className="flex items-center gap-1 text-xs sm:text-sm"
               >
-                <span className="hidden sm:inline">Label:</span>
+                <span className="hidden sm:inline">
+                  {t("toolbar.filter.label")}
+                </span>
                 <span className="sm:hidden">🏷️</span>
                 <span className="truncate max-w-20 sm:max-w-none">
                   {labels.find((l) => l.value === selectedLabel)?.label}

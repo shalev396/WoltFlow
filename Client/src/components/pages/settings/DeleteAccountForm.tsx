@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Trash2, AlertTriangle, Clock } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,6 +28,7 @@ import AsyncButton from "@/components/shared/AsyncButton";
 import { useDeleteUserAccountMutation } from "@/queries/user";
 
 export default function DeleteAccountForm() {
+  const { t } = useTranslation("settings");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const deleteAccountMutation = useDeleteUserAccountMutation();
@@ -71,11 +73,9 @@ export default function DeleteAccountForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
           <Trash2 className="h-5 w-5" />
-          Delete Account
+          {t("deleteForm.title")}
         </CardTitle>
-        <CardDescription>
-          Permanently delete your WoltFlow account and all associated data
-        </CardDescription>
+        <CardDescription>{t("deleteForm.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <div className="flex-1 space-y-6">
@@ -83,24 +83,25 @@ export default function DeleteAccountForm() {
           <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800 dark:text-red-200">
-              <strong>Danger Zone:</strong> This action cannot be undone. Once
-              deleted, your account and all data will be permanently removed
-              from our systems.
+              <strong>{t("deleteForm.dangerZone.title")}</strong>{" "}
+              {t("deleteForm.dangerZone.message")}
             </AlertDescription>
           </Alert>
 
           {/* What gets deleted */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">What will be deleted:</h4>
+              <h4 className="text-sm font-medium">
+                {t("deleteForm.whatWillBeDeleted.title")}
+              </h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Your account and profile information</li>
-                <li>• All automation settings and credentials</li>
-                <li>• Complete run history and screenshots</li>
-                <li>• Email inbox and all received messages</li>
-                <li>• Generated gift codes and 2FA records</li>
-                <li>• API keys and integration settings</li>
-                <li>• All personal data and usage history</li>
+                <li>• {t("deleteForm.whatWillBeDeleted.account")}</li>
+                <li>• {t("deleteForm.whatWillBeDeleted.settings")}</li>
+                <li>• {t("deleteForm.whatWillBeDeleted.runs")}</li>
+                <li>• {t("deleteForm.whatWillBeDeleted.inbox")}</li>
+                <li>• {t("deleteForm.whatWillBeDeleted.codes")}</li>
+                <li>• {t("deleteForm.whatWillBeDeleted.apiKeys")}</li>
+                <li>• {t("deleteForm.whatWillBeDeleted.personalData")}</li>
               </ul>
             </div>
           </div>
@@ -109,9 +110,7 @@ export default function DeleteAccountForm() {
           <Alert>
             <Clock className="h-4 w-4" />
             <AlertDescription>
-              Account deletion is processed immediately and cannot be reversed.
-              Per our privacy policy, some data may be retained in encrypted
-              backups for up to 90 days for security and legal compliance.
+              {t("deleteForm.timeline.message")}
             </AlertDescription>
           </Alert>
 
@@ -121,38 +120,31 @@ export default function DeleteAccountForm() {
               <DialogTrigger asChild>
                 <Button variant="destructive" className="w-fit" size="sm">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete My Account
+                  {t("deleteForm.deleteButton")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-red-600">
                     <AlertTriangle className="h-5 w-5" />
-                    Confirm Account Deletion
+                    {t("deleteForm.confirmDialog.title")}
                   </DialogTitle>
                   <DialogDescription className="space-y-3">
-                    <p>
-                      This action will permanently delete your account and all
-                      associated data. This cannot be undone.
-                    </p>
-                    <p>
-                      To confirm, please type{" "}
-                      <strong>"DELETE MY ACCOUNT"</strong>
-                      in the field below:
-                    </p>
+                    <p>{t("deleteForm.confirmDialog.description")}</p>
+                    <p>{t("deleteForm.confirmDialog.instruction")}</p>
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="confirm-delete">
-                      Type "DELETE MY ACCOUNT" to confirm
+                      {t("deleteForm.confirmDialog.inputLabel")}
                     </Label>
                     <Input
                       id="confirm-delete"
                       value={confirmText}
                       onChange={(e) => setConfirmText(e.target.value)}
-                      placeholder="DELETE MY ACCOUNT"
+                      placeholder={t("deleteForm.confirmDialog.placeholder")}
                       className="font-mono"
                     />
                   </div>
@@ -166,12 +158,12 @@ export default function DeleteAccountForm() {
                       setConfirmText("");
                     }}
                   >
-                    Cancel
+                    {t("deleteForm.confirmDialog.cancel")}
                   </Button>
                   <AsyncButton
                     onClick={handleDeleteAccount}
                     loading={deleteAccountMutation.isPending}
-                    loadingText="Deleting Account..."
+                    loadingText={t("deleteForm.confirmDialog.deleting")}
                     variant="destructive"
                     disabled={
                       confirmText !== "DELETE MY ACCOUNT" ||
@@ -179,7 +171,7 @@ export default function DeleteAccountForm() {
                     }
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Account
+                    {t("deleteForm.confirmDialog.delete")}
                   </AsyncButton>
                 </DialogFooter>
               </DialogContent>

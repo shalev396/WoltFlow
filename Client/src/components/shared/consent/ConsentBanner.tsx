@@ -2,9 +2,11 @@ import { Button } from "../../ui/button";
 import { Card } from "../../ui/card";
 import { useConsent } from "../../../hooks/useConsent";
 import { Cookie } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function ConsentBanner() {
   const { consentState, acceptAll, acceptEssentialOnly } = useConsent();
+  const { t } = useTranslation("legal");
 
   if (!consentState.showBanner) {
     return null;
@@ -19,13 +21,10 @@ export function ConsentBanner() {
             <div className="flex-1 space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  We use cookies to improve your experience
+                  {t("consent.banner.title")}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  We use essential cookies to make our website work and optional
-                  analytics cookies to understand how you interact with it.
-                  Essential cookies cannot be disabled as they are necessary for
-                  the website to function properly.
+                  {t("consent.banner.description")}
                 </p>
               </div>
 
@@ -34,14 +33,14 @@ export function ConsentBanner() {
                   onClick={acceptAll}
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  Accept All Cookies
+                  {t("consent.banner.acceptAll")}
                 </Button>
                 <Button
                   onClick={acceptEssentialOnly}
                   variant="outline"
                   className="border-border hover:bg-muted"
                 >
-                  Essential Only
+                  {t("consent.banner.essentialOnly")}
                 </Button>
               </div>
             </div>

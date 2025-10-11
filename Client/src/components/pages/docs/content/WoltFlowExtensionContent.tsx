@@ -12,28 +12,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useTranslation } from "react-i18next";
 
 export function WoltFlowExtensionContent() {
+  const { language } = useLanguage();
+  const { t } = useTranslation("docs/woltflowExtension");
+
   return (
     <section id="woltflow-extension" className="space-y-8">
       <div className="flex items-center gap-3">
         <Globe className="h-8 w-8 text-blue-600" />
         <div>
-          <h1 className="text-4xl font-bold">WoltFlow Token Reviewer</h1>
+          <h1 className="text-4xl font-bold">{t("title")}</h1>
           <div className="flex items-center gap-2 mt-1">
-            <Badge className="bg-green-100 text-green-800">Recommended</Badge>
-            <Badge variant="outline">Free</Badge>
+            <Badge className="bg-green-100 text-green-800">
+              {t("badges.recommended")}
+            </Badge>
+            <Badge variant="outline">{t("badges.free")}</Badge>
           </div>
         </div>
       </div>
 
       <div className="text-lg text-muted-foreground leading-relaxed">
-        <p>
-          The WoltFlow Token Reviewer extension is the easiest way to extract
-          your Wolt credentials. With just one click, you can securely copy your
-          authentication tokens without dealing with developer tools or complex
-          manual processes.
-        </p>
+        <p>{t("description")}</p>
       </div>
 
       <div className="p-3 sm:p-6 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
@@ -41,28 +43,25 @@ export function WoltFlowExtensionContent() {
           <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-              Privacy & Security First
+              {t("privacyFirst.title")}
             </p>
             <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed">
-              The WoltFlow Token Reviewer operates entirely locally in your
-              browser. It does not send your credentials anywhere or store them
-              permanently. You maintain full control over your data at all
-              times.{" "}
+              {t("privacyFirst.description")}{" "}
               <Link
-                to="/extension-privacy-policy.html"
+                to={`/${language}/legal/extension-privacy-policy`}
                 target="_blank"
                 className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-medium underline"
               >
-                Read our privacy policy
+                {t("privacyFirst.linkText")}
               </Link>{" "}
-              for complete details.
+              {t("privacyFirst.linkSuffix")}
             </p>
           </div>
         </div>
       </div>
 
       <div id="extension-installation" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Installation</h2>
+        <h2 className="text-3xl font-semibold">{t("installation.title")}</h2>
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 p-2 sm:p-4 bg-muted/50 rounded-lg">
@@ -70,10 +69,11 @@ export function WoltFlowExtensionContent() {
               1
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Download the Extension</h3>
+              <h3 className="font-semibold text-lg">
+                {t("installation.step1.title")}
+              </h3>
               <p className="text-muted-foreground">
-                Get the WoltFlow Token Reviewer extension from the Chrome Web
-                Store or download it directly.
+                {t("installation.step1.description")}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
@@ -84,7 +84,7 @@ export function WoltFlowExtensionContent() {
                     rel="noopener noreferrer"
                   >
                     <Globe className="h-4 w-4" />
-                    Chrome Web Store
+                    {t("installation.step1.buttons.chromeWebStore")}
                   </a>
                 </Button>
                 {/* <Button variant="outline" className="flex items-center gap-2">
@@ -100,11 +100,11 @@ export function WoltFlowExtensionContent() {
               2
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Install in Your Browser</h3>
+              <h3 className="font-semibold text-lg">
+                {t("installation.step2.title")}
+              </h3>
               <p className="text-muted-foreground">
-                Follow your browser's standard extension installation process.
-                The extension will appear as "WoltFlow Token Reviewer" in your
-                extensions list.
+                {t("installation.step2.description")}
               </p>
 
               <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -112,11 +112,10 @@ export function WoltFlowExtensionContent() {
                   <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                      Browser Support
+                      {t("installation.step2.browserSupport.title")}
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Currently supports Chrome, Edge, and other Chromium-based
-                      browsers.
+                      {t("installation.step2.browserSupport.description")}
                     </p>
                   </div>
                 </div>
@@ -129,19 +128,17 @@ export function WoltFlowExtensionContent() {
               3
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Verify Installation</h3>
+              <h3 className="font-semibold text-lg">
+                {t("installation.step3.title")}
+              </h3>
               <p className="text-muted-foreground">
-                After installation, you should see the WoltFlow icon in your
-                browser toolbar. Click it to open the extension popup and
-                confirm it's working.
+                {t("installation.step3.description")}
               </p>
 
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Extension Icon Location:</strong> Usually appears in
-                  the top-right corner of your browser, next to the address bar.
-                  You may need to click the puzzle piece icon to see all
-                  extensions.
+                  <strong>{t("installation.step3.iconLocation")}</strong>{" "}
+                  {t("installation.step3.iconLocationDescription")}
                 </p>
               </div>
             </div>
@@ -150,19 +147,19 @@ export function WoltFlowExtensionContent() {
       </div>
 
       <div id="extracting-credentials" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Extracting Your Credentials</h2>
+        <h2 className="text-3xl font-semibold">
+          {t("extractingCredentials.title")}
+        </h2>
 
         <div className="p-3 sm:p-6 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
           <div className="flex items-start gap-3">
             <LogIn className="h-6 w-6 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
-                Login Required
+                {t("extractingCredentials.loginRequired.title")}
               </p>
               <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
-                You must be logged into Wolt in your browser before using the
-                extension. If you're not logged in, the extension will display a
-                message asking you to log in first.
+                {t("extractingCredentials.loginRequired.description")}
               </p>
             </div>
           </div>
@@ -174,19 +171,20 @@ export function WoltFlowExtensionContent() {
               1
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Navigate to Wolt</h3>
+              <h3 className="font-semibold text-lg">
+                {t("extractingCredentials.step1.title")}
+              </h3>
               <p className="text-muted-foreground">
-                Go to{" "}
+                {t("extractingCredentials.step1.description")}{" "}
                 <a
                   href="https://wolt.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-mono bg-muted px-2 py-1 rounded"
                 >
-                  wolt.com
+                  {t("extractingCredentials.step1.woltLink")}
                 </a>{" "}
-                and make sure you're logged into your account. You should see
-                your profile and be able to browse restaurants.
+                {t("extractingCredentials.step1.descriptionSuffix")}
               </p>
             </div>
           </div>
@@ -196,17 +194,19 @@ export function WoltFlowExtensionContent() {
               2
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Open the Extension</h3>
+              <h3 className="font-semibold text-lg">
+                {t("extractingCredentials.step2.title")}
+              </h3>
               <p className="text-muted-foreground">
-                Click the WoltFlow extension icon in your browser toolbar. A
-                small popup window will appear with your credential information.
+                {t("extractingCredentials.step2.description")}
               </p>
 
               <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  <strong>Can't find the icon?</strong> Look for the puzzle
-                  piece icon in your toolbar and click it to see all extensions,
-                  then click the WoltFlow icon.
+                  <strong>
+                    {t("extractingCredentials.step2.cantFindIcon")}
+                  </strong>{" "}
+                  {t("extractingCredentials.step2.cantFindIconDescription")}
                 </p>
               </div>
             </div>
@@ -217,11 +217,11 @@ export function WoltFlowExtensionContent() {
               3
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Copy Your Credentials</h3>
+              <h3 className="font-semibold text-lg">
+                {t("extractingCredentials.step3.title")}
+              </h3>
               <p className="text-muted-foreground">
-                The extension will display your Wolt authentication tokens.
-                Click the copy buttons to copy each credential to your
-                clipboard.
+                {t("extractingCredentials.step3.description")}
               </p>
 
               <div className="grid sm:grid-cols-2 gap-3">
@@ -229,11 +229,11 @@ export function WoltFlowExtensionContent() {
                   <div className="flex items-center gap-2 mb-2">
                     <Copy className="h-4 w-4" />
                     <span className="font-medium text-sm">
-                      Access Token (wtoken)
+                      {t("extractingCredentials.step3.accessToken.title")}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Short-lived token for API access. Copy this first.
+                    {t("extractingCredentials.step3.accessToken.description")}
                   </p>
                 </div>
 
@@ -241,11 +241,11 @@ export function WoltFlowExtensionContent() {
                   <div className="flex items-center gap-2 mb-2">
                     <Copy className="h-4 w-4" />
                     <span className="font-medium text-sm">
-                      Refresh Token (wrtoken)
+                      {t("extractingCredentials.step3.refreshToken.title")}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Long-lived token for automatic renewal. Copy this second.
+                    {t("extractingCredentials.step3.refreshToken.description")}
                   </p>
                 </div>
               </div>
@@ -258,18 +258,16 @@ export function WoltFlowExtensionContent() {
             </div>
             <div className="space-y-3">
               <h3 className="font-semibold text-lg">
-                Save to WoltFlow Settings
+                {t("extractingCredentials.step4.title")}
               </h3>
               <p className="text-muted-foreground">
-                Navigate to your WoltFlow Settings page and paste the copied
-                tokens into the appropriate fields in the Wolt Credentials
-                section.
+                {t("extractingCredentials.step4.description")}
               </p>
 
               <Button asChild className="inline-flex">
-                <Link to="/settings">
+                <Link to={`/${language}/settings`}>
                   <Settings className="h-4 w-4 mr-2" />
-                  Open Settings Page
+                  {t("extractingCredentials.step4.button")}
                 </Link>
               </Button>
             </div>
@@ -278,36 +276,34 @@ export function WoltFlowExtensionContent() {
       </div>
 
       <div id="extension-troubleshooting" className="space-y-6 scroll-mt-32">
-        <h2 className="text-3xl font-semibold">Troubleshooting</h2>
+        <h2 className="text-3xl font-semibold">{t("troubleshooting.title")}</h2>
 
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <AlertCircle className="h-5 w-5 text-orange-600" />
-                Extension Shows "No Credentials Found"
+                {t("troubleshooting.noCredentialsFound.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  This message appears when you're not properly logged into Wolt
-                  or when the extension can't access your session data.
+                  {t("troubleshooting.noCredentialsFound.description")}
                 </p>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium">Solutions to try:</h4>
+                  <h4 className="font-medium">
+                    {t("troubleshooting.noCredentialsFound.solutionsTitle")}
+                  </h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-4">
-                    <li>
-                      Make sure you're logged into Wolt in the same browser
-                    </li>
-                    <li>Refresh the Wolt page and try again</li>
-                    <li>Clear your browser cache and log back into Wolt</li>
-                    <li>Try using an incognito/private window</li>
-                    <li>
-                      Disable other extensions temporarily to check for
-                      conflicts
-                    </li>
+                    {(
+                      t("troubleshooting.noCredentialsFound.solutions", {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((solution: string, idx: number) => (
+                      <li key={idx}>{solution}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -318,28 +314,27 @@ export function WoltFlowExtensionContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <AlertCircle className="h-5 w-5 text-orange-600" />
-                Extension Icon Not Visible
+                {t("troubleshooting.iconNotVisible.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Sometimes browser extensions are hidden or disabled after
-                  installation.
+                  {t("troubleshooting.iconNotVisible.description")}
                 </p>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium">Check these locations:</h4>
+                  <h4 className="font-medium">
+                    {t("troubleshooting.iconNotVisible.checkLocationsTitle")}
+                  </h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-4">
-                    <li>Look in the extensions menu (puzzle piece icon)</li>
-                    <li>
-                      Check if the extension is enabled in browser settings
-                    </li>
-                    <li>Pin the extension to your toolbar for easy access</li>
-                    <li>
-                      Verify the extension installed correctly in your
-                      extensions page
-                    </li>
+                    {(
+                      t("troubleshooting.iconNotVisible.checkLocations", {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((location: string, idx: number) => (
+                      <li key={idx}>{location}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -350,14 +345,13 @@ export function WoltFlowExtensionContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <AlertCircle className="h-5 w-5 text-orange-600" />
-                Credentials Keep Changing
+                {t("troubleshooting.credentialsKeepChanging.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Wolt tokens are unique per device and can change when you log
-                  in/out or clear cookies.
+                  {t("troubleshooting.credentialsKeepChanging.description")}
                 </p>
 
                 <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
@@ -365,12 +359,14 @@ export function WoltFlowExtensionContent() {
                     <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                        Best Practice
+                        {t(
+                          "troubleshooting.credentialsKeepChanging.bestPractice.title"
+                        )}
                       </p>
                       <p className="text-sm text-amber-700 dark:text-amber-300">
-                        Extract credentials from a device/browser you don't
-                        frequently log in/out of Wolt. Consider using a
-                        dedicated browser or device for WoltFlow setup.
+                        {t(
+                          "troubleshooting.credentialsKeepChanging.bestPractice.description"
+                        )}
                       </p>
                     </div>
                   </div>
@@ -383,31 +379,37 @@ export function WoltFlowExtensionContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Shield className="h-5 w-5 text-blue-600" />
-                Security & Privacy Concerns
+                {t("troubleshooting.securityConcerns.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  The extension is designed with privacy and security as top
-                  priorities.
+                  {t("troubleshooting.securityConcerns.description")}
                 </p>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium">Security features:</h4>
+                  <h4 className="font-medium">
+                    {t("troubleshooting.securityConcerns.featuresTitle")}
+                  </h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-4">
-                    <li>No data is sent to external servers</li>
-                    <li>Credentials are only displayed locally in the popup</li>
-                    <li>No persistent storage of your credentials</li>
-                    {/* <li>Open-source code available for review</li> */}
-                    <li>Minimal permissions requested</li>
+                    {(
+                      t("troubleshooting.securityConcerns.features", {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((feature: string, idx: number) => (
+                      <li key={idx}>{feature}</li>
+                    ))}
                   </ul>
                 </div>
 
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/extension-privacy-policy.html" target="_blank">
+                  <Link
+                    to={`/${language}/legal/extension-privacy-policy`}
+                    target="_blank"
+                  >
                     <Shield className="h-4 w-4 mr-2" />
-                    View Privacy Policy
+                    {t("troubleshooting.securityConcerns.viewPrivacyPolicy")}
                   </Link>
                 </Button>
               </div>
@@ -421,19 +423,17 @@ export function WoltFlowExtensionContent() {
           <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-              Need More Help?
+              {t("needMoreHelp.title")}
             </p>
             <p className="text-sm text-green-700 dark:text-green-300 leading-relaxed">
-              If you're still having trouble with the extension, you can always
-              use the{" "}
+              {t("needMoreHelp.description")}{" "}
               <Link
-                to="/docs/manual-setup"
+                to={`/${language}/docs/manual-setup`}
                 className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-medium underline"
               >
-                manual setup method
+                {t("needMoreHelp.manualSetupLink")}
               </Link>{" "}
-              instead. Both methods give you the same credentials needed for
-              WoltFlow automation.
+              {t("needMoreHelp.descriptionSuffix")}
             </p>
           </div>
         </div>

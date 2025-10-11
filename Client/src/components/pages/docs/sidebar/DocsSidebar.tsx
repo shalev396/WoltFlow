@@ -5,6 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BookOpen, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { docSections } from "../constants/docSections";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useTranslation } from "react-i18next";
 
 interface DocsSidebarProps {
   mobile?: boolean;
@@ -17,6 +19,8 @@ export function DocsSidebar({
   currentSection,
   onLinkClick,
 }: DocsSidebarProps) {
+  const { language } = useLanguage();
+  const { t } = useTranslation("docsSidebar");
   // Always show the current section as open
   const [openSections, setOpenSections] = useState<string[]>([currentSection]);
 
@@ -29,7 +33,7 @@ export function DocsSidebar({
   };
 
   const getSectionUrl = (sectionId: string) => {
-    return `/docs/${sectionId}`;
+    return `/${language}/docs/${sectionId}`;
   };
 
   return (
@@ -44,9 +48,9 @@ export function DocsSidebar({
         <div className="flex items-center gap-3">
           <BookOpen className="h-6 w-6" />
           <div>
-            <h2 className="text-lg font-semibold">Documentation</h2>
+            <h2 className="text-lg font-semibold">{t("header.title")}</h2>
             <p className="text-sm text-muted-foreground">
-              Setup and configuration guide
+              {t("header.subtitle")}
             </p>
           </div>
         </div>
@@ -79,7 +83,7 @@ export function DocsSidebar({
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4" />
                         <span className="text-sm font-medium">
-                          {section.title}
+                          {t(`sections.${section.id}.title`)}
                         </span>
                         {/* Badge temporarily hidden - can be re-enabled later */}
                       </div>
@@ -114,7 +118,9 @@ export function DocsSidebar({
                           size="sm"
                           className="w-full justify-start h-8 px-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50"
                         >
-                          {subsection.title}
+                          {t(
+                            `sections.${section.id}.subsections.${subsection.id}`
+                          )}
                         </Button>
                       </Link>
                     ))}

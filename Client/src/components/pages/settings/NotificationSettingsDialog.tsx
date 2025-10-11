@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import {
   Dialog,
@@ -71,6 +72,7 @@ export function NotificationSettingsDialog({
   open,
   onOpenChange,
 }: NotificationSettingsDialogProps) {
+  const { t } = useTranslation("settings");
   const { data: settings, refetch } = useNotificationSettingsQuery();
 
   // SMS is now controlled by backend environment variables, not user settings
@@ -339,10 +341,16 @@ export function NotificationSettingsDialog({
     const hasVerifiedEmail = state.email.verified && state.email.contact.trim();
 
     if (!hasVerifiedSms && !hasVerifiedEmail) {
-      const availableMethods = isSmsEnabled ? "SMS or Email" : "Email";
+      const availableMethods = isSmsEnabled
+        ? `${t("notificationDialog.primaryMethod.sms")} or ${t(
+            "notificationDialog.primaryMethod.email"
+          )}`
+        : t("notificationDialog.primaryMethod.email");
       return {
         isValid: false,
-        error: `Please verify at least one notification method (${availableMethods})`,
+        error: t("notificationDialog.validation.atLeastOne", {
+          methods: availableMethods,
+        }),
       };
     }
 
@@ -350,46 +358,44 @@ export function NotificationSettingsDialog({
       if (!isSmsEnabled) {
         return {
           isValid: false,
-          error:
-            "SMS functionality is currently disabled. Please select Email as primary method.",
+          error: t("notificationDialog.validation.smsDisabled"),
         };
       }
       if (!state.sms.contact.trim()) {
         return {
           isValid: false,
-          error: "Please enter a phone number for SMS notifications",
+          error: t("notificationDialog.validation.phoneRequired"),
         };
       }
       if (!validatePhone(state.sms.contact)) {
         return {
           isValid: false,
-          error: "Please enter a valid phone number",
+          error: t("notificationDialog.validation.phoneInvalid"),
         };
       }
       if (!state.sms.verified) {
         return {
           isValid: false,
-          error: "Please verify your phone number before setting it as primary",
+          error: t("notificationDialog.validation.phoneNotVerified"),
         };
       }
     } else if (primaryMethod === "email") {
       if (!state.email.contact.trim()) {
         return {
           isValid: false,
-          error: "Please enter an email address for email notifications",
+          error: t("notificationDialog.validation.emailRequired"),
         };
       }
       if (!validateEmail(state.email.contact)) {
         return {
           isValid: false,
-          error: "Please enter a valid email address",
+          error: t("notificationDialog.validation.emailInvalid"),
         };
       }
       if (!state.email.verified) {
         return {
           isValid: false,
-          error:
-            "Please verify your email address before setting it as primary",
+          error: t("notificationDialog.validation.emailNotVerified"),
         };
       }
     }
@@ -559,21 +565,24 @@ export function NotificationSettingsDialog({
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="w-[95vw] max-w-md max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-blue-600" />
-            Notification Settings
+          <DialogTitle className="flex items-center gap-2 pr-8 rtl:pl-8 rtl:pr-0">
+            <Settings className="h-5 w-5 text-blue-600 flex-shrink-0" />
+            {t("notificationDialog.title")}
             {isDev && (
               <Badge variant="secondary" className="text-xs">
-                DEV MODE
+                {t("notificationDialog.devMode.badge")}
               </Badge>
             )}
           </DialogTitle>
           <DialogDescription>
             {step === "setup"
-              ? "Configure your notification preferences"
-              : `Enter the verification code sent to your ${
-                  activeVerificationMethod === "sms" ? "phone" : "email"
-                }`}
+              ? t("notificationDialog.description.setup")
+              : t("notificationDialog.description.verify", {
+                  method:
+                    activeVerificationMethod === "sms"
+                      ? t("notificationDialog.primaryMethod.sms")
+                      : t("notificationDialog.primaryMethod.email"),
+                })}
           </DialogDescription>
         </DialogHeader>
 
@@ -581,8 +590,7 @@ export function NotificationSettingsDialog({
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Development Mode:</strong> API calls are disabled. Any
-              6-digit code will work for verification.
+              {t("notificationDialog.devMode.alert")}
             </AlertDescription>
           </Alert>
         )}
@@ -593,7 +601,7 @@ export function NotificationSettingsDialog({
               {/* Primary Notification Method Selector */}
               <div className="space-y-2">
                 <Label htmlFor="primary-method">
-                  Primary Notification Method
+                  {t("notificationDialog.primaryMethod.label")}
                 </Label>
                 <Select
                   value={primaryMethod}
@@ -602,16 +610,20 @@ export function NotificationSettingsDialog({
                   }
                 >
                   <SelectTrigger id="primary-method">
-                    <SelectValue placeholder="Select notification method" />
+                    <SelectValue
+                      placeholder={t(
+                        "notificationDialog.primaryMethod.placeholder"
+                      )}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="sms" disabled={!isSmsEnabled}>
                       <div className="flex items-center gap-2">
                         <Smartphone className="h-4 w-4" />
-                        SMS
+                        {t("notificationDialog.primaryMethod.sms")}
                         {!isSmsEnabled && (
                           <Badge variant="secondary" className="text-xs ml-2">
-                            Disabled
+                            {t("notificationDialog.smsNotifications.disabled")}
                           </Badge>
                         )}
                       </div>
@@ -619,7 +631,7 @@ export function NotificationSettingsDialog({
                     <SelectItem value="email">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4" />
-                        Email
+                        {t("notificationDialog.primaryMethod.email")}
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -631,17 +643,19 @@ export function NotificationSettingsDialog({
                 <div className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   <Label className="text-base font-medium">
-                    Notification Preferences
+                    {t("notificationDialog.preferences.title")}
                   </Label>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <Label className="text-sm font-medium">
-                        Success Notifications
+                        {t("notificationDialog.preferences.success.label")}
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        Get notified when automation runs complete successfully
+                        {t(
+                          "notificationDialog.preferences.success.description"
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -663,11 +677,10 @@ export function NotificationSettingsDialog({
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <Label className="text-sm font-medium">
-                        Error Notifications
+                        {t("notificationDialog.preferences.error.label")}
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        Get notified when automation runs fail or encounter
-                        errors
+                        {t("notificationDialog.preferences.error.description")}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -698,24 +711,23 @@ export function NotificationSettingsDialog({
                 <div className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4" />
                   <Label className="text-base font-medium">
-                    SMS Notifications
+                    {t("notificationDialog.smsNotifications.title")}
                   </Label>
                   {primaryMethod === "sms" && isSmsEnabled && (
                     <Badge variant="default" className="text-xs">
-                      Primary
+                      {t("notificationDialog.smsNotifications.primary")}
                     </Badge>
                   )}
                   {!isSmsEnabled && (
                     <Badge variant="secondary" className="text-xs">
-                      Disabled
+                      {t("notificationDialog.smsNotifications.disabled")}
                     </Badge>
                   )}
                 </div>
 
                 {!isSmsEnabled && (
                   <div className="text-sm text-muted-foreground">
-                    SMS functionality is currently disabled by the
-                    administrator.
+                    {t("notificationDialog.smsNotifications.disabledMessage")}
                   </div>
                 )}
 
@@ -723,7 +735,9 @@ export function NotificationSettingsDialog({
                   <div className="flex gap-2">
                     <Input
                       type="tel"
-                      placeholder="+972501234567 or 050-123-4567"
+                      placeholder={t(
+                        "notificationDialog.smsNotifications.placeholder"
+                      )}
                       value={state.sms.contact}
                       onChange={(e) =>
                         handleContactChange("sms", e.target.value)
@@ -740,6 +754,9 @@ export function NotificationSettingsDialog({
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <X className="h-4 w-4" />
+                        <span className="sr-only">
+                          {t("notificationDialog.smsNotifications.remove")}
+                        </span>
                       </Button>
                     ) : (
                       <Button
@@ -755,7 +772,7 @@ export function NotificationSettingsDialog({
                         {isLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          "Verify"
+                          t("notificationDialog.smsNotifications.verify")
                         )}
                       </Button>
                     )}
@@ -763,7 +780,7 @@ export function NotificationSettingsDialog({
                   {state.sms.verified && (
                     <div className="flex items-center gap-1 text-sm text-green-600 font-medium">
                       <CheckCircle className="h-4 w-4" />
-                      Verified
+                      {t("notificationDialog.smsNotifications.verified")}
                     </div>
                   )}
                 </div>
@@ -774,11 +791,11 @@ export function NotificationSettingsDialog({
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   <Label className="text-base font-medium">
-                    Email Notifications
+                    {t("notificationDialog.emailNotifications.title")}
                   </Label>
                   {primaryMethod === "email" && (
                     <Badge variant="default" className="text-xs">
-                      Primary
+                      {t("notificationDialog.emailNotifications.primary")}
                     </Badge>
                   )}
                 </div>
@@ -787,7 +804,9 @@ export function NotificationSettingsDialog({
                   <div className="flex gap-2">
                     <Input
                       type="email"
-                      placeholder="your.email@example.com"
+                      placeholder={t(
+                        "notificationDialog.emailNotifications.placeholder"
+                      )}
                       value={state.email.contact}
                       onChange={(e) =>
                         handleContactChange("email", e.target.value)
@@ -804,6 +823,9 @@ export function NotificationSettingsDialog({
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <X className="h-4 w-4" />
+                        <span className="sr-only">
+                          {t("notificationDialog.emailNotifications.remove")}
+                        </span>
                       </Button>
                     ) : (
                       <Button
@@ -817,7 +839,7 @@ export function NotificationSettingsDialog({
                         {isLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          "Verify"
+                          t("notificationDialog.emailNotifications.verify")
                         )}
                       </Button>
                     )}
@@ -825,7 +847,7 @@ export function NotificationSettingsDialog({
                   {state.email.verified && (
                     <div className="flex items-center gap-1 text-sm text-green-600 font-medium">
                       <CheckCircle className="h-4 w-4" />
-                      Verified
+                      {t("notificationDialog.emailNotifications.verified")}
                     </div>
                   )}
                 </div>
@@ -839,7 +861,7 @@ export function NotificationSettingsDialog({
                   onClick={() => handleDialogOpenChange(false)}
                   className="flex-1"
                 >
-                  Cancel
+                  {t("notificationDialog.buttons.cancel")}
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -849,12 +871,12 @@ export function NotificationSettingsDialog({
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      {t("notificationDialog.buttons.saving")}
                     </>
                   ) : (
                     <>
                       <Check className="mr-2 h-4 w-4" />
-                      Save Settings
+                      {t("notificationDialog.buttons.save")}
                     </>
                   )}
                 </Button>
@@ -879,38 +901,36 @@ export function NotificationSettingsDialog({
                     <Mail className="h-4 w-4" />
                   )}
                   <AlertDescription>
-                    {isDev ? (
-                      <>
-                        <strong>Development Mode:</strong> Enter any 6-digit
-                        code to continue
-                      </>
-                    ) : (
-                      <>
-                        We sent a 6-digit verification code to{" "}
-                        <strong>
-                          {state[activeVerificationMethod].contact}
-                        </strong>{" "}
-                        via{" "}
-                        {activeVerificationMethod === "sms" ? "SMS" : "email"}
-                      </>
-                    )}
+                    {isDev
+                      ? t("notificationDialog.verification.devModeMessage")
+                      : t("notificationDialog.verification.productionMessage", {
+                          contact: state[activeVerificationMethod].contact,
+                          method:
+                            activeVerificationMethod === "sms"
+                              ? t("notificationDialog.primaryMethod.sms")
+                              : t("notificationDialog.primaryMethod.email"),
+                        })}
                   </AlertDescription>
                 </Alert>
 
                 <div className="space-y-2">
-                  <Label htmlFor="verification-code">Verification Code</Label>
+                  <Label htmlFor="verification-code">
+                    {t("notificationDialog.verification.title")}
+                  </Label>
                   <Input
                     id="verification-code"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="000000"
+                    placeholder={t(
+                      "notificationDialog.verification.placeholder"
+                    )}
                     maxLength={6}
                     className="text-center text-lg tracking-widest font-mono"
                   />
                   <p className="text-sm text-muted-foreground">
                     {isDev
-                      ? "Development mode: Any 6-digit code will work"
-                      : "Enter the 6-digit code sent to your contact"}
+                      ? t("notificationDialog.verification.devModePrompt")
+                      : t("notificationDialog.verification.productionPrompt")}
                   </p>
                 </div>
 
@@ -926,7 +946,7 @@ export function NotificationSettingsDialog({
                     className="flex-1"
                   >
                     <X className="mr-2 h-4 w-4" />
-                    Cancel
+                    {t("notificationDialog.verification.cancel")}
                   </Button>
                   {!isDev && (
                     <Button
@@ -946,10 +966,10 @@ export function NotificationSettingsDialog({
                       ) : isLoading ? (
                         <>
                           <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                          Sending...
+                          {t("notificationDialog.verification.sending")}
                         </>
                       ) : (
-                        "Resend"
+                        t("notificationDialog.verification.resend")
                       )}
                     </Button>
                   )}
@@ -965,12 +985,12 @@ export function NotificationSettingsDialog({
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verifying...
+                        {t("notificationDialog.verification.verifying")}
                       </>
                     ) : (
                       <>
                         <Check className="mr-2 h-4 w-4" />
-                        Verify Code
+                        {t("notificationDialog.verification.verify")}
                       </>
                     )}
                   </Button>

@@ -118,3 +118,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* RTL Support - Using Tailwind's logical properties */
+@layer utilities {
+  /* Add RTL-specific icon flipping for chevrons and arrows */
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  /* Additional RTL utilities if needed */
+  [dir="rtl"] .rtl-rotate-180 {
+    transform: rotate(180deg);
+  }
+}
