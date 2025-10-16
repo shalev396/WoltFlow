@@ -24,12 +24,28 @@ const sfnClient = new SFNClient({
 
 await initDB();
 
-export const handler = async (): Promise<ICustomStepFunctionResult> => {
+export const handler = async (event?: {
+  userId?: string;
+}): Promise<ICustomStepFunctionResult> => {
   try {
-    console.log("Starting User Automation Chain with Step Functions");
+    const targetUserId = event?.userId;
 
-    // Get all users with their settings in one optimized query
+    if (targetUserId) {
+      console.log(
+        `Starting User Automation Chain for specific user: ${targetUserId}`
+      );
+    } else {
+      console.log(
+        "Starting User Automation Chain with Step Functions for all users"
+      );
+    }
+
+    // Build where clause to filter by userId if provided
+    const whereClause = targetUserId ? { id: targetUserId } : {};
+
+    // Get users with their settings in one optimized query
     const users = (await User.findAll({
+      where: whereClause,
       include: [
         {
           model: Settings,
@@ -52,12 +68,16 @@ export const handler = async (): Promise<ICustomStepFunctionResult> => {
     })) as UserWithRunSettingsAndNotificationSettings[];
 
     if (users.length === 0) {
+      const message = targetUserId
+        ? `User ${targetUserId} not found or does not exist`
+        : "No users found to start automation";
+
       return {
         runId: "",
-        userId: "",
+        userId: targetUserId || "",
         success: false,
         completed: false,
-        message: "No users found to start automation",
+        message,
       };
     }
 
@@ -162,12 +182,16 @@ export const handler = async (): Promise<ICustomStepFunctionResult> => {
     }
 
     if (userRunData.length === 0) {
+      const message = targetUserId
+        ? `User ${targetUserId} does not have automation enabled (no run settings found)`
+        : "No users with automation enabled found";
+
       return {
         runId: "",
-        userId: "",
+        userId: targetUserId || "",
         success: false,
         completed: false,
-        message: "No users with automation enabled found",
+        message,
       };
     }
 
@@ -181,12 +205,18 @@ export const handler = async (): Promise<ICustomStepFunctionResult> => {
     const executionInput = {
       users: userRunData,
       timestamp: new Date().toISOString(),
-      triggeredBy: "automated-schedule",
+      triggeredBy: targetUserId
+        ? `manual-user-${targetUserId}`
+        : "automated-schedule",
     };
+
+    const executionName = targetUserId
+      ? `automation-user-${targetUserId}-${Date.now()}`
+      : `automation-${Date.now()}`;
 
     const startExecutionCommand = new StartExecutionCommand({
       stateMachineArn: stateMachineArn,
-      name: `automation-${Date.now()}`, // Unique execution name
+      name: executionName, // Unique execution name
       input: JSON.stringify(executionInput),
     });
 
