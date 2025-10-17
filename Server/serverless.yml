@@ -111,49 +111,33 @@ provider:
   iam:
     role:
       statements:
-        # Lambda Invocation Permissions
-        - Effect: Allow
-          Action:
-            - lambda:InvokeFunction
-          Resource:
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-refreshTokens
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltBuyGift
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-getDailyCode
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltApplyGift
-
-        # Step Functions Permissions
+        # Step Functions Permissions (startUserAutomationChain)
         - Effect: Allow
           Action:
             - states:StartExecution
-            - states:StopExecution
-            - states:DescribeExecution
-            - states:DescribeStateMachine
-            - states:ListExecutions
           Resource:
             - arn:aws:states:${self:provider.region}:*:stateMachine:${self:service}-${self:provider.stage}-userAutomationChain
 
-        # S3 Permissions for all buckets
+        # S3 Permissions - Assets bucket (screenshots, exports)
         - Effect: Allow
           Action:
-            - s3:PutObject
-            - s3:GetObject
-            - s3:DeleteObject
-            - s3:PutObjectAcl
-            - s3:CopyObject
+            - s3:PutObject # Upload screenshots, export ZIPs
+            - s3:GetObject # Download files for processing
+            - s3:DeleteObject # Delete expired screenshots, user data
           Resource:
-            - "arn:aws:s3:::${env:S3_CLIENT_BUCKET_NAME}/*"
             - "arn:aws:s3:::${env:S3_ASSETS_BUCKET_NAME}/*"
-            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}/*"
 
+        # S3 Permissions - Email bucket (email files and attachments)
         - Effect: Allow
           Action:
-            - s3:ListBucket
+            - s3:PutObject # SES saves emails, Lambda saves attachments
+            - s3:GetObject # Read emails, download attachments, parse PDFs
+            - s3:DeleteObject # Delete expired emails, user data
+            - s3:CopyObject # ingestEmail moves emails from raw/ to user folders
           Resource:
-            - "arn:aws:s3:::${env:S3_CLIENT_BUCKET_NAME}"
-            - "arn:aws:s3:::${env:S3_ASSETS_BUCKET_NAME}"
             - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}"
 
-        # ECR Permissions
+        # ECR Permissions (Docker-based Lambda functions: woltBuyGift, woltApplyGift)
         - Effect: Allow
           Action: ecr:GetAuthorizationToken
           Resource: "*"
@@ -162,93 +146,18 @@ provider:
             - ecr:BatchCheckLayerAvailability
             - ecr:GetDownloadUrlForLayer
             - ecr:BatchGetImage
-            - ecr:InitiateLayerUpload
-            - ecr:UploadLayerPart
-            - ecr:CompleteLayerUpload
-            - ecr:PutImage
           Resource: "*"
 
-        # CloudFront Permissions
+        # Pinpoint SMS Voice V2 Permissions (smsUtil.ts uses PinpointSMSVoiceV2Client)
         - Effect: Allow
           Action:
-            - cloudfront:CreateInvalidation
-            - cloudfront:GetInvalidation
-            - cloudfront:ListInvalidations
-          Resource: "*"
-
-        # SNS Permissions for SMS
-        - Effect: Allow
-          Action:
-            - sns:Publish
-            - sns:CreateTopic
-            - sns:Subscribe
-            - sns:GetSMSAttributes
-            - sns:SetSMSAttributes
-            - sns:CheckIfPhoneNumberIsOptedOut
-            - sns:OptInPhoneNumber
-            # Long Code and Origination Number Management
-            - sns:GetOriginationNumbers
-            - sns:RequestOriginationNumber
-            - sns:DeleteOriginationNumber
-            - sns:ListOriginationNumbers
-            # SMS Sandbox and Configuration
-            - sns:GetSMSSandboxAccountStatus
-            - sns:PromotePhoneNumber
-            - sns:VerifySMSSandboxPhoneNumber
-            - sns:ListSMSSandboxPhoneNumbers
-            - sns:DeleteSMSSandboxPhoneNumber
-            - sns:CreateSMSSandboxPhoneNumber
-          Resource: "*"
-
-        # AWS End User Messaging (for Sender ID management)
-        - Effect: Allow
-          Action:
-            - sms-voice:DescribePhoneNumbers
-            - sms-voice:PutKeyword
-            - sms-voice:DeleteKeyword
-            - sms-voice:DescribeKeywords
-            - sms-voice:PutOptedOutNumber
-            - sms-voice:DeleteOptedOutNumber
-            - sms-voice:DescribeOptedOutNumbers
             - sms-voice:SendTextMessage
-            - sms-voice:SendVoiceMessage
-            - sms-voice:DescribeConfigurationSets
-            - sms-voice:DescribeSenderIds
-            # Pinpoint SMS (alternative SMS service)
-            - mobiletargeting:SendMessages
-            - mobiletargeting:SendUsersMessages
-            - mobiletargeting:GetSmsChannel
-            - mobiletargeting:UpdateSmsChannel
           Resource: "*"
 
-        # SES Permissions for Email
+        # SES Permissions for Email (emailUtil.ts uses SES SendEmail)
         - Effect: Allow
           Action:
             - ses:SendEmail
-            - ses:SendRawEmail
-            - ses:SendTemplatedEmail
-            - ses:SendBulkTemplatedEmail
-            - ses:GetSendStatistics
-            - ses:GetSendQuota
-            - ses:GetIdentityVerificationAttributes
-            - ses:GetIdentityDkimAttributes
-            - ses:ListIdentities
-            - ses:ListVerifiedEmailAddresses
-            - ses:VerifyEmailIdentity
-            - ses:VerifyDomainIdentity
-            # Additional SES permissions for email receipt
-            - ses:CreateReceiptRule
-            - ses:CreateReceiptRuleSet
-            - ses:DeleteReceiptRule
-            - ses:DeleteReceiptRuleSet
-            - ses:DescribeReceiptRule
-            - ses:DescribeReceiptRuleSet
-            - ses:ListReceiptRuleSets
-            - ses:SetActiveReceiptRuleSet
-            - ses:UpdateReceiptRule
-            - ses:PutIdentityPolicy
-            - ses:GetIdentityPolicies
-            - ses:DeleteIdentityPolicy
           Resource: "*"
 
 # Package Configuration
