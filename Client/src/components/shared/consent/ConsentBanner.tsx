@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 
 export function ConsentBanner() {
   const { consentState, acceptAll, acceptEssentialOnly } = useConsent();
-  const { t } = useTranslation("legal");
+  const { t } = useTranslation("consent");
 
   if (!consentState.showBanner) {
     return null;
@@ -21,10 +21,10 @@ export function ConsentBanner() {
             <div className="flex-1 space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {t("consent.banner.title")}
+                  {t("banner.title")}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {t("consent.banner.description")}
+                  {t("banner.description")}
                 </p>
               </div>
 
@@ -33,14 +33,14 @@ export function ConsentBanner() {
                   onClick={acceptAll}
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  {t("consent.banner.acceptAll")}
+                  {t("banner.acceptAll")}
                 </Button>
                 <Button
                   onClick={acceptEssentialOnly}
                   variant="outline"
                   className="border-border hover:bg-muted"
                 >
-                  {t("consent.banner.essentialOnly")}
+                  {t("banner.essentialOnly")}
                 </Button>
               </div>
             </div>

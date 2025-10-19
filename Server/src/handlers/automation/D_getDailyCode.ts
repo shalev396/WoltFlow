@@ -240,7 +240,7 @@ export const handler = async (
 
     if (pdfUrl.startsWith("s3://")) {
       // Parse s3:// URL format
-      const s3UrlMatch = pdfUrl.match(/^s3:\/\/([^\/]+)\/(.+)$/);
+      const s3UrlMatch = pdfUrl.match(/^s3:\/\/([^/]+)\/(.+)$/);
       if (!s3UrlMatch || !s3UrlMatch[1] || !s3UrlMatch[2]) {
         await run.update({ status: "failed" });
         throw new Error("Invalid S3 URL format");

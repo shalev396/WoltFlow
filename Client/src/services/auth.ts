@@ -1,21 +1,60 @@
 import { api } from "@/api/api";
-import type { GoogleUser, ApiResponse } from "@/types";
+import type {
+  CognitoUser,
+  LoginCredentials,
+  SignupCredentials,
+  EmailVerification,
+  ApiResponse,
+} from "@/types";
 
 export const authService = {
-  async getMe(): Promise<GoogleUser> {
-    const response = await api.get<ApiResponse<{ user: GoogleUser }>>(
+  // Get current user
+  async getMe(): Promise<CognitoUser> {
+    const response = await api.get<ApiResponse<{ user: CognitoUser }>>(
       "/auth/me"
     );
     return response.data.data!.user;
   },
 
+  // Logout
   async logout(): Promise<void> {
-    // Call the logout endpoint to clear the HttpOnly session cookie
     await api.post<ApiResponse>("/auth/logout");
   },
 
-  // OAuth flows are handled by direct navigation, not API calls
-  startOAuth(): void {
-    window.location.href = `${api.defaults.baseURL}/oauth2/start`;
+  // Email/password signup
+  async signup(
+    credentials: SignupCredentials
+  ): Promise<{ userSub: string; userConfirmed: boolean }> {
+    const response = await api.post<
+      ApiResponse<{ userSub: string; userConfirmed: boolean }>
+    >("/auth/signup", credentials);
+    return response.data.data!;
+  },
+
+  // Email verification
+  async confirmSignup(verification: EmailVerification): Promise<void> {
+    await api.post<ApiResponse>("/auth/confirm", verification);
+  },
+
+  // Email/password login
+  async login(credentials: LoginCredentials): Promise<CognitoUser> {
+    const response = await api.post<ApiResponse<{ user: CognitoUser }>>(
+      "/auth/login",
+      credentials
+    );
+    return response.data.data!.user;
+  },
+
+  // Start Google OAuth flow
+  startGoogleOAuth(): void {
+    const cognitoHostedUIUrl = import.meta.env.VITE_COGNITO_HOSTED_UI_URL;
+    const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+    const redirectUri = `${window.location.origin}/auth/callback`;
+
+    const authUrl = `${cognitoHostedUIUrl}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid+profile&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&identity_provider=Google`;
+
+    window.location.href = authUrl;
   },
 };

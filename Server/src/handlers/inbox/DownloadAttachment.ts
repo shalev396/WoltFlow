@@ -77,7 +77,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       }
 
       // Parse S3 URL to extract bucket and key
-      const s3UrlMatch = attachmentUrl.match(/^s3:\/\/([^\/]+)\/(.+)$/);
+      const s3UrlMatch = attachmentUrl.match(/^s3:\/\/([^/]+)\/(.+)$/);
       if (!s3UrlMatch || s3UrlMatch.length < 3) {
         return createErrorResponse("Invalid attachment URL format");
       }

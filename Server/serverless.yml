@@ -108,10 +108,13 @@ provider:
     ENABLED_SMS: ${env:ENABLED_SMS}
     JWT_SECRET: ${env:JWT_SECRET}
     ENCRYPTION_KEY: ${env:ENCRYPTION_KEY}
-    # GOOGLE
+    # COGNITO - Set these manually in .env after first deployment
+    COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
+    COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    COGNITO_ISSUER: ${env:COGNITO_ISSUER}
+    # GOOGLE (for Cognito Identity Provider)
     GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
     GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
-    OAUTH_REDIRECT_URI: ${self:custom.oauthRedirectUri.${env:IS_LOCAL}}
     # DEVELOPMENT
     DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE}
 
@@ -181,6 +184,15 @@ provider:
           Action:
             - ses:SendEmail
           Resource: "*"
+
+        # Cognito Permissions for Account Linking
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminLinkProviderForUser
+            - cognito-idp:AdminGetUser
+            - cognito-idp:ListUsers
+          Resource:
+            - Fn::Sub: "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
 
 # Package Configuration
 package:
@@ -269,6 +281,7 @@ custom:
     disableCookieValidation: true # ← Disables strictHeader cookie validation in Hapi
     enforceSecureCookies: false # ← Ensures Hapi won't require HTTPS for cookies
     printOutput: true
+    noAuth: true
 
   # Prune Configuration - Cleanup old versions
   prune:
@@ -385,6 +398,63 @@ functions:
   # ================================
   # AUTH FUNCTIONS
   # ================================
+  preAuthentication:
+    handler: ./build/auth/preAuthentication.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/preAuthentication.mjs"
+        - "package.json"
+    # No HTTP events - triggered by Cognito
+
+  signup:
+    handler: ./build/auth/signup.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/signup.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/signup
+          method: post
+
+  confirmSignup:
+    handler: ./build/auth/confirmSignup.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/confirmSignup.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/confirm
+          method: post
+
+  login:
+    handler: ./build/auth/login.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/login.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/login
+          method: post
+
+  authCallback:
+    handler: ./build/auth/callback.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/callback.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/callback
+          method: get
+
   authMe:
     handler: ./build/auth/authMeHandler.handler
     package:
@@ -408,30 +478,6 @@ functions:
       - httpApi:
           path: /api/auth/logout
           method: post
-
-  oauthCallback:
-    handler: ./build/auth/oauthCallback.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/oauthCallback.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/oauth2/callback
-          method: get
-
-  oauthStart:
-    handler: ./build/auth/oauthStart.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/oauthStart.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/oauth2/start
-          method: get
 
   # ================================
   # AUTOMATION FUNCTIONS
@@ -1280,3 +1326,151 @@ resources:
         TTL: 300
         ResourceRecords:
           - '"v=spf1 include:amazonses.com ~all"'
+
+    # ================================
+    # COGNITO USER POOL
+    # ================================
+
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${self:provider.stage}
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Required: true
+            Mutable: false
+          - Name: name
+            AttributeDataType: String
+            Required: false
+            Mutable: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireUppercase: true
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        UserPoolAddOns:
+          AdvancedSecurityMode: ENFORCED
+        LambdaConfig:
+          PreAuthentication:
+            Fn::GetAtt:
+              - PreAuthenticationLambdaFunction
+              - Arn
+
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      DependsOn: CognitoUserPoolIdentityProvider
+      Properties:
+        ClientName: ${self:service}-${self:provider.stage}-client
+        UserPoolId:
+          Ref: CognitoUserPool
+        GenerateSecret: false
+        ExplicitAuthFlows:
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_SRP_AUTH
+        SupportedIdentityProviders:
+          - COGNITO
+          - Google
+        CallbackURLs:
+          - ${self:custom.domainWithProtocol.${env:IS_LOCAL}}/auth/callback
+        LogoutURLs:
+          - ${self:custom.domainWithProtocol.${env:IS_LOCAL}}/
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthScopes:
+          - email
+          - openid
+          - profile
+        AllowedOAuthFlowsUserPoolClient: true
+        PreventUserExistenceErrors: ENABLED
+        EnableTokenRevocation: true
+        AccessTokenValidity: 1 # 1 hour
+        IdTokenValidity: 1 # 1 hour
+        RefreshTokenValidity: 30 # 30 days
+        TokenValidityUnits:
+          AccessToken: hours
+          IdToken: hours
+          RefreshToken: days
+        ReadAttributes:
+          - email
+          - name
+          - email_verified
+        WriteAttributes:
+          - email
+          - name
+
+    CognitoUserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties:
+        Domain: ${self:service}-${self:provider.stage}
+        UserPoolId:
+          Ref: CognitoUserPool
+
+    CognitoUserPoolIdentityProvider:
+      Type: AWS::Cognito::UserPoolIdentityProvider
+      Properties:
+        UserPoolId:
+          Ref: CognitoUserPool
+        ProviderName: Google
+        ProviderType: Google
+        ProviderDetails:
+          client_id: ${env:GOOGLE_CLIENT_ID}
+          client_secret: ${env:GOOGLE_CLIENT_SECRET}
+          authorize_scopes: "profile email openid"
+        AttributeMapping:
+          email: email
+          name: name
+          username: sub
+
+    # Lambda Permission for Pre-Auth Trigger
+    CognitoUserPoolPreAuthPermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName:
+          Ref: PreAuthenticationLambdaFunction
+        Principal: cognito-idp.amazonaws.com
+        Action: lambda:InvokeFunction
+        SourceArn:
+          Fn::Sub: "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
+
+  Outputs:
+    CognitoUserPoolId:
+      Description: Cognito User Pool ID
+      Value:
+        Ref: CognitoUserPool
+      Export:
+        Name: ${self:service}-${self:provider.stage}-UserPoolId
+
+    CognitoClientId:
+      Description: Cognito User Pool Client ID
+      Value:
+        Ref: CognitoUserPoolClient
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ClientId
+
+    CognitoHostedUIUrl:
+      Description: Cognito Hosted UI URL
+      Value:
+        Fn::Sub: https://${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
+      Export:
+        Name: ${self:service}-${self:provider.stage}-HostedUIUrl
+
+    CognitoIssuer:
+      Description: Cognito Token Issuer URL
+      Value:
+        Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-Issuer

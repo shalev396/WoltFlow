@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 
 interface LoginButtonProps {
@@ -13,36 +14,28 @@ interface LoginButtonProps {
   className?: string;
   children?: React.ReactNode;
 }
-const isDev = import.meta.env.VITE_ENV === "local";
-const baseURL = isDev
-  ? "http://localhost:3000/api"
-  : `${window.location.origin}/api`;
+
 export default function LoginButton({
   variant = "default",
   size = "default",
   className = "",
   children = "Sign in with Google",
 }: LoginButtonProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const handleLogin = () => {
-    // Remove any 'g_state' cookie that has invalid JSON value
-    document.cookie = `g_state=; Path=/; Max-Age=0; domain=localhost`;
-
-    // Redirect to OAuth start
-    setIsLoading(true);
-    window.location.href = `${baseURL}/oauth2/start`;
+    navigate(`/${language}/auth/login`);
   };
 
   return (
     <Button
       onClick={handleLogin}
-      disabled={isLoading}
       variant={variant}
       size={size}
       className={className}
     >
-      {isLoading ? "Redirecting..." : children}
+      {children}
     </Button>
   );
 }

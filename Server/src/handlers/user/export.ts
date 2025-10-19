@@ -34,14 +34,18 @@ await initDB();
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event) => {
     try {
-      const userId = event.userId!;
+      const cognitoSub = event.userId!;
 
-      // Fetch user data
-      const user = await User.findByPk(userId, {});
+      // Fetch user data by cognitoSub
+      const user = await User.findOne({
+        where: { cognitoSub },
+      });
 
       if (!user) {
         return createErrorResponse("User not found", 404);
       }
+
+      const userId = user.id;
 
       // Fetch settings hub
       const settings = await Settings.findOne({

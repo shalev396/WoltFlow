@@ -1,95 +1,48 @@
-import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
-import { oauth2_v2 } from "@googleapis/oauth2";
-import dotenv from "dotenv";
-import { type APIGatewayProxyEventV2 } from "aws-lambda";
+import { authMiddleware } from "../../middlewares/auth.js";
 import { User } from "../../models/index.js";
-
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  getErrorMessage,
-} from "../../utils/responseUtil.js";
 import { initDB } from "../../config/bootstrap.js";
 
-// Environment variables
-dotenv.config();
 await initDB();
 
-export const handler = async (event: APIGatewayProxyEventV2) => {
+export const handler = authMiddleware(async (event) => {
   try {
-    // 2. Parse cookies to get sessionToken
-    const cookieHeader =
-      (event.cookies && event.cookies.join("; ")) ||
-      event.headers["cookie"] ||
-      "";
-    const cookies = Object.fromEntries(
-      cookieHeader.split("; ").map((p: string) => p.split("="))
-    );
-    const token = cookies.sessionToken;
-    if (!token) throw new Error("No session token");
-
-    // 3. Verify JWT and extract internal userId (UUID)
-    const payload = jwt.verify(token, process.env.JWT_SECRET) as {
-      userId: string;
-    };
-    const userId = payload.userId;
-
-    // 4. Fetch user by internal UUID from PostgreSQL
-    const user = await User.findByPk(userId);
-    if (!user) throw new Error("User not found");
-
-    // 5. Refresh access token using OAuth2 client
-    const oauth2Client = new OAuth2Client(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.OAUTH_REDIRECT_URI
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: user.get("googleRefreshToken"),
+    // userId is set by authMiddleware (cognitoSub)
+    const user = await User.findOne({
+      where: { cognitoSub: event.userId },
     });
-    const newTokenResponse = await oauth2Client.getAccessToken();
-    const newAccessToken = newTokenResponse.token;
-    if (!newAccessToken) throw new Error("Failed to refresh access token");
-    // 6. If Google rotated the refresh_token, update it
-    if (newTokenResponse.res?.data?.refresh_token) {
-      const rotatedRT = newTokenResponse.res.data.refresh_token;
-      user.set("googleRefreshToken", rotatedRT);
-      await user.save();
+
+    if (!user) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          success: false,
+          message: "User not found",
+        }),
+      };
     }
 
-    // 7. Fetch user profile info
-    oauth2Client.setCredentials({ access_token: newAccessToken });
-    const oauth2Service = new oauth2_v2.Oauth2({
-      auth: oauth2Client,
-      // version: "v2"
-    });
-    const userInfo = await oauth2Service.userinfo.get();
-
-    // 8. Return user info in JSON with CORS headers
-    return createSuccessResponse("User authenticated successfully", {
-      user: {
-        email: userInfo.data.email,
-        name: userInfo.data.name,
-        picture: userInfo.data.picture,
-      },
-    });
-  } catch (err) {
-    console.error("authMe error:", err);
-    // 9. Clear session cookie on failure
-
-    const cookieSettings =
-      process.env.ENV === "local"
-        ? "HttpOnly; SameSite=Lax"
-        : "HttpOnly; Secure; SameSite=Strict";
-
-    const errorResponse = createErrorResponse(getErrorMessage(err), 401);
-    // Add cookie clearing header
-    errorResponse.headers = {
-      ...errorResponse.headers,
-      "Set-Cookie": `sessionToken=; ${cookieSettings}; Max-Age=0`,
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        success: true,
+        message: "User retrieved successfully",
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          },
+        },
+      }),
     };
-    return errorResponse;
+  } catch (error) {
+    console.error("Get user error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        success: false,
+        message: "Failed to retrieve user",
+      }),
+    };
   }
-};
+});

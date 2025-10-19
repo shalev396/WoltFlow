@@ -4,6 +4,7 @@ import { LanguageLayout } from "@/routers/LanguageLayout";
 import { RootRedirect } from "@/routers/RootRedirect";
 import { DocsRouter } from "@/components/pages/docs";
 import { LegalRouter } from "@/routers/LegalRouter";
+import { AuthRouter } from "@/routers/AuthRouter";
 
 // Page imports
 import LandingPage from "../pages/LandingPage";
@@ -23,6 +24,11 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+      },
+      // Auth routes
+      {
+        path: "auth/*",
+        element: <AuthRouter />,
       },
       // Protected routes
       {

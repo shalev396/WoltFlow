@@ -1,11 +1,9 @@
 import { DataTypes, Model, Op } from "sequelize";
 import sequelize from "../config/database.js";
-import { decrypt, encrypt } from "../utils/encryption.js";
 
 export default class User extends Model {
   declare id: string; // UUID primary key
-  declare googleId: string; // Google sub (unique external ID)
-  declare googleRefreshToken: string; // Google refresh token
+  declare cognitoSub: string; // Cognito sub (unique external ID)
   declare name: string | null; // User's display name
   declare email: string | null; // User's email address
   declare apiKey: string | null; // API key for SMS forwarding and external access
@@ -21,27 +19,15 @@ User.init(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    googleId: {
+    cognitoSub: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: "Google OAuth sub (external unique identifier)",
-    },
-    googleRefreshToken: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-      comment: "Google OAuth refresh token",
-      get() {
-        const rawValue = this.getDataValue("googleRefreshToken");
-        return rawValue ? decrypt(rawValue) : null;
-      },
-      set(value: string | null) {
-        this.setDataValue("googleRefreshToken", value ? encrypt(value) : null);
-      },
+      comment: "Cognito sub (unique external identifier)",
     },
     name: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "User's display name from Google",
+      comment: "User's display name",
     },
     email: {
       type: DataTypes.STRING,
@@ -49,7 +35,7 @@ User.init(
       validate: {
         isEmail: true,
       },
-      comment: "User's email address from Google",
+      comment: "User's email address",
     },
     apiKey: {
       type: DataTypes.STRING,
@@ -69,7 +55,7 @@ User.init(
     indexes: [
       {
         unique: true,
-        fields: ["googleId"],
+        fields: ["cognitoSub"],
       },
       {
         unique: true,

@@ -1,12 +1,23 @@
 {
   "banner": {
-    "title": "We use cookies to improve your experience",
-    "description": "We use essential cookies to make our website work and optional analytics cookies to understand how you interact with it. Essential cookies cannot be disabled as they are necessary for the website to function properly.",
-    "acceptAll": "Accept All Cookies",
+    "title": "We value your privacy",
+    "description": "We use cookies to enhance your browsing experience and analyze our traffic. By clicking 'Accept All', you consent to our use of cookies.",
+    "acceptAll": "Accept All",
     "essentialOnly": "Essential Only"
   },
   "settings": {
-    "button": "Cookie Preferences",
-    "link": "Cookie Preferences"
+    "title": "Cookie Settings",
+    "description": "Manage your cookie preferences",
+    "link": "Cookie Settings",
+    "essential": {
+      "title": "Essential Cookies",
+      "description": "Required for the website to function properly"
+    },
+    "analytics": {
+      "title": "Analytics Cookies",
+      "description": "Help us understand how visitors interact with our website"
+    },
+    "save": "Save Preferences",
+    "acceptAll": "Accept All"
   }
 }

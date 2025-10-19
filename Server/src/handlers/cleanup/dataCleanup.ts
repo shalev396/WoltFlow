@@ -31,7 +31,7 @@ const s3Client = new S3Client({
 function parseS3Url(
   s3Url: string
 ): { bucketName: string; objectKey: string } | null {
-  const s3UrlMatch = s3Url.match(/^s3:\/\/([^\/]+)\/(.+)$/);
+  const s3UrlMatch = s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
   if (!s3UrlMatch || !s3UrlMatch[1] || !s3UrlMatch[2]) {
     console.error(`[DATA_CLEANUP] Invalid S3 URL format: ${s3Url}`);
     return null;

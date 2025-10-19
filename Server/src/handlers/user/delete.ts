@@ -441,9 +441,22 @@ async function deleteCompleteUserData(userId: string): Promise<{
 export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
   async (event) => {
     try {
-      const userId = event.userId!;
+      const cognitoSub = event.userId!;
 
-      console.log(`Starting complete user deletion for user: ${userId}`);
+      console.log(
+        `Starting complete user deletion for cognitoSub: ${cognitoSub}`
+      );
+
+      // Find user by cognitoSub
+      const user = await User.findOne({
+        where: { cognitoSub },
+      });
+
+      if (!user) {
+        return createErrorResponse("User not found", 404);
+      }
+
+      const userId = user.id;
 
       // Delete all user data from database and S3
       const deletionResult = await deleteCompleteUserData(userId);

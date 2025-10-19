@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import {
   type CustomAPIGatewayProxyHandler,
   type ICustomAPIGatewayProxyEventAuth,
@@ -9,6 +8,8 @@ import {
   type Context,
 } from "aws-lambda";
 import { getErrorMessage } from "../utils/responseUtil.js";
+import { verifyToken } from "../utils/cognitoUtil.js";
+
 export const authMiddleware = (
   handler: CustomAPIGatewayProxyHandler
 ): CustomAPIGatewayProxyHandler => {
@@ -18,38 +19,71 @@ export const authMiddleware = (
     callback: Callback
   ): Promise<APIGatewayProxyResult> => {
     try {
-      console.log("authMiddleware");
+      console.log("authMiddleware start");
+
+      // Check if already authenticated by API Gateway (cloud environment)
+      // API Gateway puts JWT claims in requestContext.authorizer.jwt.claims
+      const requestContext = event.requestContext as unknown as {
+        authorizer?: {
+          jwt?: {
+            claims?: {
+              sub?: string;
+            };
+          };
+        };
+      };
+      if (requestContext?.authorizer?.jwt?.claims?.sub) {
+        console.log("Using API Gateway JWT validation");
+        event.userId = requestContext.authorizer.jwt.claims.sub;
+        return await handler(event, context, callback);
+      }
+
+      // Local environment - validate token manually
+      console.log("Using middleware JWT validation (local)");
+
       const cookieHeader =
         (event.cookies && event.cookies.join("; ")) ||
         event.headers.cookie ||
         "";
-      // console.log("cookieHeader", cookieHeader);
-      // console.log("event.cookies", event.cookies);
-      // console.log("event.headers.cookie", event.headers.cookie);
+
       const cookies = Object.fromEntries(
         cookieHeader.split("; ").map((p) => p.split("="))
       );
-      const token = cookies["sessionToken"];
+
+      const token = cookies["idToken"];
 
       if (!token) {
         return {
           statusCode: 401,
-          body: JSON.stringify({ error: "Not authenticated" }),
+          body: JSON.stringify({
+            success: false,
+            message: "Not authenticated",
+          }),
         };
       }
-      const payload = jwt.verify(token, process.env.JWT_SECRET) as {
-        userId: string;
-      };
 
-      // Add internal userId (UUID) to event for use throughout the app
-      event.userId = payload.userId;
+      // Verify Cognito token and get claims
+      const claims = await verifyToken(token);
+
+      // Extract cognitoSub from token
+      if (!claims.sub) {
+        return {
+          statusCode: 401,
+          body: JSON.stringify({
+            success: false,
+            message: "Invalid token: missing sub claim",
+          }),
+        };
+      }
+      event.userId = claims.sub;
 
       return await handler(event, context, callback);
     } catch (err) {
       return {
         statusCode: 401,
         body: JSON.stringify({
-          error: getErrorMessage(err) || "Invalid token",
+          success: false,
+          message: getErrorMessage(err) || "Invalid token",
         }),
       };
     }

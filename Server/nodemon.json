@@ -6,7 +6,8 @@
     "src/**/*.test.ts",
     "node_modules/**",
     "dist/**",
-    "build/**"
+    "build/**",
+    ".serverless/**"
   ],
   "exec": "npm run build",
   "delay": 1000,

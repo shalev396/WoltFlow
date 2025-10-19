@@ -17,7 +17,7 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 import LoginButton from "@/components/shared/LoginButton";
 import LogoutButton from "@/components/shared/LogoutButton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -108,14 +108,6 @@ export default function Navbar() {
               className="flex items-center gap-3 px-4 py-3 h-auto rounded-lg hover:bg-muted/50 transition-all duration-200 min-w-[220px] border border-border/50 hover:border-border shadow-sm bg-background/50"
             >
               <Avatar className="h-9 w-9 ring-2 ring-border/20">
-                <AvatarImage
-                  src={user.picture}
-                  alt={user.name}
-                  onError={(e) => {
-                    // If image fails to load, hide it to show fallback
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
                 <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm">
                   {getInitials(user.name)}
                 </AvatarFallback>
@@ -189,13 +181,6 @@ export default function Navbar() {
                 {isAuthenticated && user && (
                   <div className="flex items-center gap-3 p-4 mt-4 rounded-lg bg-muted/50 border border-border/50">
                     <Avatar className="h-9 w-9 ring-2 ring-border/20">
-                      <AvatarImage
-                        src={user.picture}
-                        alt={user.name}
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
                       <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm">
                         {getInitials(user.name)}
                       </AvatarFallback>

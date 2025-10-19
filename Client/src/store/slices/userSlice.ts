@@ -4,10 +4,10 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
-import type { GoogleUser } from "@/types";
+import type { CognitoUser } from "@/types";
 
 interface AuthState {
-  user: GoogleUser | null;
+  user: CognitoUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -70,8 +70,8 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    // Manual login action (for when we get user data from OAuth callback)
-    loginSuccess: (state, action: PayloadAction<GoogleUser>) => {
+    // Manual login action (for when we get user data from login/callback)
+    loginSuccess: (state, action: PayloadAction<CognitoUser>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
       state.isLoading = false;

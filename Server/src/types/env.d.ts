@@ -9,8 +9,11 @@ declare global {
       CLOUDFRONT_DISTRIBUTION_ID: string;
       AWS_REGION: string;
       DOMAIN_NAME: string;
+      DOMAIN_NAME_LOCAL: string;
+      DOMAIN_NAME_CLOUD: string;
       CERTIFICATE_ARN: string;
       HOSTED_ZONE_ID: string;
+      IS_LOCAL: string;
       // STEP FUNCTIONS
       USER_AUTOMATION_STATE_MACHINE_ARN: string;
       // S3
@@ -25,10 +28,13 @@ declare global {
       ENABLED_SMS: boolean;
       JWT_SECRET: string;
       ENCRYPTION_KEY: string;
-      // GOOGLE
+      // COGNITO
+      COGNITO_USER_POOL_ID: string;
+      COGNITO_CLIENT_ID: string;
+      COGNITO_ISSUER: string;
+      // GOOGLE (for Cognito Identity Provider)
       GOOGLE_CLIENT_ID: string;
       GOOGLE_CLIENT_SECRET: string;
-      OAUTH_REDIRECT_URI: string;
       // DEVELOPMENT
       DEVELOPMENT_DATE: string;
     }
