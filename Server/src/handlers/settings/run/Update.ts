@@ -31,7 +31,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       const requestData: SaveRunSettingsRequest = JSON.parse(event.body);
 
       // Find or create main settings record with run settings included
-      let [settings] = (await Settings.findOrCreate({
+      const [settings] = (await Settings.findOrCreate({
         where: { userId: event.userId! },
         defaults: { userId: event.userId! },
         include: [

@@ -36,7 +36,7 @@ export const handler = async (
     }
 
     // Get the run with user settings in one optimized query
-    let run = (await Run.findByPk(runId, {
+    const run = (await Run.findByPk(runId, {
       include: [
         {
           model: User,

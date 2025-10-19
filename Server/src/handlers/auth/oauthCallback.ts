@@ -87,7 +87,7 @@ export const handler = async (
       "Set-Cookie": `sessionToken=${sessionToken}; HttpOnly; Path=/; Max-Age=${
         7 * 24 * 60 * 60
       }`,
-      Location: `${process.env.ENV === "local" ? "http" : "https"}://${
+      Location: `${process.env.ENV === "dev" ? "http" : "https"}://${
         process.env.DOMAIN_NAME
       }/dashboard`,
     },

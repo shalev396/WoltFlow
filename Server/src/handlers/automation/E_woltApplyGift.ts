@@ -76,7 +76,7 @@ export const handler = async (
   console.log("End chrome + driver");
   try {
     // Get the run with user and settings in one optimized query
-    let run = (await Run.findByPk(runId, {
+    const run = (await Run.findByPk(runId, {
       include: [
         {
           model: User,
@@ -225,63 +225,56 @@ export const handler = async (
     if (driver) {
       console.log("Current URL:", await driver.getCurrentUrl());
       console.log("Gift card redemption success:", success);
-    }
-
-    // Update run status and stage based on success
-    if (globalRun) {
-      if (success) {
-        await globalRun.update({ status: "completed", stage: "completed" });
-
-        // Send success notification to user
-        try {
-          await notifyOnSuccess(
-            globalRun.userId.toString(),
-            globalRun.id,
-            "Gift card redemption completed successfully"
-          );
-        } catch (notificationError) {
-          console.error(
-            "Failed to send success notification:",
-            notificationError
-          );
-        }
-      } else {
-        await globalRun.update({ status: "failed" });
-
-        // Send error notification to user
-        try {
-          await notifyOnError(
-            globalRun.userId.toString(),
-            globalRun.id,
-            "Gift card redemption failed"
-          );
-        } catch (notificationError) {
-          console.error(
-            "Failed to send error notification:",
-            notificationError
-          );
-        }
-      }
-    }
-
-    if (driver) {
       await sleep(1000);
       await driver.quit();
       console.log("driver quit");
     }
-    // await sleep(2000);
+  }
 
+  // Update run status and stage based on success
+  if (globalRun) {
     if (success) {
-      // Return raw data for Step Functions
-      return {
-        runId,
-        userId: globalRun?.userId,
-        success: true,
-        message: "Gift card redemption completed",
-      } as ICustomStepFunctionResult;
+      await globalRun.update({ status: "completed", stage: "completed" });
+
+      // Send success notification to user
+      try {
+        await notifyOnSuccess(
+          globalRun.userId.toString(),
+          globalRun.id,
+          "Gift card redemption completed successfully"
+        );
+      } catch (notificationError) {
+        console.error(
+          "Failed to send success notification:",
+          notificationError
+        );
+      }
     } else {
-      // Throw error for Step Functions to catch
-      throw new Error("Gift card redemption failed");
+      await globalRun.update({ status: "failed" });
+
+      // Send error notification to user
+      try {
+        await notifyOnError(
+          globalRun.userId.toString(),
+          globalRun.id,
+          "Gift card redemption failed"
+        );
+      } catch (notificationError) {
+        console.error("Failed to send error notification:", notificationError);
+      }
     }
+  }
+
+  if (success) {
+    // Return raw data for Step Functions
+    return {
+      runId,
+      userId: globalRun?.userId,
+      success: true,
+      message: "Gift card redemption completed",
+    } as ICustomStepFunctionResult;
+  } else {
+    // Throw error for Step Functions to catch
+    throw new Error("Gift card redemption failed");
   }
 };

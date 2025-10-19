@@ -32,7 +32,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       const requestData: SaveCibusSettingsRequest = JSON.parse(event.body);
 
       // Find or create main settings record with cibus settings included
-      let [settings] = (await Settings.findOrCreate({
+      const [settings] = (await Settings.findOrCreate({
         where: { userId: event.userId! },
         defaults: { userId: event.userId! },
         include: [

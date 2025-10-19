@@ -10,7 +10,7 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
   const csvLines: string[] = [];
 
   // Helper function to escape CSV values
-  const escapeCsvValue = (value: any): string => {
+  const escapeCsvValue = (value: unknown): string => {
     if (value === null || value === undefined) return "";
     const stringValue = String(value);
     if (
@@ -26,7 +26,7 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
   // Helper function to add table section
   const addTableSection = (
     tableName: string,
-    data: any | any[],
+    data: unknown[] | unknown,
     isArray: boolean = false,
     fallbackHeaders?: string[]
   ) => {
@@ -62,8 +62,9 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
       }
     } else if (data) {
       // Handle single object data
-      const headers = Object.keys(data);
-      const values = headers.map((header) => data[header]);
+      const dataObj = data as Record<string, unknown>;
+      const headers = Object.keys(dataObj);
+      const values = headers.map((header) => dataObj[header]);
       const maxColumns = Math.max(headers.length, 1);
 
       // Add column headers
@@ -461,66 +462,68 @@ export function generateExportFilename(userEmail?: string | null): string {
 export async function createUserExportZip(
   exportData: CompleteUserExport
 ): Promise<Buffer> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const archive = archiver("zip", {
-        zlib: { level: 9 }, // Maximum compression
-      });
-
-      const buffers: Uint8Array[] = [];
-
-      // Collect archive data
-      archive.on("data", (chunk: Uint8Array) => {
-        buffers.push(chunk);
-      });
-
-      archive.on("error", (err: Error) => {
-        console.error("Archive error:", err);
-        reject(err);
-      });
-
-      archive.on("end", () => {
-        console.log("Archive created successfully");
-        resolve(Buffer.concat(buffers));
-      });
-
-      // Generate and add CSV file
-      const csvContent = convertUserExportToCSV(exportData);
-      archive.append(csvContent, { name: "database-records.csv" });
-      console.log("Added CSV to archive");
-
-      // Collect all files
-      const { screenshots, emails, attachments } = await collectExportFiles(
-        exportData
-      );
-
-      // Add screenshots to archive
-      for (const screenshot of screenshots) {
-        archive.append(screenshot.buffer, {
-          name: `screenshots/${screenshot.filename}`,
+  return new Promise((resolve, reject) => {
+    (async () => {
+      try {
+        const archive = archiver("zip", {
+          zlib: { level: 9 }, // Maximum compression
         });
-      }
 
-      // Add emails to archive
-      for (const email of emails) {
-        archive.append(email.buffer, { name: `emails/${email.filename}` });
-      }
+        const buffers: Uint8Array[] = [];
 
-      // Add attachments to archive
-      for (const attachment of attachments) {
-        archive.append(attachment.buffer, {
-          name: `attachments/${attachment.filename}`,
+        // Collect archive data
+        archive.on("data", (chunk: Uint8Array) => {
+          buffers.push(chunk);
         });
+
+        archive.on("error", (err: Error) => {
+          console.error("Archive error:", err);
+          reject(err);
+        });
+
+        archive.on("end", () => {
+          console.log("Archive created successfully");
+          resolve(Buffer.concat(buffers));
+        });
+
+        // Generate and add CSV file
+        const csvContent = convertUserExportToCSV(exportData);
+        archive.append(csvContent, { name: "database-records.csv" });
+        console.log("Added CSV to archive");
+
+        // Collect all files
+        const { screenshots, emails, attachments } = await collectExportFiles(
+          exportData
+        );
+
+        // Add screenshots to archive
+        for (const screenshot of screenshots) {
+          archive.append(screenshot.buffer, {
+            name: `screenshots/${screenshot.filename}`,
+          });
+        }
+
+        // Add emails to archive
+        for (const email of emails) {
+          archive.append(email.buffer, { name: `emails/${email.filename}` });
+        }
+
+        // Add attachments to archive
+        for (const attachment of attachments) {
+          archive.append(attachment.buffer, {
+            name: `attachments/${attachment.filename}`,
+          });
+        }
+
+        console.log("All files added to archive, finalizing...");
+
+        // Finalize the archive
+        archive.finalize();
+      } catch (error) {
+        console.error("Error creating export ZIP:", error);
+        reject(error);
       }
-
-      console.log("All files added to archive, finalizing...");
-
-      // Finalize the archive
-      archive.finalize();
-    } catch (error) {
-      console.error("Error creating export ZIP:", error);
-      reject(error);
-    }
+    })();
   });
 }
 

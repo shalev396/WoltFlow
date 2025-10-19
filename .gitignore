@@ -24,7 +24,7 @@ wheels/
 .env
 .env.prod
 .env.dev
-.env.local
+.env.qa
 .venv
 env/
 venv/

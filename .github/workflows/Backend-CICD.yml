@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - "main" # Production deployment
+      - "qa" # QA deployment
       - "dev" # Development deployment
     paths:
       - "Server/**"
@@ -17,6 +18,8 @@ jobs:
   deploy-backend:
     name: Deploy Backend
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/qa' && 'qa' || github.ref == 'refs/heads/dev' && 'dev' }}
 
     steps:
       - name: Checkout code
@@ -27,32 +30,29 @@ jobs:
         with:
           node-version: 22
 
-      - name: Load environment variables for dev
-        if: github.ref == 'refs/heads/dev'
+      - name: Determine environment stage
+        id: env-stage
         run: |
-          echo '${{ secrets.ENV_DEV }}' > .env.dev
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "stage=prod" >> $GITHUB_OUTPUT
+            echo "env_file=.env.prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/qa" ]; then
+            echo "stage=qa" >> $GITHUB_OUTPUT
+            echo "env_file=.env.qa" >> $GITHUB_OUTPUT
+          else
+            echo "stage=dev" >> $GITHUB_OUTPUT
+            echo "env_file=.env.dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Load environment variables
+        run: |
+          echo '${{ secrets.ENV }}' > ${{ steps.env-stage.outputs.env_file }}
         working-directory: Server
 
-      - name: Load environment variables for prod
-        if: github.ref == 'refs/heads/main'
-        run: |
-          echo '${{ secrets.ENV_PROD }}' > .env.prod
-        working-directory: Server
-
-      - name: Export .env.dev variables
-        if: github.ref == 'refs/heads/dev'
+      - name: Export environment variables
         uses: falti/dotenv-action@v1.1.4
         with:
-          path: Server/.env.dev
-          export-variables: true
-          keys-case: bypass
-          mask-variables: true
-
-      - name: Export .env.prod variables
-        if: github.ref == 'refs/heads/main'
-        uses: falti/dotenv-action@v1.1.4
-        with:
-          path: Server/.env.prod
+          path: Server/${{ steps.env-stage.outputs.env_file }}
           export-variables: true
           keys-case: bypass
           mask-variables: true
@@ -75,16 +75,8 @@ jobs:
         run: npm run build
         working-directory: Server
 
-      - name: Deploy to dev stage
-        if: github.ref == 'refs/heads/dev'
-        run: npm run deploy:dev
-        working-directory: Server
-        env:
-          SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}
-
-      - name: Deploy to prod stage
-        if: github.ref == 'refs/heads/main'
-        run: npm run deploy:prod
+      - name: Deploy to ${{ steps.env-stage.outputs.stage }} stage
+        run: npm run deploy:${{ steps.env-stage.outputs.stage }}
         working-directory: Server
         env:
           SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}

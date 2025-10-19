@@ -55,6 +55,8 @@ module.exports = {
     "@aws-sdk/s3-request-presigner": "commonjs @aws-sdk/s3-request-presigner",
     "@aws-sdk/client-pinpoint-sms-voice-v2":
       "commonjs @aws-sdk/client-pinpoint-sms-voice-v2",
+    "@aws-sdk/client-cognito-identity-provider":
+      "commonjs @aws-sdk/client-cognito-identity-provider",
   },
   resolve: {
     extensions: [".ts", ".js", ".json"],

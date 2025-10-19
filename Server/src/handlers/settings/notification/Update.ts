@@ -38,7 +38,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       );
 
       // Find or create main settings record with notification settings included
-      let [settings] = (await Settings.findOrCreate({
+      const [settings] = (await Settings.findOrCreate({
         where: { userId: event.userId! },
         defaults: { userId: event.userId! },
         include: [

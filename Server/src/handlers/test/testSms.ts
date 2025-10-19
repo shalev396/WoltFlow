@@ -31,7 +31,7 @@ export const handler = async (
 
     // Parse the request body to get the phone number and test method
     const body = event.body ? JSON.parse(event.body) : {};
-    let phoneNumber = body.phoneNumber;
+    const phoneNumber = body.phoneNumber;
     const method = body.method || "senderID"; // Default to senderID
     const longCodeNumber = body.longCodeNumber; // Required for longCode method
 

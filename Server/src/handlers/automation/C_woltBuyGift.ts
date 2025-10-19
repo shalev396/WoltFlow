@@ -508,83 +508,83 @@ export const handler = async (
       await driver.quit();
       console.log("driver quit");
     }
+  }
 
-    // Handle case where run is not found
-    if (!run) {
-      throw new Error("Run not found");
-    }
+  // Handle case where run is not found
+  if (!run) {
+    throw new Error("Run not found");
+  }
 
-    // Determine status and stage based on success and automation mode
-    let status: string;
-    let stage: string;
+  // Determine status and stage based on success and automation mode
+  let status: string;
+  let stage: string;
 
-    if (success) {
-      if (run.automationMode === "buy-only") {
-        status = "completed";
-        stage = "completed";
-      } else {
-        // Full-run mode: continue to next step
-        status = "in_progress";
-        stage = "buying_gift";
-      }
+  if (success) {
+    if (run.automationMode === "buy-only") {
+      status = "completed";
+      stage = "completed";
     } else {
-      // Always mark as failed when success is false, regardless of automation mode
-      status = "failed";
+      // Full-run mode: continue to next step
+      status = "in_progress";
       stage = "buying_gift";
     }
-    await run.update({
-      status: status,
-      stage: stage,
-    });
+  } else {
+    // Always mark as failed when success is false, regardless of automation mode
+    status = "failed";
+    stage = "buying_gift";
+  }
+  await run.update({
+    status: status,
+    stage: stage,
+  });
 
-    // Send single notification
-    try {
-      if (success) {
-        if (run.automationMode === "buy-only") {
-          await notifyOnSuccess(
-            run.userId.toString(),
-            run.id,
-            "Gift purchase completed"
-          );
-        }
-      } else {
-        await notifyOnError(
-          run.userId.toString(),
-          run.id,
-          "Gift purchase failed"
-        );
-      }
-    } catch (notificationError) {
-      console.error("Failed to send notification:", notificationError);
-    }
-
-    // Return appropriate response based on success and mode
+  // Send single notification
+  try {
     if (success) {
       if (run.automationMode === "buy-only") {
-        // Buy-only mode: stop the chain
-        return {
-          runId: run.id,
-          userId: run.userId.toString(),
-          success: true,
-          completed: true,
-          message:
-            "Buy-only mode: Gift purchase completed, stopping automation chain",
-          automationMode: "buy-only",
-        };
-      } else {
-        // Full-run mode: continue to next step
-        return {
-          runId: run.id,
-          userId: run.userId.toString(),
-          success: true,
-          completed: false,
-          message: "Gift purchase completed",
-        };
+        await notifyOnSuccess(
+          run.userId.toString(),
+          run.id,
+          "Gift purchase completed"
+        );
       }
     } else {
-      // Failed: return error response for Step Functions
-      throw new Error("Gift purchase failed");
+      await notifyOnError(
+        run.userId.toString(),
+        run.id,
+        "Gift purchase failed"
+      );
     }
+  } catch (notificationError) {
+    console.error("Failed to send notification:", notificationError);
+  }
+
+  // Return appropriate response based on success and mode
+  if (success) {
+    if (run.automationMode === "buy-only") {
+      // Buy-only mode: stop the chain
+      return {
+        runId: run.id,
+        userId: run.userId.toString(),
+        success: true,
+        completed: true,
+        message:
+          "Buy-only mode: Gift purchase completed, stopping automation chain",
+        automationMode: "buy-only",
+      };
+    } else {
+      // Full-run mode: continue to next step
+      return {
+        runId: run.id,
+        userId: run.userId.toString(),
+        success: true,
+        completed: false,
+        message: "Gift purchase completed",
+      };
+    }
+  } else {
+    // Failed: return error response for Step Functions
+    throw new Error("Gift purchase failed");
   }
 };
 // //span[@data-localization-key='order.gift-card-tracking-title']

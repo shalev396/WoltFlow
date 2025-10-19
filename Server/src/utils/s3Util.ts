@@ -264,7 +264,7 @@ export async function downloadFileFromS3(
       if (response.Body) {
         // Convert stream to buffer efficiently
         const chunks: Uint8Array[] = [];
-        const stream = response.Body as any;
+        const stream = response.Body as AsyncIterable<Uint8Array>;
 
         for await (const chunk of stream) {
           chunks.push(chunk);
@@ -274,10 +274,11 @@ export async function downloadFileFromS3(
       }
 
       return null;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error & { message?: string };
       console.error(
         `Error downloading file from S3 (attempt ${attempt}/${retries}): ${s3Url}`,
-        error?.message || error
+        err?.message || error
       );
 
       if (attempt < retries) {
@@ -304,7 +305,7 @@ export function getFilenameFromS3Url(s3Url: string): string {
     const pathParts = url.pathname.split("/");
     const filename = pathParts[pathParts.length - 1];
     return filename || "file";
-  } catch (error) {
+  } catch {
     console.error(`Error extracting filename from URL: ${s3Url}`);
     return "file";
   }

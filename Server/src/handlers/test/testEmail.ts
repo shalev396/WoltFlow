@@ -15,7 +15,7 @@ export const handler = async (
   try {
     // Parse the request body to get the email address
     const body = event.body ? JSON.parse(event.body) : {};
-    let recipientEmail = body.email || body.recipientEmail;
+    const recipientEmail = body.email || body.recipientEmail;
 
     if (!recipientEmail) {
       return createErrorResponse("Email address is required", 400);

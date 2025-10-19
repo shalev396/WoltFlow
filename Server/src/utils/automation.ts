@@ -154,7 +154,7 @@ export async function setupWoltCookies(
     // Cookies Setup
     await driver.get("https://wolt.com/he/discovery");
 
-    let expirationDate = Date.now() / 1000 + 1800; // Default 30 min
+    const expirationDate = Date.now() / 1000 + 1800; // Default 30 min
     // Build cookies for browser
     const cookiesToSet = [];
 
@@ -224,18 +224,19 @@ export function safeClick(
         await driver.wait(until.elementIsEnabled(element), timeout);
         await element.click();
         return;
-      } catch (err: any) {
+      } catch (err: unknown) {
         // If the element is not clickable due to an overlay/backdrop, fall back to JS click
+        const error = err as Error & { name?: string; message?: string };
         const intercepted =
-          err?.name === "ElementClickInterceptedError" ||
-          /intercepted/i.test(err?.message);
+          error?.name === "ElementClickInterceptedError" ||
+          /intercepted/i.test(error?.message || "");
 
-        console.log("intercepted err.name=", err.name);
+        console.log("intercepted err.name=", error.name);
         if (intercepted) {
           try {
             await driver.executeScript("arguments[0].click();", element);
             return;
-          } catch (jsErr) {
+          } catch {
             // Continue to retry below
           }
         }

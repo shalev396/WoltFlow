@@ -31,7 +31,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       const requestData: SaveWoltSettingsRequest = JSON.parse(event.body);
 
       // Find or create main settings record with wolt settings included
-      let [settings] = (await Settings.findOrCreate({
+      const [settings] = (await Settings.findOrCreate({
         where: { userId: event.userId! },
         defaults: { userId: event.userId! },
         include: [
