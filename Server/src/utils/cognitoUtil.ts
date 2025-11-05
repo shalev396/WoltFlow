@@ -9,14 +9,17 @@ const client = jwksClient({
 });
 
 function getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
-  client.getSigningKey(header.kid, (err, key) => {
-    if (err) {
-      callback(err);
-      return;
+  client.getSigningKey(
+    header.kid,
+    (err: Error | null, key?: jwksClient.SigningKey) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      const signingKey = key?.getPublicKey();
+      callback(null, signingKey);
     }
-    const signingKey = key?.getPublicKey();
-    callback(null, signingKey);
-  });
+  );
 }
 
 export async function verifyToken(token: string): Promise<jwt.JwtPayload> {
