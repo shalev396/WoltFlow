@@ -33,6 +33,8 @@ export interface ICustomAPIGatewayProxyEventAuth
   extends APIGatewayProxyEventV2 {
   headers: {
     cookie?: string;
+    authorization?: string;
+    Authorization?: string;
     "x-api-key"?: string;
     "X-API-Key"?: string;
   };

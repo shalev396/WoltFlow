@@ -38,19 +38,30 @@ export const authMiddleware = (
         return await handler(event, context, callback);
       }
 
-      // Local environment - validate token manually
+      // Local environment - validate token manually from cookies or Authorization header
       console.log("Using middleware JWT validation (local)");
 
-      const cookieHeader =
-        (event.cookies && event.cookies.join("; ")) ||
-        event.headers.cookie ||
-        "";
+      // Try to get token from Authorization header first (standard)
+      let token: string | undefined;
+      const authHeader =
+        event.headers.authorization || event.headers.Authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
 
-      const cookies = Object.fromEntries(
-        cookieHeader.split("; ").map((p) => p.split("="))
-      );
+      // If no Authorization header, try cookies (for running locally)
+      if (!token) {
+        const cookieHeader =
+          (event.cookies && event.cookies.join("; ")) ||
+          event.headers.cookie ||
+          "";
 
-      const token = cookies["idToken"];
+        const cookies = Object.fromEntries(
+          cookieHeader.split("; ").map((p) => p.split("="))
+        );
+
+        token = cookies["idToken"];
+      }
 
       if (!token) {
         return {
