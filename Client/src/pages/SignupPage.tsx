@@ -40,10 +40,6 @@ export default function SignupPage() {
     }
   };
 
-  const handleGoogleSignup = () => {
-    authService.startGoogleOAuth();
-  };
-
   return (
     <AuthLayout title={t("signup.title")} subtitle={t("signup.subtitle")}>
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -117,7 +113,7 @@ export default function SignupPage() {
           )}
         </Button>
 
-        {/* Divider */}
+        {/* Divider 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -129,7 +125,6 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Google Button */}
         <Button
           type="button"
           variant="outline"
@@ -148,7 +143,7 @@ export default function SignupPage() {
             />
           </svg>
           {t("signup.googleButton")}
-        </Button>
+        </Button> */}
 
         {/* Login Link */}
         <p className="text-center text-sm text-muted-foreground">

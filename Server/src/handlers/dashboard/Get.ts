@@ -69,6 +69,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
 
       // Calculate date ranges
       const now = new Date();
+      
       const currentPeriodStart = new Date(
         now.getTime() - days * 24 * 60 * 60 * 1000
       );
@@ -140,6 +141,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
 
       // Calculate basic metrics
       const totalRuns = currentPeriodRuns.length;
+      
       const successfulRuns = currentPeriodRuns.filter(
         (run) => run.status === "completed"
       );

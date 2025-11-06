@@ -120,9 +120,6 @@ provider:
     COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
     COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
     COGNITO_ISSUER: ${env:COGNITO_ISSUER}
-    # GOOGLE (for Cognito Identity Provider)
-    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
-    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
     # DEVELOPMENT
     DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE}
 
@@ -194,13 +191,6 @@ provider:
           Resource: "*"
 
         # Cognito Permissions for Account Linking
-        - Effect: Allow
-          Action:
-            - cognito-idp:AdminLinkProviderForUser
-            - cognito-idp:AdminGetUser
-            - cognito-idp:ListUsers
-          Resource:
-            - Fn::Sub: "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
 
 # Package Configuration
 package:
@@ -260,12 +250,6 @@ custom:
   domainWithProtocol:
     true: http://${env:DOMAIN_NAME_LOCAL}
     false: https://${env:DOMAIN_NAME_CLOUD}
-
-  # OAuth Redirect URI (conditional)
-  # Local uses localhost, Cloud uses deployed domain
-  oauthRedirectUri:
-    true: ${env:OAUTH_REDIRECT_URI_LOCAL}
-    false: ${env:OAUTH_REDIRECT_URI_CLOUD}
 
   # SSL/TLS Certificate configuration - use manually created certificates
   viewerCertificate:
@@ -406,15 +390,6 @@ functions:
   # ================================
   # AUTH FUNCTIONS
   # ================================
-  preAuthentication:
-    handler: ./build/auth/preAuthentication.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/preAuthentication.mjs"
-        - "package.json"
-    # No HTTP events - triggered by Cognito
-
   signup:
     handler: ./build/auth/signUp.handler
     package:
@@ -450,18 +425,6 @@ functions:
       - httpApi:
           path: /api/auth/login
           method: post
-
-  authCallback:
-    handler: ./build/auth/callback.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/callback.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/callback
-          method: get
 
   # ================================
   # AUTOMATION FUNCTIONS
@@ -1047,7 +1010,7 @@ resources:
             - ServerSideEncryptionByDefault:
                 SSEAlgorithm: AES256
 
-    # S3 Bucket Policy for Emails - Private access only
+    # S3 Bucket Policy for Emails - Allows both Lambda and SES access
     EmailBucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
@@ -1093,6 +1056,23 @@ resources:
                     - - "arn:aws:s3:::"
                       - Ref: EmailBucket
                       - "/*"
+            - Sid: AllowSESPuts
+              Effect: Allow
+              Principal:
+                Service: ses.amazonaws.com
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+              Resource:
+                Fn::Join:
+                  - ""
+                  - - "arn:aws:s3:::"
+                    - Ref: EmailBucket
+                    - "/*"
+              Condition:
+                StringEquals:
+                  "aws:Referer":
+                    Ref: AWS::AccountId
 
     # ================================
     # SES EMAIL INFRASTRUCTURE
@@ -1152,31 +1132,6 @@ resources:
         Action: lambda:InvokeFunction
         Principal: ses.amazonaws.com
         SourceAccount: !Ref AWS::AccountId
-
-    # S3 Bucket Policy for SES Email Storage
-    SESEmailBucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        Bucket: !Ref EmailBucket
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Sid: AllowSESPuts
-              Effect: Allow
-              Principal:
-                Service: ses.amazonaws.com
-              Action:
-                - s3:PutObject
-                - s3:PutObjectAcl
-              Resource:
-                Fn::Join:
-                  - ""
-                  - - "arn:aws:s3:::"
-                    - !Ref EmailBucket
-                    - "/*"
-              Condition:
-                StringEquals:
-                  "aws:Referer": !Ref AWS::AccountId
 
     # ================================
     # CLOUDFRONT DISTRIBUTION
@@ -1386,15 +1341,9 @@ resources:
         # To enable threat protection, upgrade to PLUS tier and set: AdvancedSecurityMode: ENFORCED
         UserPoolAddOns:
           AdvancedSecurityMode: OFF
-        LambdaConfig:
-          PreAuthentication:
-            Fn::GetAtt:
-              - PreAuthenticationLambdaFunction
-              - Arn
 
     CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
-      DependsOn: CognitoUserPoolIdentityProvider
       Properties:
         ClientName: ${self:service}-${self:provider.stage}-client
         UserPoolId:
@@ -1404,20 +1353,6 @@ resources:
           - ALLOW_USER_PASSWORD_AUTH
           - ALLOW_REFRESH_TOKEN_AUTH
           - ALLOW_USER_SRP_AUTH
-        SupportedIdentityProviders:
-          - COGNITO
-          - Google
-        CallbackURLs:
-          - ${self:custom.domainWithProtocol.${env:IS_LOCAL}}/auth/callback
-        LogoutURLs:
-          - ${self:custom.domainWithProtocol.${env:IS_LOCAL}}/
-        AllowedOAuthFlows:
-          - code
-        AllowedOAuthScopes:
-          - email
-          - openid
-          - profile
-        AllowedOAuthFlowsUserPoolClient: true
         PreventUserExistenceErrors: ENABLED
         EnableTokenRevocation: true
         AccessTokenValidity: 1 # 1 hour
@@ -1435,39 +1370,7 @@ resources:
           - email
           - name
 
-    CognitoUserPoolDomain:
-      Type: AWS::Cognito::UserPoolDomain
-      Properties:
-        Domain: ${self:service}-${self:provider.stage}
-        UserPoolId:
-          Ref: CognitoUserPool
-
-    CognitoUserPoolIdentityProvider:
-      Type: AWS::Cognito::UserPoolIdentityProvider
-      Properties:
-        UserPoolId:
-          Ref: CognitoUserPool
-        ProviderName: Google
-        ProviderType: Google
-        ProviderDetails:
-          client_id: ${env:GOOGLE_CLIENT_ID}
-          client_secret: ${env:GOOGLE_CLIENT_SECRET}
-          authorize_scopes: "profile email openid"
-        AttributeMapping:
-          email: email
-          name: name
-          username: sub
-
-    # Lambda Permission for Pre-Auth Trigger
-    CognitoUserPoolPreAuthPermission:
-      Type: AWS::Lambda::Permission
-      Properties:
-        FunctionName:
-          Ref: PreAuthenticationLambdaFunction
-        Principal: cognito-idp.amazonaws.com
-        Action: lambda:InvokeFunction
-        SourceArn:
-          Fn::Sub: "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
+    # Lambda Permission for Pre-Auth Trigger removed since Google OAuth is no longer needed
 
   Outputs:
     CognitoUserPoolId:
@@ -1483,13 +1386,6 @@ resources:
         Ref: CognitoUserPoolClient
       Export:
         Name: ${self:service}-${self:provider.stage}-ClientId
-
-    CognitoHostedUIUrl:
-      Description: Cognito Hosted UI URL
-      Value:
-        Fn::Sub: https://${CognitoUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
-      Export:
-        Name: ${self:service}-${self:provider.stage}-HostedUIUrl
 
     CognitoIssuer:
       Description: Cognito Token Issuer URL

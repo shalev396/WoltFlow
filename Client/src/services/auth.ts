@@ -43,17 +43,4 @@ export const authService = {
     >("/auth/login", credentials);
     return response.data.data!;
   },
-
-  // Start Google OAuth flow
-  startGoogleOAuth(): void {
-    const cognitoHostedUIUrl = import.meta.env.VITE_COGNITO_HOSTED_UI_URL;
-    const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/auth/callback`;
-
-    const authUrl = `${cognitoHostedUIUrl}/oauth2/authorize?client_id=${clientId}&response_type=code&scope=email+openid+profile&redirect_uri=${encodeURIComponent(
-      redirectUri
-    )}&identity_provider=Google`;
-
-    window.location.href = authUrl;
-  },
 };
