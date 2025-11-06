@@ -1353,6 +1353,9 @@ resources:
       Type: AWS::Cognito::UserPool
       Properties:
         UserPoolName: ${self:service}-${self:provider.stage}
+        # Set to Essentials tier instead of Plus (default)
+        # Options: ESSENTIALS (recommended), PLUS (default if not specified), LITE (basic features only)
+        UserPoolTier: ESSENTIALS
         UsernameAttributes:
           - email
         AutoVerifiedAttributes:
@@ -1379,8 +1382,10 @@ resources:
           RecoveryMechanisms:
             - Name: verified_email
               Priority: 1
+        # Advanced Security Mode disabled for ESSENTIALS tier
+        # To enable threat protection, upgrade to PLUS tier and set: AdvancedSecurityMode: ENFORCED
         UserPoolAddOns:
-          AdvancedSecurityMode: ENFORCED
+          AdvancedSecurityMode: OFF
         LambdaConfig:
           PreAuthentication:
             Fn::GetAtt:
