@@ -37,9 +37,13 @@ export default function Features() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         {featureKeys.map((featureKey) => {
           const IconComponent = featureIcons[featureKey];
-          const benefits = t(`features.list.${featureKey}.benefits`, {
+          const benefitsRaw = t(`features.list.${featureKey}.benefits`, {
             returnObjects: true,
-          }) as string[];
+            defaultValue: [],
+          });
+
+          // Ensure benefits is always an array
+          const benefits = Array.isArray(benefitsRaw) ? benefitsRaw : [];
 
           return (
             <Card
@@ -65,17 +69,22 @@ export default function Features() {
                 <p className="text-muted-foreground mb-4">
                   {t(`features.list.${featureKey}.description`)}
                 </p>
-                <ul className="space-y-2">
-                  {benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm">
-                      <div
-                        className="size-1.5 rounded-full bg-green-500 flex-shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span className="text-muted-foreground">{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
+                {benefits.length > 0 && (
+                  <ul className="space-y-2">
+                    {benefits.map((benefit, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <div
+                          className="size-1.5 rounded-full bg-green-500 flex-shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span className="text-muted-foreground">{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
           );

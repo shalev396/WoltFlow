@@ -11,6 +11,7 @@ export function AuthRouter() {
       <Route path="signup" element={<SignupPage />} />
       <Route path="verify" element={<VerifyEmailPage />} />
       <Route path="callback" element={<AuthCallbackPage />} />
+      <Route path="success" element={<AuthCallbackPage />} />
       {/* Redirect /auth to /auth/login */}
       <Route path="/" element={<Navigate to="login" replace />} />
       {/* 404 for unknown auth routes */}

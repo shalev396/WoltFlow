@@ -62,25 +62,23 @@ export const handler = async (
       lastLoginAt: new Date(),
     });
 
-    // Determine if local (HTTP) or cloud (HTTPS)
-    const isSecure = process.env.IS_LOCAL !== "true";
-    const secureCookie = isSecure ? "; Secure" : "";
-
+    // Return tokens in response body for frontend to store in localStorage
+    // and send via Authorization header on subsequent requests
     return {
       statusCode: 200,
-      headers: {
-        "Set-Cookie": [
-          `idToken=${idToken}; HttpOnly${secureCookie}; Path=/; Max-Age=3600; SameSite=Lax`,
-          `refreshToken=${refreshToken}; HttpOnly${secureCookie}; Path=/; Max-Age=2592000; SameSite=Lax`,
-        ].join(", "),
-      },
       body: JSON.stringify({
         success: true,
         message: "Login successful",
         data: {
           user: {
+            id: cognitoSub,
             email: userEmail || "",
             name: userName || "",
+          },
+          tokens: {
+            idToken: idToken,
+            refreshToken: refreshToken,
+            expiresIn: 3600, // 1 hour in seconds
           },
         },
       }),

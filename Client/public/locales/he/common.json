@@ -6,7 +6,7 @@
     "inbox": "תיבת דואר",
     "settings": "הגדרות",
     "logout": "התנתק",
-    "login": "התחבר עם Google"
+    "login": "התחבר"
   },
   "footer": {
     "tagline": "אוטומט רכישות כרטיסי מתנה של Wolt בקלות",
@@ -17,6 +17,7 @@
     "privacy": "מדיניות פרטיות",
     "terms": "תנאי שימוש",
     "extensionPrivacy": "פרטיות התוסף",
+    "cookieSettings": "הגדרות עוגיות",
     "resources": "משאבים",
     "documentation": "תיעוד",
     "apiDocs": "תיעוד API",

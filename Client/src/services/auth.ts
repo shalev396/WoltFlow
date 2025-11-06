@@ -8,17 +8,11 @@ import type {
 } from "@/types";
 
 export const authService = {
-  // Get current user
-  async getMe(): Promise<CognitoUser> {
-    const response = await api.get<ApiResponse<{ user: CognitoUser }>>(
-      "/auth/me"
-    );
-    return response.data.data!.user;
-  },
-
   // Logout
   async logout(): Promise<void> {
-    await api.post<ApiResponse>("/auth/logout");
+    // No server call needed - just clear localStorage
+    localStorage.removeItem("idToken");
+    localStorage.removeItem("refreshToken");
   },
 
   // Email/password signup
@@ -37,12 +31,17 @@ export const authService = {
   },
 
   // Email/password login
-  async login(credentials: LoginCredentials): Promise<CognitoUser> {
-    const response = await api.post<ApiResponse<{ user: CognitoUser }>>(
-      "/auth/login",
-      credentials
-    );
-    return response.data.data!.user;
+  async login(credentials: LoginCredentials): Promise<{
+    user: CognitoUser;
+    tokens: { idToken: string; refreshToken: string; expiresIn: number };
+  }> {
+    const response = await api.post<
+      ApiResponse<{
+        user: CognitoUser;
+        tokens: { idToken: string; refreshToken: string; expiresIn: number };
+      }>
+    >("/auth/login", credentials);
+    return response.data.data!;
   },
 
   // Start Google OAuth flow

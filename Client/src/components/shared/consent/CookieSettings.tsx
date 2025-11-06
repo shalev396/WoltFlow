@@ -17,7 +17,7 @@ export function CookieSettings({
   className = "",
 }: CookieSettingsProps) {
   const { showConsentBanner } = useConsent();
-  const { t } = useTranslation("legal");
+  const { t } = useTranslation("common");
 
   if (variant === "link") {
     return (
@@ -26,7 +26,7 @@ export function CookieSettings({
         className={`inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline ${className}`}
       >
         <Cookie className="w-4 h-4" />
-        {t("consent.settings.link")}
+        {t("footer.cookieSettings")}
       </button>
     );
   }
@@ -39,7 +39,7 @@ export function CookieSettings({
       className={`gap-2 ${className}`}
     >
       <Settings className="w-4 h-4" />
-      {t("consent.settings.button")}
+      {t("footer.cookieSettings")}
     </Button>
   );
 }

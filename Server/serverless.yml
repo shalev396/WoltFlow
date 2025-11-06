@@ -463,32 +463,6 @@ functions:
           path: /api/auth/callback
           method: get
 
-  authMe:
-    handler: ./build/auth/authMeHandler.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/authMeHandler.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/me
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  logout:
-    handler: ./build/auth/logout.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/logout.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/logout
-          method: post
-
   # ================================
   # AUTOMATION FUNCTIONS
   # ================================

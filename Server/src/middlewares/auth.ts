@@ -33,45 +33,33 @@ export const authMiddleware = (
         };
       };
       if (requestContext?.authorizer?.jwt?.claims?.sub) {
-        console.log("Using API Gateway JWT validation");
+        console.log("✅ Using API Gateway JWT validation (Production)");
         event.userId = requestContext.authorizer.jwt.claims.sub;
         return await handler(event, context, callback);
       }
 
-      // Local environment - validate token manually from cookies or Authorization header
-      console.log("Using middleware JWT validation (local)");
+      // Local environment - validate token manually from Authorization header
+      console.log("⚠️  Using middleware JWT validation (Local Development)");
+      console.log(
+        "   If you see this in CloudWatch for production, API Gateway authorizer is not working!"
+      );
 
-      // Try to get token from Authorization header first (standard)
-      let token: string | undefined;
+      // Get token from Authorization header
       const authHeader =
         event.headers.authorization || event.headers.Authorization;
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        token = authHeader.substring(7);
-      }
 
-      // If no Authorization header, try cookies (for running locally)
-      if (!token) {
-        const cookieHeader =
-          (event.cookies && event.cookies.join("; ")) ||
-          event.headers.cookie ||
-          "";
-
-        const cookies = Object.fromEntries(
-          cookieHeader.split("; ").map((p) => p.split("="))
-        );
-
-        token = cookies["idToken"];
-      }
-
-      if (!token) {
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return {
           statusCode: 401,
           body: JSON.stringify({
             success: false,
-            message: "Not authenticated",
+            message:
+              "Missing or invalid Authorization header. Expected: Bearer <token>",
           }),
         };
       }
+
+      const token = authHeader.substring(7);
 
       // Verify Cognito token and get claims
       const claims = await verifyToken(token);

@@ -8,10 +8,15 @@ import { useTranslation } from "react-i18next";
 
 export default function Faq() {
   const { t } = useTranslation("landing");
-  const faqList = t("faq.list", { returnObjects: true }) as Array<{
-    question: string;
-    answer: string;
-  }>;
+  const faqListRaw = t("faq.list", {
+    returnObjects: true,
+    defaultValue: [],
+  });
+
+  // Ensure faqList is always an array
+  const faqList = Array.isArray(faqListRaw)
+    ? (faqListRaw as Array<{ question: string; answer: string }>)
+    : [];
 
   return (
     <section className="bg-muted/50 py-12 md:py-20">
@@ -25,26 +30,34 @@ export default function Faq() {
           </p>
         </header>
 
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqList.map((faq, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="bg-background border rounded-lg px-6"
-              >
-                <AccordionTrigger className="text-left py-6 hover:no-underline">
-                  <span className="font-medium text-base">{faq.question}</span>
-                </AccordionTrigger>
-                <AccordionContent className="pb-6 pt-0">
-                  <div className="text-muted-foreground leading-relaxed">
-                    {faq.answer}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
+        {faqList.length > 0 ? (
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="space-y-4">
+              {faqList.map((faq, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`item-${index}`}
+                  className="bg-background border rounded-lg px-6"
+                >
+                  <AccordionTrigger className="text-left py-6 hover:no-underline">
+                    <span className="font-medium text-base">
+                      {faq.question}
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-6 pt-0">
+                    <div className="text-muted-foreground leading-relaxed">
+                      {faq.answer}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        ) : (
+          <div className="text-center text-muted-foreground max-w-3xl mx-auto">
+            <p>{t("faq.noQuestions", "No FAQs available at the moment.")}</p>
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <p className="text-muted-foreground">

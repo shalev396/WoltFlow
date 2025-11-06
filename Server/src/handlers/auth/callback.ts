@@ -63,18 +63,23 @@ export const handler = async (
       lastLoginAt: new Date(),
     });
 
-    // Determine if local (HTTP) or cloud (HTTPS)
-    const isSecure = process.env.IS_LOCAL !== "true";
-    const secureCookie = isSecure ? "; Secure" : "";
+    // Pass tokens to frontend via URL fragment (not visible in server logs)
+    // Frontend will extract and store in localStorage
+    const tokenParams = new URLSearchParams({
+      idToken: id_token,
+      refreshToken: refresh_token,
+      expiresIn: "3600",
+      userId: cognitoSub,
+      email: userEmail || "",
+      name: userName || "",
+    });
 
     return {
       statusCode: 302,
       headers: {
-        "Set-Cookie": [
-          `idToken=${id_token}; HttpOnly${secureCookie}; Path=/; Max-Age=3600; SameSite=Lax`,
-          `refreshToken=${refresh_token}; HttpOnly${secureCookie}; Path=/; Max-Age=2592000; SameSite=Lax`,
-        ].join(", "),
-        Location: `${protocol}://${domain}/dashboard`,
+        // Redirect to auth/success page with tokens in URL fragment
+        // Fragment (#) is more secure than query params - not sent to server
+        Location: `${protocol}://${domain}/auth/success#${tokenParams.toString()}`,
       },
       body: "",
     };

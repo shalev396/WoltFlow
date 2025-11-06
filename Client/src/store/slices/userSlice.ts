@@ -5,6 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import type { CognitoUser } from "@/types";
+import { getUserFromToken } from "@/utils/tokenUtil";
 
 interface AuthState {
   user: CognitoUser | null;
@@ -27,14 +28,12 @@ export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
   async (_, { rejectWithValue }) => {
     try {
-      // Dynamic import to avoid circular dependency
-      const { api } = await import("@/api/api");
-      const response = await api.get("/auth/me");
-      // Handle the API response structure: { success, message, data: { user } }
-      if (response.data && response.data.success && response.data.data) {
-        return response.data.data.user;
+      // Get user from stored token instead of API call
+      const user = getUserFromToken();
+      if (!user) {
+        return rejectWithValue("No valid token found");
       }
-      return rejectWithValue("Invalid response format");
+      return user;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         return rejectWithValue(
@@ -47,36 +46,35 @@ export const checkAuth = createAsyncThunk(
 );
 
 // Async thunk for logout
-export const logoutUser = createAsyncThunk(
-  "auth/logout",
-  async (_, { rejectWithValue }) => {
-    try {
-      // Dynamic import to avoid circular dependency
-      const { api } = await import("@/api/api");
-      await api.post("/auth/logout");
-      return;
-    } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        // Even if logout fails on server, we should clear local state
-        console.error("Logout failed:", error);
-        return rejectWithValue(error.response?.data?.error || "Logout failed");
-      }
-      return rejectWithValue("Logout failed");
-    }
-  }
-);
+export const logoutUser = createAsyncThunk("auth/logout", async () => {
+  // No server call needed - just clear local storage
+  // Cognito sessions are stateless with JWTs
+  localStorage.removeItem("idToken");
+  localStorage.removeItem("refreshToken");
+  return;
+});
 
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
     // Manual login action (for when we get user data from login/callback)
-    loginSuccess: (state, action: PayloadAction<CognitoUser>) => {
-      state.user = action.payload;
+    loginSuccess: (
+      state,
+      action: PayloadAction<{
+        user: CognitoUser;
+        tokens: { idToken: string; refreshToken: string; expiresIn: number };
+      }>
+    ) => {
+      state.user = action.payload.user;
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;
       state.isInitialized = true;
+
+      // Store tokens in localStorage
+      localStorage.setItem("idToken", action.payload.tokens.idToken);
+      localStorage.setItem("refreshToken", action.payload.tokens.refreshToken);
     },
 
     // Manual logout action
@@ -86,6 +84,10 @@ const userSlice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.isInitialized = true;
+
+      // Clear tokens from localStorage
+      localStorage.removeItem("idToken");
+      localStorage.removeItem("refreshToken");
     },
 
     // Clear error
@@ -131,14 +133,10 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.error = null;
         state.isInitialized = true;
-      })
-      .addCase(logoutUser.rejected, (state, action) => {
-        // Even if logout fails, clear local state
-        state.user = null;
-        state.isAuthenticated = false;
-        state.isLoading = false;
-        state.error = action.payload as string;
-        state.isInitialized = true;
+
+        // Clear tokens from localStorage (already done in thunk, but ensure it)
+        localStorage.removeItem("idToken");
+        localStorage.removeItem("refreshToken");
       });
   },
 });

@@ -2,19 +2,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { authService } from "@/services";
-import Layout from "@/components/shared/Layout";
+import AuthLayout from "@/components/shared/AuthLayout";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function SignupPage() {
   const { t } = useTranslation("auth");
@@ -52,169 +45,122 @@ export default function SignupPage() {
   };
 
   return (
-    <Layout>
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
-        <Card className="w-full max-w-md shadow-lg border-border/50">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {t("signup.title")}
-            </CardTitle>
-            <CardDescription className="text-base">
-              {t("signup.subtitle")}
-            </CardDescription>
-          </CardHeader>
+    <AuthLayout title={t("signup.title")} subtitle={t("signup.subtitle")}>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Error Alert */}
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+        {/* Name Field */}
+        <div className="space-y-2">
+          <Label htmlFor="name">{t("signup.nameLabel")}</Label>
+          <Input
+            id="name"
+            type="text"
+            placeholder={t("signup.namePlaceholder")}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </div>
 
-              {/* Name Field */}
-              <div className="space-y-2">
-                <Label htmlFor="name">{t("signup.nameLabel")}</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder={t("signup.namePlaceholder")}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-9"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+        {/* Email Field */}
+        <div className="space-y-2">
+          <Label htmlFor="email">{t("signup.emailLabel")}</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder={t("signup.emailPlaceholder")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </div>
 
-              {/* Email Field */}
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("signup.emailLabel")}</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder={t("signup.emailPlaceholder")}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-9"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+        {/* Password Field */}
+        <div className="space-y-2">
+          <Label htmlFor="password">{t("signup.passwordLabel")}</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder={t("signup.passwordPlaceholder")}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            disabled={isLoading}
+          />
+          <p className="text-xs text-muted-foreground">
+            {t("signup.passwordRequirements")}
+          </p>
+        </div>
 
-              {/* Password Field */}
-              <div className="space-y-2">
-                <Label htmlFor="password">{t("signup.passwordLabel")}</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder={t("signup.passwordPlaceholder")}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-9"
-                    required
-                    minLength={8}
-                    disabled={isLoading}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("signup.passwordRequirements")}
-                </p>
-              </div>
+        {/* Signup Button */}
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t("signup.signupButton")}...
+            </>
+          ) : (
+            t("signup.signupButton")
+          )}
+        </Button>
 
-              {/* Signup Button */}
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                size="lg"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("signup.signupButton")}...
-                  </>
-                ) : (
-                  t("signup.signupButton")
-                )}
-              </Button>
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              {t("signup.orContinueWith")}
+            </span>
+          </div>
+        </div>
 
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    {t("signup.orContinueWith")}
-                  </span>
-                </div>
-              </div>
+        {/* Google Button */}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleGoogleSignup}
+          disabled={isLoading}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            className="mr-2 h-5 w-5"
+          >
+            <path
+              d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+              fill="currentColor"
+            />
+          </svg>
+          {t("signup.googleButton")}
+        </Button>
 
-              {/* Google Button */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                size="lg"
-                onClick={handleGoogleSignup}
-                disabled={isLoading}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  className="mr-2 h-5 w-5"
-                >
-                  <path
-                    d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                    fill="currentColor"
-                  />
-                </svg>
-                {t("signup.googleButton")}
-              </Button>
-
-              {/* Login Link */}
-              <p className="text-center text-sm text-muted-foreground pt-4">
-                {t("signup.haveAccount")}{" "}
-                <Link
-                  to={`/${lng}/auth/login`}
-                  className="text-primary hover:underline font-medium"
-                >
-                  {t("signup.loginLink")}
-                </Link>
-              </p>
-
-              {/* Terms */}
-              <p className="text-center text-xs text-muted-foreground pt-2">
-                {t("signup.termsPrefix")}{" "}
-                <Link
-                  to={`/${lng}/legal/terms`}
-                  className="text-primary hover:underline"
-                >
-                  {t("signup.termsLink")}
-                </Link>{" "}
-                {t("signup.and")}{" "}
-                <Link
-                  to={`/${lng}/legal/privacy`}
-                  className="text-primary hover:underline"
-                >
-                  {t("signup.privacyLink")}
-                </Link>
-              </p>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </Layout>
+        {/* Login Link */}
+        <p className="text-center text-sm text-muted-foreground">
+          {t("signup.haveAccount")}{" "}
+          <Link
+            to={`/${lng}/auth/login`}
+            className="text-primary hover:underline font-medium underline-offset-4"
+          >
+            {t("signup.loginLink")}
+          </Link>
+        </p>
+      </form>
+    </AuthLayout>
   );
 }

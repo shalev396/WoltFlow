@@ -40,7 +40,7 @@ export function ConsentBanner() {
                   variant="outline"
                   className="border-border hover:bg-muted"
                 >
-                  {t("banner.essentialOnly")}
+                  {t("banner.noCookies")}
                 </Button>
               </div>
             </div>
