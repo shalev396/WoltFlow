@@ -32,6 +32,7 @@ declare global {
       COGNITO_USER_POOL_ID: string;
       COGNITO_CLIENT_ID: string;
       COGNITO_ISSUER: string;
+      COGNITO_DOMAIN: string;
       // GOOGLE (for Cognito Identity Provider)
       GOOGLE_CLIENT_ID: string;
       GOOGLE_CLIENT_SECRET: string;

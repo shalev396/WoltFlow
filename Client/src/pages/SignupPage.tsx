@@ -40,6 +40,25 @@ export default function SignupPage() {
     }
   };
 
+  const handleGoogleSignup = async () => {
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Get Google OAuth URL from backend
+      const authUrl = await authService.getGoogleAuthUrl();
+      // Redirect to Google for authentication
+      window.location.href = authUrl;
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || t("errors.googleAuthFailed"));
+      } else {
+        setError(t("errors.unknownError"));
+      }
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AuthLayout title={t("signup.title")} subtitle={t("signup.subtitle")}>
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -113,7 +132,7 @@ export default function SignupPage() {
           )}
         </Button>
 
-        {/* Divider 
+        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -143,7 +162,7 @@ export default function SignupPage() {
             />
           </svg>
           {t("signup.googleButton")}
-        </Button> */}
+        </Button>
 
         {/* Login Link */}
         <p className="text-center text-sm text-muted-foreground">

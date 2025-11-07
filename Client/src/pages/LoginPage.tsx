@@ -42,6 +42,25 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Get Google OAuth URL from backend
+      const authUrl = await authService.getGoogleAuthUrl();
+      // Redirect to Google for authentication
+      window.location.href = authUrl;
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || t("errors.googleAuthFailed"));
+      } else {
+        setError(t("errors.unknownError"));
+      }
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AuthLayout title={t("login.title")} subtitle={t("login.subtitle")}>
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -105,7 +124,7 @@ export default function LoginPage() {
           )}
         </Button>
 
-        {/* Divider
+        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -135,7 +154,7 @@ export default function LoginPage() {
             />
           </svg>
           {t("login.googleButton")}
-        </Button> */}
+        </Button>
 
         {/* Sign Up Link */}
         <p className="text-center text-sm text-muted-foreground">

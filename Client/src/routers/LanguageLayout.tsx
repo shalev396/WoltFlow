@@ -27,12 +27,14 @@ export function LanguageLayout() {
       return;
     }
 
-    // If invalid language, redirect to default language
+    // If invalid language, redirect to default language  
     if (!isValidLanguage(lng)) {
       const defaultLang = getDefaultLanguage();
-      const pathWithoutLang = location.pathname.slice(lng.length + 1); // Remove /invalid-lng
+      // When /:lng matches an invalid language (e.g., /auth/callback where lng="auth"),
+      // we need to preserve the entire original path including the invalid "language" part
+      // The pathname is already complete (e.g., "/auth/callback"), just add the language prefix
       navigate(
-        `/${defaultLang}${pathWithoutLang}${location.search}${location.hash}`,
+        `/${defaultLang}${location.pathname}${location.search}${location.hash}`,
         {
           replace: true,
         }
