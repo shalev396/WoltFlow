@@ -38,7 +38,8 @@ export interface ICustomAPIGatewayProxyEventAuth
     "x-api-key"?: string;
     "X-API-Key"?: string;
   };
-  userId?: string;
+  userId?: string; // User.id (UUID)
+  cognitoSub?: string; // Cognito sub
 }
 
 export interface ICustomAPIGatewayProxyEventPaginate

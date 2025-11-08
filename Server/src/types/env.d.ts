@@ -6,7 +6,6 @@ declare global {
       // AWS
       AWS_ACCOUNT_ID: string;
       EMAIL_SUBDOMAIN: string;
-      CLOUDFRONT_DISTRIBUTION_ID: string;
       AWS_REGION: string;
       DOMAIN_NAME: string;
       DOMAIN_NAME_LOCAL: string;

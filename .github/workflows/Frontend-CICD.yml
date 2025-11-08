@@ -7,16 +7,22 @@ permissions:
 on:
   push:
     branches:
-      - "main" # Production deployment
-      - "dev" # Development deployment
+      - "main" # Production
+      - "dev" # Development
+      - "qa" # QA
     paths:
       - "Client/**"
       - ".github/workflows/Frontend-CICD.yml"
+
+env:
+  STACK_BASE_NAME: woltflow-server
 
 jobs:
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}
 
     steps:
       - name: Checkout code
@@ -27,32 +33,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Load environment variables for dev
-        if: github.ref == 'refs/heads/dev'
-        run: |
-          echo '${{ secrets.ENV_DEV }}' > .env.dev
+      - name: Set stage
+        id: stage
+        run: echo "name=${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}" >> $GITHUB_OUTPUT
+
+      - name: Load environment variables
+        run: echo '${{ secrets.ENV }}' > .env.${{ steps.stage.outputs.name }}
         working-directory: Server
 
-      - name: Load environment variables for prod
-        if: github.ref == 'refs/heads/main'
-        run: |
-          echo '${{ secrets.ENV_PROD }}' > .env.prod
-        working-directory: Server
-
-      - name: Export .env.dev variables
-        if: github.ref == 'refs/heads/dev'
+      - name: Export environment variables
         uses: falti/dotenv-action@v1.1.4
         with:
-          path: Server/.env.dev
-          export-variables: true
-          keys-case: bypass
-          mask-variables: true
-
-      - name: Export .env.prod variables
-        if: github.ref == 'refs/heads/main'
-        uses: falti/dotenv-action@v1.1.4
-        with:
-          path: Server/.env.prod
+          path: Server/.env.${{ steps.stage.outputs.name }}
           export-variables: true
           keys-case: bypass
           mask-variables: true
@@ -71,27 +63,17 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
-      - name: Get CloudFront Distribution ID
-        id: get-cf-id
+      - name: Get CloudFormation Outputs
+        id: cf
         run: |
-          STACK_NAME="woltflow-server-dev"
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            STACK_NAME="woltflow-server-prod"
-          fi
-          CF_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
-          echo "distribution_id=$CF_ID" >> $GITHUB_OUTPUT
-          echo "Found CloudFront Distribution ID: $CF_ID"
+          STACK="${{ env.STACK_BASE_NAME }}-${{ steps.stage.outputs.name }}"
+          CF_ID=$(aws cloudformation describe-stacks --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
+          S3_BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='S3ClientBucketName'].OutputValue" --output text)
+          echo "cf_id=$CF_ID" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$S3_BUCKET" >> $GITHUB_OUTPUT
 
-      - name: Deploy to S3 (dev)
-        if: github.ref == 'refs/heads/dev'
-        run: |
-          aws s3 sync ./Client/dist s3://${{ env.S3_CLIENT_BUCKET_NAME }}/ --delete
+      - name: Deploy to S3
+        run: aws s3 sync ./Client/dist s3://${{ steps.cf.outputs.s3_bucket }}/ --delete
 
-      - name: Deploy to S3 (prod)
-        if: github.ref == 'refs/heads/main'
-        run: |
-          aws s3 sync ./Client/dist s3://${{ env.S3_CLIENT_BUCKET_NAME }}/ --delete
-
-      - name: Invalidate CloudFront Cache
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${{ steps.get-cf-id.outputs.distribution_id }} --paths "/*"
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id ${{ steps.cf.outputs.cf_id }} --paths "/*"

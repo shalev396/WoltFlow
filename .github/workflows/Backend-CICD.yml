@@ -7,9 +7,9 @@ permissions:
 on:
   push:
     branches:
-      - "main" # Production deployment
-      - "qa" # QA deployment
-      - "dev" # Development deployment
+      - "main" # Production
+      - "dev" # Development
+      - "qa" # QA
     paths:
       - "Server/**"
       - ".github/workflows/Backend-CICD.yml"
@@ -19,7 +19,7 @@ jobs:
     name: Deploy Backend
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/qa' && 'qa' || github.ref == 'refs/heads/dev' && 'dev' }}
+      name: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}
 
     steps:
       - name: Checkout code
@@ -30,29 +30,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Determine environment stage
-        id: env-stage
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "stage=prod" >> $GITHUB_OUTPUT
-            echo "env_file=.env.prod" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" == "refs/heads/qa" ]; then
-            echo "stage=qa" >> $GITHUB_OUTPUT
-            echo "env_file=.env.qa" >> $GITHUB_OUTPUT
-          else
-            echo "stage=dev" >> $GITHUB_OUTPUT
-            echo "env_file=.env.dev" >> $GITHUB_OUTPUT
-          fi
+      - name: Set stage
+        id: stage
+        run: echo "name=${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}" >> $GITHUB_OUTPUT
 
       - name: Load environment variables
-        run: |
-          echo '${{ secrets.ENV }}' > ${{ steps.env-stage.outputs.env_file }}
+        run: echo '${{ secrets.ENV }}' > .env.${{ steps.stage.outputs.name }}
         working-directory: Server
 
       - name: Export environment variables
         uses: falti/dotenv-action@v1.1.4
         with:
-          path: Server/${{ steps.env-stage.outputs.env_file }}
+          path: Server/.env.${{ steps.stage.outputs.name }}
           export-variables: true
           keys-case: bypass
           mask-variables: true
@@ -75,8 +64,8 @@ jobs:
         run: npm run build
         working-directory: Server
 
-      - name: Deploy to ${{ steps.env-stage.outputs.stage }} stage
-        run: npm run deploy:${{ steps.env-stage.outputs.stage }}
+      - name: Deploy to ${{ steps.stage.outputs.name }} stage
+        run: npm run deploy:${{ steps.stage.outputs.name }}
         working-directory: Server
         env:
           SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}

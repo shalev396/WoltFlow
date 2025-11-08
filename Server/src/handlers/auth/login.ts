@@ -6,6 +6,7 @@ import {
 import jwt from "jsonwebtoken";
 import { User } from "../../models/index.js";
 import { initDB } from "../../config/bootstrap.js";
+import { ensureUserSettings } from "../../utils/userInitialization.js";
 
 await initDB();
 
@@ -54,13 +55,16 @@ export const handler = async (
     const userEmail = decoded["email"] as string | undefined;
     const userName = decoded["name"] as string | undefined;
 
-    // Create or update user in database
-    await User.upsert({
+    // Update user lastLoginAt and get user
+    const [user] = await User.upsert({
       cognitoSub,
       email: userEmail || null,
       name: userName || null,
       lastLoginAt: new Date(),
     });
+
+    // Ensure user has settings (pass actual user.id UUID)
+    await ensureUserSettings(user.id);
 
     // Return tokens in response body for frontend to store in localStorage
     // and send via Authorization header on subsequent requests

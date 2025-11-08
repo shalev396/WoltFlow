@@ -9,6 +9,7 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import { User } from "../../models/index.js";
 import { initDB } from "../../config/bootstrap.js";
+import { ensureUserSettings } from "../../utils/userInitialization.js";
 
 await initDB();
 
@@ -29,7 +30,7 @@ export const handler: PostConfirmationTriggerHandler = async (
   console.log("PostConfirmation trigger:", JSON.stringify(event, null, 2));
 
   const userAttributes = event.request.userAttributes;
-  const cognitoSub = userAttributes["sub"];
+  const cognitoSub = userAttributes["sub"]!; // Cognito always provides sub
   const email = userAttributes["email"];
   const name = userAttributes["name"] || email;
   const triggerSource = event.triggerSource;
@@ -107,6 +108,17 @@ export const handler: PostConfirmationTriggerHandler = async (
               console.log(
                 `✅ Database migrated: Updated ${affectedRows} record(s)`
               );
+
+              // Find the migrated user and ensure settings (pass actual user.id UUID)
+              const migratedUser = await User.findOne({
+                where: { cognitoSub },
+              });
+
+              if (migratedUser) {
+                await ensureUserSettings(migratedUser.id);
+                console.log(`✅ Settings ensured for migrated user`);
+              }
+
               googleUserLinked = true; // Mark as linked - don't upsert later
             } else {
               console.log(
@@ -162,15 +174,18 @@ export const handler: PostConfirmationTriggerHandler = async (
 
     // Only upsert if we DIDN'T migrate and we're NOT a linked Google user
     if (!googleUserLinked && !skipUpsert) {
-      await User.upsert({
+      const [user] = await User.upsert({
         cognitoSub,
         email: email || null,
         name: name || null,
         lastLoginAt: new Date(),
       });
-      console.log(`✅ Database synced: ${cognitoSub}`);
+      console.log(`✅ User upserted: ${cognitoSub}`);
+
+      // Ensure user has settings (pass actual user.id UUID)
+      await ensureUserSettings(user.id);
     } else {
-      console.log(`ℹ️  Skipping upsert - database already exists`);
+      console.log(`ℹ️  Skipping upsert - user already exists`);
     }
   } catch (error) {
     console.error("❌ PostConfirmation error:", error);
