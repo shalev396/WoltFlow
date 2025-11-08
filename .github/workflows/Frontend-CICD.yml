@@ -7,16 +7,22 @@ permissions:
 on:
   push:
     branches:
-      - "main" # Production deployment
-      - "dev" # Development deployment
+      - "main" # Production
+      - "dev" # Development
+      - "qa" # QA
     paths:
       - "Client/**"
       - ".github/workflows/Frontend-CICD.yml"
+
+env:
+  STACK_BASE_NAME: woltflow-server
 
 jobs:
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}
 
     steps:
       - name: Checkout code
@@ -27,15 +33,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Load environment variables from ENV
-        run: |
-          echo '${{ secrets.ENV }}' > .env
-        working-directory: Client
+      - name: Set stage
+        id: stage
+        run: echo "name=${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}" >> $GITHUB_OUTPUT
 
-      - name: Export .env variables
+      - name: Load environment variables
+        run: echo '${{ secrets.ENV }}' > .env.${{ steps.stage.outputs.name }}
+        working-directory: Server
+
+      - name: Export environment variables
         uses: falti/dotenv-action@v1.1.4
         with:
-          path: Client/.env
+          path: Server/.env.${{ steps.stage.outputs.name }}
           export-variables: true
           keys-case: bypass
           mask-variables: true
@@ -54,14 +63,17 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
-      - name: Deploy to Dev S3 and CloudFront
-        if: github.ref == 'refs/heads/dev'
+      - name: Get CloudFormation Outputs
+        id: cf
         run: |
-          aws s3 sync ./Client/dist s3://${{ env.S3_BUCKET_NAME_DEV }}/ --delete
-          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID_DEV }} --paths "/*"
+          STACK="${{ env.STACK_BASE_NAME }}-${{ steps.stage.outputs.name }}"
+          CF_ID=$(aws cloudformation describe-stacks --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
+          S3_BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='S3ClientBucketName'].OutputValue" --output text)
+          echo "cf_id=$CF_ID" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$S3_BUCKET" >> $GITHUB_OUTPUT
 
-      - name: Deploy to Prod S3 and CloudFront
-        if: github.ref == 'refs/heads/main'
-        run: |
-          aws s3 sync ./Client/dist s3://${{ env.S3_BUCKET_NAME_PROD }}/ --delete
-          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID_PROD }} --paths "/*"
+      - name: Deploy to S3
+        run: aws s3 sync ./Client/dist s3://${{ steps.cf.outputs.s3_bucket }}/ --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id ${{ steps.cf.outputs.cf_id }} --paths "/*"

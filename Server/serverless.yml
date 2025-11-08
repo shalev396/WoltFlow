@@ -10,12 +10,12 @@
 #
 # DEPLOYMENT NOTES:
 # 1. SSL Certificates - CREATE MANUALLY in ACM (us-east-1 region):
-#    - Create certificate for dev.woltflow.shalev396.com (add ARN to CERTIFICATE_ARN_DEV)
-#    - Create certificate for woltflow.shalev396.com (add ARN to CERTIFICATE_ARN_PROD)
-# 2. Ensure you have a Route 53 hosted zone for shalev396.com
+#    - Create certificate for development domain (add ARN to CERTIFICATE_ARN_DEV)
+#    - Create certificate for production domain (add ARN to CERTIFICATE_ARN_PROD)
+# 2. Ensure you have a Route 53 hosted zone for the domain
 # 3. Deploy stages separately:
-#    - DEV:  serverless deploy --stage dev  (creates dev.woltflow.shalev396.com)
-#    - PROD: serverless deploy --stage prod (creates woltflow.shalev396.com)
+#    - DEV:  serverless deploy --stage dev  (creates development environment)
+#    - PROD: serverless deploy --stage prod (creates production environment)
 # 4. Each stage gets its own complete infrastructure:
 #    - Separate CloudFront distributions with custom domains
 #    - Separate S3 buckets
@@ -43,57 +43,88 @@ provider:
   runtime: nodejs22.x
   timeout: 30
   memorySize: 160
-  region: il-central-1
+  region: ${env:AWS_REGION}
+  # Configure log retention for all Lambda functions
+  logRetentionInDays: 30
+
+  # VPC Configuration - All Lambdas run in private subnet with NAT Gateway
+  vpc:
+    securityGroupIds:
+      - ${env:LAMBDA_SECURITY_GROUP_ID}
+    subnetIds:
+      - ${env:LAMBDA_SUBNET_ID}
+
   apiGateway:
     shouldStartNameWithService: true
   logs:
     restApi: false
+  httpApi:
+    cors:
+      allowedOrigins:
+        - ${self:custom.domainWithProtocol.${env:IS_LOCAL}}
+      allowedHeaders:
+        - Content-Type
+        - Cookie
+        - X-API-Key
+        - Accept
+        - User-Agent
+        - Cache-Control
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+        - HEAD
+      allowCredentials: true
+      maxAge: 86400
+    authorizers:
+      cognitoAuthorizer:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl:
+          Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
+        audience:
+          - Ref: CognitoUserPoolClient
   environment:
-    # Environment Configuration
-    ENV: ${opt:stage, 'local'}
-
-    # Database Configuration
-    DATABASE_URL_LOCAL: ${env:DATABASE_URL_LOCAL}
-    DATABASE_URL_DEV: ${env:DATABASE_URL_DEV}
-    DATABASE_URL_PROD: ${env:DATABASE_URL_PROD}
-
-    # Google OAuth Configuration
-    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
-    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
-    OAUTH_REDIRECT_URI_LOCAL: ${env:OAUTH_REDIRECT_URI_LOCAL}
-    OAUTH_REDIRECT_URI_DEV: ${env:OAUTH_REDIRECT_URI_DEV}
-    OAUTH_REDIRECT_URI_PROD: ${env:OAUTH_REDIRECT_URI_PROD}
-
-    # JWT Configuration
-    JWT_SECRET: ${env:JWT_SECRET}
-    DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE, ""}
-
-    # SMS Configuration
-    enabledSMS: ${env:ENABLED_SMS, "false"}
-
-    # AWS Configuration - AWS_REGION is automatically provided by AWS Lambda
-
-    # S3 Bucket Configuration
-    S3_ASSETS_BUCKET_NAME_DEV: ${env:S3_ASSETS_BUCKET_NAME_DEV}
-    S3_ASSETS_BUCKET_NAME_PROD: ${env:S3_ASSETS_BUCKET_NAME_PROD}
-
-    # Lambda Function Names
-    REFRESH_TOKENS_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-refreshTokens
-    WOLT_BUY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-woltBuyGift
-    GET_DAILY_CODE_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-getDailyCode
-    WOLT_APPLY_GIFT_FUNCTION_NAME: ${self:service}-${self:provider.stage, 'local'}-woltApplyGift
-
-    # Step Functions Configuration
+    # ENV
+    ENV: ${opt:stage, 'dev'}
+    # AWS
+    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
+    DOMAIN_NAME: ${self:custom.domainName.${env:IS_LOCAL}}
+    HOSTED_ZONE_ID: ${env:HOSTED_ZONE_ID}
+    CERTIFICATE_ARN: ${env:CERTIFICATE_ARN}
+    EMAIL_SUBDOMAIN: ${env:EMAIL_SUBDOMAIN}
+    # STEP FUNCTIONS
     USER_AUTOMATION_STATE_MACHINE_ARN:
       Fn::Sub: "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}-userAutomationChain"
-
-    # CloudFront and Domain Configuration (Stage-specific)
-    DOMAIN_NAME: ${self:custom.domainName.${self:provider.stage}}
-    CLIENT_BUCKET_NAME: ${self:custom.clientBucketName.${self:provider.stage}}
-    ASSETS_BUCKET_NAME_NEW: ${self:custom.assetsBucketName.${self:provider.stage}}
-    HOSTED_ZONE_ID: ${env:HOSTED_ZONE_ID} # Route 53 hosted zone ID
-    CERTIFICATE_ARN_DEV: ${env:CERTIFICATE_ARN_DEV} # ACM certificate ARN
-    CERTIFICATE_ARN_PROD: ${env:CERTIFICATE_ARN_PROD} # ACM certificate ARN
+    # S3
+    S3_EMAIL_BUCKET_NAME: ${env:S3_EMAIL_BUCKET_NAME}
+    S3_ASSETS_BUCKET_NAME: ${env:S3_ASSETS_BUCKET_NAME}
+    S3_CLIENT_BUCKET_NAME: ${env:S3_CLIENT_BUCKET_NAME}
+    # SERVERLESS
+    SERVERLESS_ACCESS_KEY: ${env:SERVERLESS_ACCESS_KEY}
+    # DATABASE
+    DATABASE_URL: ${self:custom.databaseUrl.${env:IS_LOCAL}}
+    # VPC
+    LAMBDA_SECURITY_GROUP_ID: ${env:LAMBDA_SECURITY_GROUP_ID}
+    LAMBDA_SUBNET_ID: ${env:LAMBDA_SUBNET_ID}
+    # APP
+    ENABLED_SMS: ${env:ENABLED_SMS}
+    JWT_SECRET: ${env:JWT_SECRET}
+    ENCRYPTION_KEY: ${env:ENCRYPTION_KEY}
+    # COGNITO - Set these manually in .env after first deployment
+    COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
+    COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    COGNITO_ISSUER: ${env:COGNITO_ISSUER}
+    COGNITO_DOMAIN: ${env:COGNITO_DOMAIN}
+    # GOOGLE OAUTH
+    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
+    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
+    # DEVELOPMENT
+    DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE}
 
   ecr:
     images:
@@ -103,46 +134,55 @@ provider:
   iam:
     role:
       statements:
-        # Lambda Invocation Permissions
+        # Cognito Permissions - Account linking in PreSignUp trigger
         - Effect: Allow
           Action:
-            - lambda:InvokeFunction
+            - cognito-idp:ListUsers
+            - cognito-idp:AdminLinkProviderForUser
+            - cognito-idp:AdminGetUser
+            - cognito-idp:AdminCreateUser
+            - cognito-idp:AdminSetUserPassword
+            - cognito-idp:AdminDeleteUser
           Resource:
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-refreshTokens
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltBuyGift
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-getDailyCode
-            - arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage, 'local'}-woltApplyGift
+            - arn:aws:cognito-idp:${self:provider.region}:*:userpool/*
 
-        # Step Functions Permissions
+        # VPC/ENI Permissions - Required for Lambda to run in VPC
+        - Effect: Allow
+          Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            - ec2:AssignPrivateIpAddresses
+            - ec2:UnassignPrivateIpAddresses
+          Resource: "*"
+
+        # Step Functions Permissions (startUserAutomationChain)
         - Effect: Allow
           Action:
             - states:StartExecution
-            - states:StopExecution
-            - states:DescribeExecution
-            - states:DescribeStateMachine
-            - states:ListExecutions
           Resource:
             - arn:aws:states:${self:provider.region}:*:stateMachine:${self:service}-${self:provider.stage}-userAutomationChain
 
-        # S3 Permissions for all buckets
+        # S3 Permissions - Assets bucket (screenshots, exports)
         - Effect: Allow
           Action:
-            - s3:PutObject
-            - s3:GetObject
-            - s3:DeleteObject
-            - s3:PutObjectAcl
+            - s3:PutObject # Upload screenshots, export ZIPs
+            - s3:GetObject # Download files for processing
+            - s3:DeleteObject # Delete expired screenshots, user data
           Resource:
-            - "arn:aws:s3:::${self:custom.clientBucketName.${self:provider.stage}}/*"
-            - "arn:aws:s3:::${self:custom.assetsBucketName.${self:provider.stage}}/*"
+            - "arn:aws:s3:::${env:S3_ASSETS_BUCKET_NAME}/*"
 
+        # S3 Permissions - Email bucket (email files and attachments)
         - Effect: Allow
           Action:
-            - s3:ListBucket
+            - s3:PutObject # SES saves emails, Lambda saves attachments
+            - s3:GetObject # Read emails, download attachments, parse PDFs
+            - s3:DeleteObject # Delete expired emails, user data
+            - s3:CopyObject # ingestEmail moves emails from raw/ to user folders
           Resource:
-            - "arn:aws:s3:::${self:custom.clientBucketName.${self:provider.stage}}"
-            - "arn:aws:s3:::${self:custom.assetsBucketName.${self:provider.stage}}"
+            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}"
 
-        # ECR Permissions
+        # ECR Permissions (Docker-based Lambda functions: woltBuyGift, woltApplyGift)
         - Effect: Allow
           Action: ecr:GetAuthorizationToken
           Resource: "*"
@@ -151,80 +191,18 @@ provider:
             - ecr:BatchCheckLayerAvailability
             - ecr:GetDownloadUrlForLayer
             - ecr:BatchGetImage
-            - ecr:InitiateLayerUpload
-            - ecr:UploadLayerPart
-            - ecr:CompleteLayerUpload
-            - ecr:PutImage
           Resource: "*"
 
-        # CloudFront Permissions
+        # Pinpoint SMS Voice V2 Permissions (smsUtil.ts uses PinpointSMSVoiceV2Client)
         - Effect: Allow
           Action:
-            - cloudfront:CreateInvalidation
-            - cloudfront:GetInvalidation
-            - cloudfront:ListInvalidations
-          Resource: "*"
-
-        # SNS Permissions for SMS
-        - Effect: Allow
-          Action:
-            - sns:Publish
-            - sns:CreateTopic
-            - sns:Subscribe
-            - sns:GetSMSAttributes
-            - sns:SetSMSAttributes
-            - sns:CheckIfPhoneNumberIsOptedOut
-            - sns:OptInPhoneNumber
-            # Long Code and Origination Number Management
-            - sns:GetOriginationNumbers
-            - sns:RequestOriginationNumber
-            - sns:DeleteOriginationNumber
-            - sns:ListOriginationNumbers
-            # SMS Sandbox and Configuration
-            - sns:GetSMSSandboxAccountStatus
-            - sns:PromotePhoneNumber
-            - sns:VerifySMSSandboxPhoneNumber
-            - sns:ListSMSSandboxPhoneNumbers
-            - sns:DeleteSMSSandboxPhoneNumber
-            - sns:CreateSMSSandboxPhoneNumber
-          Resource: "*"
-
-        # AWS End User Messaging (for Sender ID management)
-        - Effect: Allow
-          Action:
-            - sms-voice:DescribePhoneNumbers
-            - sms-voice:PutKeyword
-            - sms-voice:DeleteKeyword
-            - sms-voice:DescribeKeywords
-            - sms-voice:PutOptedOutNumber
-            - sms-voice:DeleteOptedOutNumber
-            - sms-voice:DescribeOptedOutNumbers
             - sms-voice:SendTextMessage
-            - sms-voice:SendVoiceMessage
-            - sms-voice:DescribeConfigurationSets
-            - sms-voice:DescribeSenderIds
-            # Pinpoint SMS (alternative SMS service)
-            - mobiletargeting:SendMessages
-            - mobiletargeting:SendUsersMessages
-            - mobiletargeting:GetSmsChannel
-            - mobiletargeting:UpdateSmsChannel
           Resource: "*"
 
-        # SES Permissions for Email
+        # SES Permissions for Email (emailUtil.ts uses SES SendEmail)
         - Effect: Allow
           Action:
             - ses:SendEmail
-            - ses:SendRawEmail
-            - ses:SendTemplatedEmail
-            - ses:SendBulkTemplatedEmail
-            - ses:GetSendStatistics
-            - ses:GetSendQuota
-            - ses:GetIdentityVerificationAttributes
-            - ses:GetIdentityDkimAttributes
-            - ses:ListIdentities
-            - ses:ListVerifiedEmailAddresses
-            - ses:VerifyEmailIdentity
-            - ses:VerifyDomainIdentity
           Resource: "*"
 
 # Package Configuration
@@ -265,53 +243,32 @@ plugins:
   - serverless-offline
   - serverless-prune-plugin
   - serverless-step-functions
+  - serverless-ecr-image-cleaner
 
 # Custom Configuration
 custom:
-  # ================================
-  # STAGE-SPECIFIC CONFIGURATION
-  # ================================
-  # Domain names for different stages
+  # Auto-select database URL based on IS_LOCAL environment variable
+  # Set IS_LOCAL=true for local dev, IS_LOCAL=false for cloud deployment
+  databaseUrl:
+    true: ${env:DATABASE_URL_LOCAL}
+    false: ${env:DATABASE_URL_CLOUD}
+
+  # Auto-select domain name based on IS_LOCAL environment variable
   domainName:
-    local: ${env:DOMAIN_NAME_LOCAL}
-    dev: ${env:DOMAIN_NAME_DEV} # Will have its own certificate
-    prod: ${env:DOMAIN_NAME_PROD} # Will have its own certificate
+    true: ${env:DOMAIN_NAME_LOCAL}
+    false: ${env:DOMAIN_NAME_CLOUD}
 
-  # Client bucket names for different stages
-  clientBucketName:
-    local: ${env:S3_BUCKET_NAME_LOCAL}
-    dev: ${env:S3_BUCKET_NAME_DEV}
-    prod: ${env:S3_BUCKET_NAME_PROD}
-
-  # Assets bucket names for different stages
-  assetsBucketName:
-    local: ${env:S3_ASSETS_BUCKET_NAME_LOCAL}
-    dev: ${env:S3_ASSETS_BUCKET_NAME_DEV}
-    prod: ${env:S3_ASSETS_BUCKET_NAME_PROD}
-
-  # CloudFront aliases - enable custom domains for both stages
-  aliases:
-    local:
-      - ${self:custom.domainName.local} # local.woltflow.shalev396.com
-    dev:
-      - ${self:custom.domainName.dev} # dev.woltflow.shalev396.com
-    prod:
-      - ${self:custom.domainName.prod} # woltflow.shalev396.com
+  # Domain with protocol for CORS (conditional)
+  # Local: http://localhost:5173, Cloud: https://woltflow.com
+  domainWithProtocol:
+    true: http://${env:DOMAIN_NAME_LOCAL}
+    false: https://${env:DOMAIN_NAME_CLOUD}
 
   # SSL/TLS Certificate configuration - use manually created certificates
   viewerCertificate:
-    local:
-      AcmCertificateArn: ${env:CERTIFICATE_ARN_LOCAL} # Manually created local certificate
-      SslSupportMethod: sni-only
-      MinimumProtocolVersion: TLSv1.2_2021
-    dev:
-      AcmCertificateArn: ${env:CERTIFICATE_ARN_DEV} # Manually created dev certificate
-      SslSupportMethod: sni-only
-      MinimumProtocolVersion: TLSv1.2_2021
-    prod:
-      AcmCertificateArn: ${env:CERTIFICATE_ARN_PROD} # Manually created prod certificate
-      SslSupportMethod: sni-only
-      MinimumProtocolVersion: TLSv1.2_2021
+    AcmCertificateArn: ${env:CERTIFICATE_ARN} # Manually created local certificate
+    SslSupportMethod: sni-only
+    MinimumProtocolVersion: TLSv1.2_2021
 
   # CloudFront distribution descriptions
   distributionComment:
@@ -329,6 +286,7 @@ custom:
     disableCookieValidation: true # ← Disables strictHeader cookie validation in Hapi
     enforceSecureCookies: false # ← Ensures Hapi won't require HTTPS for cookies
     printOutput: true
+    noAuth: true
 
   # Prune Configuration - Cleanup old versions
   prune:
@@ -337,8 +295,13 @@ custom:
     includeLayers: true
 
   # Environment Variables Configuration
-  dotenv:
-    path: ./.env
+  envFile: .env.${sls:stage}
+
+  # ECR Image Cleaner Configuration - Keep only last 5 images
+  ecrImageCleaner:
+    appRegion: ${self:provider.region}
+    repositoryName: serverless-${self:service}-${self:provider.stage}
+    numImagesToKeep: 5
 
 # Step Functions Configuration
 stepFunctions:
@@ -437,79 +400,98 @@ stepFunctions:
 
 # Lambda Functions
 functions:
-  #auth
-  authMe:
-    handler: ./build/auth/authMeHandler.handler
+  # ================================
+  # AUTH FUNCTIONS
+  # ================================
+  signup:
+    handler: ./build/auth/signUp.handler
     package:
       patterns:
         - "!build/**"
-        - "build/auth/authMeHandler.mjs"
+        - "build/auth/signUp.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/auth/me
-          method: get
-
-  logout:
-    handler: ./build/auth/logout.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/logout.mjs"
-
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/logout
+          path: /api/auth/signup
           method: post
 
-  oauthCallback:
-    handler: ./build/auth/oauthCallback.handler
+  confirmSignup:
+    handler: ./build/auth/confirmSignUp.handler
     package:
       patterns:
         - "!build/**"
-        - "build/auth/oauthCallback.mjs"
-
+        - "build/auth/confirmSignUp.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/oauth2/callback
-          method: get
+          path: /api/auth/confirm
+          method: post
 
-  oauthStart:
-    handler: ./build/auth/oauthStart.handler
+  login:
+    handler: ./build/auth/login.handler
     package:
       patterns:
         - "!build/**"
-        - "build/auth/oauthStart.mjs"
-
+        - "build/auth/login.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/oauth2/start
-          method: get
+          path: /api/auth/login
+          method: post
 
-  # automation no selenium
-  refreshTokens:
-    handler: ./build/automation/refreshTokens.handler
+  googleAuthUrl:
+    handler: ./build/auth/googleAuthUrl.handler
     package:
       patterns:
         - "!build/**"
-        - "build/automation/refreshTokens.mjs"
-
+        - "build/auth/googleAuthUrl.mjs"
         - "package.json"
-    # events:
-    #   - httpApi:
-    #       path: /api/wolt/refreshTokens
-    #       method: get
+    events:
+      - httpApi:
+          path: /api/auth/google/url
+          method: get
+
+  googleCallback:
+    handler: ./build/auth/googleCallback.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/googleCallback.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/google/callback
+          method: get
+
+  preSignUp:
+    handler: ./build/auth/preSignUp.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/preSignUp.mjs"
+        - "package.json"
+    # No HTTP events - triggered by Cognito PreSignUp
+
+  postConfirmation:
+    handler: ./build/auth/postConfirmation.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/postConfirmation.mjs"
+        - "package.json"
+    # No HTTP events - triggered by Cognito PostConfirmation
+
+  # ================================
+  # AUTOMATION FUNCTIONS
+  # ================================
+  # CRITICAL: Do not modify selenium automation functions - they are working after hours of fixing!
 
   startUserAutomationChain:
-    handler: ./build/automation/startUserAutomationChain.handler
+    handler: ./build/automation/A_startUserAutomationChain.handler
     package:
       patterns:
         - "!build/**"
-        - "build/automation/startUserAutomationChain.mjs"
-
+        - "build/automation/A_startUserAutomationChain.mjs"
         - "package.json"
     events:
       - httpApi:
@@ -520,109 +502,320 @@ functions:
           description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
           enabled: true
 
-  # gmail
-
-  getDailyCode:
-    handler: ./build/gmail/getDailyCode.handler
+  # Non-selenium automation function
+  refreshTokens:
+    handler: ./build/automation/B_refreshTokens.handler
     package:
       patterns:
         - "!build/**"
-        - "build/gmail/getDailyCode.mjs"
-
+        - "build/automation/B_refreshTokens.mjs"
         - "package.json"
-    # events:
-    #   - httpApi:
-    #       path: /api/gmail/daily-code
-    #       method: get
-  #runs
-  getUserRuns:
-    handler: ./build/runs/getUserRuns.handler
+    # No HTTP events - only called by Step Functions
+
+  # SELENIUM AUTOMATION FUNCTIONS - DO NOT MODIFY CONFIGURATION!
+  woltBuyGift:
+    image:
+      name: woltflow-selenium-image
+      command: ["build/automation/C_woltBuyGift.handler"]
+    memorySize: 1536
+    ephemeralStorageSize: 1536
+    timeout: 285
+    # No HTTP events - only called by Step Functions
+
+  # Non-selenium function for email processing
+  getDailyCode:
+    handler: ./build/automation/D_getDailyCode.handler
     package:
       patterns:
         - "!build/**"
-        - "build/runs/getUserRuns.mjs"
+        - "build/automation/D_getDailyCode.mjs"
+        - "package.json"
+    # No HTTP events - only called by Step Functions
 
+  # SELENIUM AUTOMATION FUNCTIONS - DO NOT MODIFY CONFIGURATION!
+  woltApplyGift:
+    image:
+      name: woltflow-selenium-image
+      command: ["build/automation/E_woltApplyGift.handler"]
+    memorySize: 1536
+    ephemeralStorageSize: 1536
+    timeout: 165
+    # No HTTP events - only called by Step Functions
+
+  # ================================
+  # FORWARD FUNCTIONS
+  # ================================
+  generateApiKey:
+    handler: ./build/forward/api/Create.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/forward/api/Create.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/forward/api/generate
+          method: post
+          authorizer:
+            name: cognitoAuthorizer
+
+  smsForward:
+    handler: ./build/forward/sms/create.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/forward/sms/create.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/forward/sms
+          method: post
+
+  # ================================
+  # DASHBOARD FUNCTIONS
+  # ================================
+  getDashboard:
+    handler: ./build/dashboard/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/dashboard/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/dashboard
+          method: get
+          authorizer:
+            name: cognitoAuthorizer
+
+  # ================================
+  # HEALTH FUNCTIONS
+  # ================================
+  healthCheck:
+    handler: ./build/health/get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/health/get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/health
+          method: get
+
+  # ================================
+  # RUNS FUNCTIONS
+  # ================================
+  getUserRuns:
+    handler: ./build/runs/GetAll.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/runs/GetAll.mjs"
         - "package.json"
     events:
       - httpApi:
           path: /api/runs
           method: get
-  #setting
-  getUserSettings:
-    handler: ./build/setting/getusersettings.handler
+          authorizer:
+            name: cognitoAuthorizer
+
+  # ================================
+  # SETTINGS FUNCTIONS
+  # ================================
+
+  # Cibus Settings
+  getCibusSettings:
+    handler: ./build/settings/cibus/Get.handler
     package:
       patterns:
         - "!build/**"
-        - "build/setting/getusersettings.mjs"
-
+        - "build/settings/cibus/Get.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/setting
+          path: /api/settings/cibus
           method: get
+          authorizer:
+            name: cognitoAuthorizer
 
-  setUserSettings:
-    handler: ./build/setting/setusersettings.handler
+  updateCibusSettings:
+    handler: ./build/settings/cibus/Update.handler
     package:
       patterns:
         - "!build/**"
-        - "build/setting/setusersettings.mjs"
-
+        - "build/settings/cibus/Update.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/setting
-          method: post
+          path: /api/settings/cibus
+          method: put
+          authorizer:
+            name: cognitoAuthorizer
 
-  #api
-  generateApiKey:
-    handler: ./build/api/generateApiKey.handler
+  # Notification Settings
+  getNotificationSettings:
+    handler: ./build/settings/notification/Get.handler
     package:
       patterns:
         - "!build/**"
-        - "build/api/generateApiKey.mjs"
-
+        - "build/settings/notification/Get.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/sms/generate-api-key
-          method: post
+          path: /api/settings/notification
+          method: get
+          authorizer:
+            name: cognitoAuthorizer
 
-  #sms
-  smsForward:
-    handler: ./build/sms/smsForward.handler
+  updateNotificationSettings:
+    handler: ./build/settings/notification/Update.handler
     package:
       patterns:
         - "!build/**"
-        - "build/sms/smsForward.mjs"
-
+        - "build/settings/notification/Update.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/sms/forward
-          method: post
+          path: /api/settings/notification
+          method: put
+          authorizer:
+            name: cognitoAuthorizer
 
-  testSms:
-    handler: ./build/test/testSms.handler
+  # 2FA Functions
+  start2FA:
+    handler: ./build/settings/notification/TwoFactorAuthentication/Create.handler
     package:
       patterns:
         - "!build/**"
-        - "build/test/testSms.mjs"
+        - "build/settings/notification/TwoFactorAuthentication/Create.mjs"
+        - "package.json"
+        - "templates/**"
+    events:
+      - httpApi:
+          path: /api/settings/notification/2fa/start
+          method: post
+          authorizer:
+            name: cognitoAuthorizer
 
+  verify2FA:
+    handler: ./build/settings/notification/TwoFactorAuthentication/verify.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/notification/TwoFactorAuthentication/verify.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/test/sms
+          path: /api/settings/notification/2fa/verify
           method: post
-    # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
+          authorizer:
+            name: cognitoAuthorizer
 
+  # Run Settings
+  getRunSettings:
+    handler: ./build/settings/run/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/run/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/run
+          method: get
+          authorizer:
+            name: cognitoAuthorizer
+
+  updateRunSettings:
+    handler: ./build/settings/run/Update.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/run/Update.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/run
+          method: put
+          authorizer:
+            name: cognitoAuthorizer
+
+  # Wolt Settings
+  getWoltSettings:
+    handler: ./build/settings/wolt/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/wolt/Get.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/wolt
+          method: get
+          authorizer:
+            name: cognitoAuthorizer
+
+  updateWoltSettings:
+    handler: ./build/settings/wolt/Update.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/settings/wolt/Update.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/settings/wolt
+          method: put
+          authorizer:
+            name: cognitoAuthorizer
+
+  # ================================
+  # USER FUNCTIONS
+  # ================================
+  exportUserData:
+    handler: ./build/user/export.handler
+    timeout: 120 # 2 minutes for processing large exports with many files (REQUIRED!)
+    memorySize: 1024 # Increased memory for ZIP creation and file processing
+    package:
+      patterns:
+        - "!build/**"
+        - "build/user/export.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/user/export
+          method: get
+          authorizer:
+            name: cognitoAuthorizer
+    # Export all user data - GET request returns complete ZIP archive with files
+
+  deleteUserAccount:
+    handler: ./build/user/delete.handler
+    timeout: 120 # 5 minutes for processing complete user deletion including S3 files
+    memorySize: 512 # Sufficient memory for deletion operations
+    package:
+      patterns:
+        - "!build/**"
+        - "build/user/delete.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/user/delete
+          method: delete
+          authorizer:
+            name: cognitoAuthorizer
+    # Delete complete user account - DELETE request permanently removes all user data
+
+  # ================================
+  # TEST FUNCTIONS
+  # ================================
   testEmail:
     handler: ./build/test/testEmail.handler
     package:
       patterns:
         - "!build/**"
         - "build/test/testEmail.mjs"
-
         - "package.json"
     events:
       - httpApi:
@@ -630,125 +823,86 @@ functions:
           method: post
     # Test Email function - send POST request with { "email": "test@example.com" }
 
-  # 2FA notification endpoints
-  start2FA:
-    handler: ./build/notifications/start2FA.handler
+  testSms:
+    handler: ./build/test/testSms.handler
     package:
       patterns:
         - "!build/**"
-        - "build/notifications/start2FA.mjs"
-
+        - "build/test/testSms.mjs"
         - "package.json"
-        - "templates/**"
     events:
       - httpApi:
-          path: /api/setting/2FA/start
+          path: /api/test/sms
           method: post
+    # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
 
-  verify2FA:
-    handler: ./build/notifications/verify2FA.handler
+  # ================================
+  # DATA CLEANUP FUNCTIONS
+  # ================================
+  dataCleanup:
+    handler: ./build/dataCleanup.handler
     package:
       patterns:
         - "!build/**"
-        - "build/notifications/verify2FA.mjs"
-
+        - "build/cleanup/dataCleanup.mjs"
         - "package.json"
+    timeout: 300
+    memorySize: 512
     events:
-      - httpApi:
-          path: /api/setting/2FA/code
-          method: post
+      - schedule:
+          rate: cron(0 0 * * ? *)
+          description: "Daily data cleanup at 00:00 UTC (privacy policy compliance)"
+          enabled: true
+    # Automated data cleanup function - runs daily at 00:00 UTC (02:00 Israel time) to clean expired data per privacy policy
 
-  saveNotificationSettings:
-    handler: ./build/notifications/saveNotificationSettings.handler
+    # ================================
+  # INBOX FUNCTIONS
+  # ================================
+
+  # Email ingestion function - triggered by SES
+  ingestEmail:
+    handler: ./build/inbox/ingestEmail.handler
     package:
       patterns:
         - "!build/**"
-        - "build/notifications/saveNotificationSettings.mjs"
+        - "build/inbox/ingestEmail.mjs"
+        - "package.json"
+    timeout: 60
+    memorySize: 512
+    # No HTTP events - only triggered by SES
 
+  # Get user's inbox and emails
+  getInbox:
+    handler: ./build/inbox/Get.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/inbox/Get.mjs"
         - "package.json"
     events:
       - httpApi:
-          path: /api/setting/notification
-          method: post
+          path: /api/inbox
+          method: get
+          authorizer:
+            name: cognitoAuthorizer
 
-  # cleanup2FA:
-  #   handler: ./build/notifications/cleanup2FA.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/notifications/cleanup2FA.mjs"
-  #       - "package.json"
-  #   events:
-  #     - schedule:
-  #         rate: cron(0 0 * * ? *) # every day at 00:00
-  #         description: "Clean up expired 2FA codes every day"
+  # Download email attachment securely
+  downloadAttachment:
+    handler: ./build/inbox/DownloadAttachment.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/inbox/DownloadAttachment.mjs"
+        - "package.json"
+    timeout: 30
+    memorySize: 512
+    events:
+      - httpApi:
+          path: /api/inbox/{emailId}/attachment/{attachmentIndex}
+          method: get
+          authorizer:
+            name: cognitoAuthorizer
 
-  #automation with selenium
-  woltBuyGift:
-    image:
-      name: woltflow-selenium-image
-      command: ["build/automation/woltBuyGift.handler"]
-    # package:
-    #   patterns:
-    #     - "!build/**"
-    #     - "build/automation/woltBuyGift.mjs"
-
-    #     - "package.json"
-    #     - "templates/**"
-    memorySize: 1536
-    ephemeralStorageSize: 1536
-    timeout: 250 # 225 old
-    # events:
-    #   - httpApi:
-    #       path: /api/wolt/buyGift
-    #       method: get
-
-  woltApplyGift:
-    image:
-      name: woltflow-selenium-image
-      command: ["build/automation/woltApplyGift.handler"]
-    # package:
-    #   patterns:
-    #     - "!build/**"
-    #     - "build/automation/woltApplyGift.mjs"
-    #     - "package.json"
-    #     - "templates/**"
-    memorySize: 1536
-    ephemeralStorageSize: 1536
-    timeout: 150
-    # events:
-    #   - httpApi:
-    #       path: /api/wolt/applyGift
-    #       method: get
-
-  # # Temp functions for bulk code processing
-  # getAllWoltCodes:
-  #   handler: ./build/temp/getAllWoltCodes.handler
-  #   package:
-  #     patterns:
-  #       - "!build/**"
-  #       - "build/temp/getAllWoltCodes.mjs"
-  #       - "package.json"
-  #   timeout: 900 # 15 minutes for large email processing
-  #   events:
-  #     - httpApi:
-  #         path: /api/temp/get-all-codes
-  #         method: get
-  #   # Scan all Wolt emails from last 6 months and extract codes - GET /api/temp/get-all-codes?userId=USER_ID
-
-  # applyAllCodes:
-  #   image:
-  #     name: woltflow-selenium-image
-  #     command: ["build/temp/applyAllCodes.handler"]
-  #   memorySize: 1536
-  #   ephemeralStorageSize: 1536
-  #   timeout: 900 # 15 minutes for bulk code application
-  #   events:
-  #     - httpApi:
-  #         path: /api/temp/apply-all-codes
-  #         method: get
-  #   # Apply all unused codes for a user - GET /api/temp/apply-all-codes?userId=USER_ID
-  #
 # AWS Resources Configuration
 resources:
   Resources:
@@ -762,7 +916,7 @@ resources:
     ClientFilesBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.clientBucketName.${self:provider.stage}}
+        BucketName: ${env:S3_CLIENT_BUCKET_NAME}
         # Enable public read access for static website hosting
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
@@ -816,7 +970,7 @@ resources:
     AssetsBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.assetsBucketName.${self:provider.stage}}
+        BucketName: ${env:S3_ASSETS_BUCKET_NAME}
         # Enable public read access for assets
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
@@ -826,6 +980,21 @@ resources:
         # Enable versioning
         VersioningConfiguration:
           Status: Enabled
+        # Lifecycle configuration for automatic cleanup
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldVersions
+              Status: Enabled
+              NoncurrentVersionExpirationInDays: 30
+            - Id: DeleteExportFiles
+              Status: Enabled
+              Prefix: exports/ # Use Prefix directly, not under Filter
+              ExpirationInDays: 1 # Delete export ZIP files after 24 hours (minimum allowed)
+            # - Id: DeleteScreenshots
+            #   Status: Enabled
+            #   Filter:
+            #     Prefix: images/
+            #   ExpirationInDays: 90 # Keep screenshots for 90 days (matches privacy policy)
         # CORS configuration for cross-origin requests
         CorsConfiguration:
           CorsRules:
@@ -854,6 +1023,171 @@ resources:
                       - Ref: AssetsBucket
                       - "/*"
 
+    # S3 Bucket for Emails
+    # This bucket will store email content and attachments from SES
+    # Stage-specific:
+    EmailBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:S3_EMAIL_BUCKET_NAME}
+        # Private bucket - no public access for emails
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        # Enable versioning for email backup
+        VersioningConfiguration:
+          Status: Enabled
+        # Lifecycle configuration to manage email storage costs
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldEmails
+              Status: Enabled
+              ExpirationInDays: 365 # Keep emails for 1 year
+            - Id: ArchiveOldEmails
+              Status: Enabled
+              Transitions:
+                - TransitionInDays: 30
+                  StorageClass: STANDARD_IA
+                - TransitionInDays: 90
+                  StorageClass: GLACIER
+        # CORS configuration for Lambda access
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ["*"]
+              AllowedMethods: [GET, HEAD, PUT, POST, DELETE]
+              AllowedOrigins: ["*"]
+              MaxAge: 3600
+        # Server-side encryption for email security
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+
+    # S3 Bucket Policy for Emails - Allows both Lambda and SES access
+    EmailBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: EmailBucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: DenyPublicAccess
+              Effect: Deny
+              Principal: "*"
+              Action: "s3:*"
+              Resource:
+                - Fn::Join:
+                    - ""
+                    - - "arn:aws:s3:::"
+                      - Ref: EmailBucket
+                - Fn::Join:
+                    - ""
+                    - - "arn:aws:s3:::"
+                      - Ref: EmailBucket
+                      - "/*"
+              Condition:
+                Bool:
+                  "aws:SecureTransport": "false"
+            - Sid: AllowLambdaAccess
+              Effect: Allow
+              Principal:
+                AWS:
+                  Fn::Sub: "arn:aws:iam::${AWS::AccountId}:root"
+              Action:
+                - "s3:GetObject"
+                - "s3:PutObject"
+                - "s3:DeleteObject"
+                - "s3:ListBucket"
+              Resource:
+                - Fn::Join:
+                    - ""
+                    - - "arn:aws:s3:::"
+                      - Ref: EmailBucket
+                - Fn::Join:
+                    - ""
+                    - - "arn:aws:s3:::"
+                      - Ref: EmailBucket
+                      - "/*"
+            - Sid: AllowSESPuts
+              Effect: Allow
+              Principal:
+                Service: ses.amazonaws.com
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+              Resource:
+                Fn::Join:
+                  - ""
+                  - - "arn:aws:s3:::"
+                    - Ref: EmailBucket
+                    - "/*"
+              Condition:
+                StringEquals:
+                  "aws:Referer":
+                    Ref: AWS::AccountId
+
+    # ================================
+    # SES EMAIL INFRASTRUCTURE
+    # ================================
+
+    # SES Domain Identity for Email Subdomain
+    SESEmailIdentity:
+      Type: AWS::SES::EmailIdentity
+      Properties:
+        EmailIdentity: ${env:EMAIL_SUBDOMAIN}
+        DkimAttributes:
+          SigningEnabled: true
+        FeedbackAttributes:
+          EmailForwardingEnabled: false
+        ConfigurationSetAttributes:
+          ConfigurationSetName: !Ref SESConfigurationSet
+
+    # SES Configuration Set
+    SESConfigurationSet:
+      Type: AWS::SES::ConfigurationSet
+      Properties:
+        Name: ${self:service}-${self:provider.stage}-email-config
+
+    # SES Receipt Rule Set
+    SESReceiptRuleSet:
+      Type: AWS::SES::ReceiptRuleSet
+      Properties:
+        RuleSetName: ${self:service}-${self:provider.stage}-email-rules
+
+    # SES Receipt Rule for User Emails
+    SESReceiptRule:
+      Type: AWS::SES::ReceiptRule
+      DependsOn:
+        - SESReceiptRuleSet
+        - EmailBucket
+      Properties:
+        RuleSetName: !Ref SESReceiptRuleSet
+        Rule:
+          Name: capture-user-emails
+          Recipients:
+            - ${env:EMAIL_SUBDOMAIN}
+          Enabled: true
+          ScanEnabled: true
+          Actions:
+            - S3Action:
+                BucketName: !Ref EmailBucket
+                ObjectKeyPrefix: raw/
+            - LambdaAction:
+                FunctionArn: !GetAtt IngestEmailLambdaFunction.Arn
+                InvocationType: Event
+
+    # SES Lambda Permission
+    SESLambdaInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName: !Ref IngestEmailLambdaFunction
+        Action: lambda:InvokeFunction
+        Principal: ses.amazonaws.com
+        SourceAccount: !Ref AWS::AccountId
+
     # ================================
     # CLOUDFRONT DISTRIBUTION
     # ================================
@@ -871,10 +1205,11 @@ resources:
           Enabled: true
 
           # Domain aliases - the custom domain names (stage-specific)
-          Aliases: ${self:custom.aliases.${self:provider.stage}}
+          Aliases:
+            - ${env:DOMAIN_NAME_CLOUD}
 
           # SSL/TLS Certificate configuration
-          ViewerCertificate: ${self:custom.viewerCertificate.${self:provider.stage}}
+          ViewerCertificate: ${self:custom.viewerCertificate}
 
           # Default cache behavior for /* - serves React app
           DefaultCacheBehavior:
@@ -983,7 +1318,7 @@ resources:
       Type: AWS::Route53::RecordSet
       Properties:
         HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: ${self:custom.domainName.${self:provider.stage}}
+        Name: ${env:DOMAIN_NAME_CLOUD}
         Type: A
         # Alias configuration - points to CloudFront distribution
         AliasTarget:
@@ -993,3 +1328,201 @@ resources:
               - DomainName
           HostedZoneId: Z2FDTNDATAQYW2 # CloudFront hosted zone ID (global)
           EvaluateTargetHealth: false
+
+    # ================================
+    # SES EMAIL DNS RECORDS
+    # ================================
+
+    # MX Record for SES Email Receiving - Points email subdomain to SES
+    SESMXRecord:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneId: ${env:HOSTED_ZONE_ID}
+        Name: ${env:EMAIL_SUBDOMAIN}
+        Type: MX
+        TTL: 300
+        ResourceRecords:
+          - "10 inbound-smtp.${env:AWS_REGION}.amazonaws.com"
+
+    # TXT Record for SES Domain Verification (if needed)
+    SESTXTRecord:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneId: ${env:HOSTED_ZONE_ID}
+        Name: ${env:EMAIL_SUBDOMAIN}
+        Type: TXT
+        TTL: 300
+        ResourceRecords:
+          - '"v=spf1 include:amazonses.com ~all"'
+
+    # ================================
+    # COGNITO USER POOL
+    # ================================
+
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${self:provider.stage}
+        # Set to Essentials tier instead of Plus (default)
+        # Options: ESSENTIALS (recommended), PLUS (default if not specified), LITE (basic features only)
+        UserPoolTier: ESSENTIALS
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Required: true
+            Mutable: false
+          - Name: name
+            AttributeDataType: String
+            Required: false
+            Mutable: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireUppercase: true
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        # Advanced Security Mode disabled for ESSENTIALS tier
+        # To enable threat protection, upgrade to PLUS tier and set: AdvancedSecurityMode: ENFORCED
+        UserPoolAddOns:
+          AdvancedSecurityMode: OFF
+        # Lambda Triggers for Account Linking
+        LambdaConfig:
+          PreSignUp: !GetAtt PreSignUpLambdaFunction.Arn
+          PostConfirmation: !GetAtt PostConfirmationLambdaFunction.Arn
+
+    # Cognito Domain for OAuth flows
+    CognitoUserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties:
+        Domain: ${env:COGNITO_DOMAIN}
+        UserPoolId:
+          Ref: CognitoUserPool
+
+    # Google Identity Provider
+    CognitoUserPoolIdentityProvider:
+      Type: AWS::Cognito::UserPoolIdentityProvider
+      Properties:
+        ProviderName: Google
+        ProviderType: Google
+        UserPoolId:
+          Ref: CognitoUserPool
+        ProviderDetails:
+          client_id: ${env:GOOGLE_CLIENT_ID}
+          client_secret: ${env:GOOGLE_CLIENT_SECRET}
+          authorize_scopes: "openid email profile"
+        AttributeMapping:
+          email: email
+          name: name
+          username: sub
+
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      DependsOn:
+        - CognitoUserPoolIdentityProvider
+      Properties:
+        ClientName: ${self:service}-${self:provider.stage}-client
+        UserPoolId:
+          Ref: CognitoUserPool
+        GenerateSecret: false
+        ExplicitAuthFlows:
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_SRP_AUTH
+        PreventUserExistenceErrors: ENABLED
+        EnableTokenRevocation: true
+        AccessTokenValidity: 1 # 1 hour
+        IdTokenValidity: 1 # 1 hour
+        RefreshTokenValidity: 30 # 30 days
+        TokenValidityUnits:
+          AccessToken: hours
+          IdToken: hours
+          RefreshToken: days
+        ReadAttributes:
+          - email
+          - name
+          - email_verified
+        WriteAttributes:
+          - email
+          - name
+        # OAuth Settings for Google Sign-In
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthScopes:
+          - email
+          - openid
+          - profile
+        CallbackURLs:
+          - https://${env:DOMAIN_NAME_CLOUD}/auth/callback
+          - http://${env:DOMAIN_NAME_LOCAL}/auth/callback
+        LogoutURLs:
+          - https://${env:DOMAIN_NAME_CLOUD}/auth/logout
+          - http://${env:DOMAIN_NAME_LOCAL}/auth/logout
+        SupportedIdentityProviders:
+          - COGNITO
+          - Google
+
+    # Lambda Permission for PreSignUp Trigger
+    CognitoPreSignUpLambdaInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName: !Ref PreSignUpLambdaFunction
+        Action: lambda:InvokeFunction
+        Principal: cognito-idp.amazonaws.com
+        SourceArn: !GetAtt CognitoUserPool.Arn
+
+    # Lambda Permission for PostConfirmation Trigger
+    CognitoPostConfirmationLambdaInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName: !Ref PostConfirmationLambdaFunction
+        Action: lambda:InvokeFunction
+        Principal: cognito-idp.amazonaws.com
+        SourceArn: !GetAtt CognitoUserPool.Arn
+
+  Outputs:
+    CognitoUserPoolId:
+      Description: Cognito User Pool ID
+      Value:
+        Ref: CognitoUserPool
+      Export:
+        Name: ${self:service}-${self:provider.stage}-UserPoolId
+
+    CognitoClientId:
+      Description: Cognito User Pool Client ID
+      Value:
+        Ref: CognitoUserPoolClient
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ClientId
+
+    CognitoIssuer:
+      Description: Cognito Token Issuer URL
+      Value:
+        Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-Issuer
+
+    CloudFrontDistributionId:
+      Description: CloudFront Distribution ID for cache invalidation
+      Value:
+        Ref: CloudFrontDistribution
+      Export:
+        Name: ${self:service}-${self:provider.stage}-CloudFrontDistributionId
+
+    S3ClientBucketName:
+      Description: S3 Client Bucket Name for frontend deployment
+      Value:
+        Ref: ClientFilesBucket
+      Export:
+        Name: ${self:service}-${self:provider.stage}-S3ClientBucketName

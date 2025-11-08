@@ -1,44 +1,115 @@
-import jwt from "jsonwebtoken";
-import { CustomAPIGatewayProxyHandler } from "../typescript/types/aws.js";
-import { ICustomAPIGatewayProxyEventAuth } from "../typescript/interfaces/aws.js";
-import { APIGatewayProxyResult, Context } from "aws-lambda";
-console.log("authMiddleware");
+import {
+  type CustomAPIGatewayProxyHandler,
+  type ICustomAPIGatewayProxyEventAuth,
+} from "../types/index.js";
+import {
+  type Callback,
+  type APIGatewayProxyResult,
+  type Context,
+} from "aws-lambda";
+import { getErrorMessage } from "../utils/responseUtil.js";
+import { verifyToken } from "../utils/cognitoUtil.js";
+import { User } from "../models/index.js";
+import { initDB } from "../config/bootstrap.js";
+
+// Connect to database
+await initDB();
+
 export const authMiddleware = (
   handler: CustomAPIGatewayProxyHandler
 ): CustomAPIGatewayProxyHandler => {
   return async (
     event: ICustomAPIGatewayProxyEventAuth,
     context: Context,
-    callback: (error?: Error | null | string, result?: any) => void
+    callback: Callback
   ): Promise<APIGatewayProxyResult> => {
     try {
-      const cookieHeader =
-        (event.cookies && event.cookies.join("; ")) ||
-        event.headers["cookie"] ||
-        "";
-      const cookies = Object.fromEntries(
-        cookieHeader.split("; ").map((p) => p.split("="))
-      );
-      const token = cookies["sessionToken"];
+      console.log("authMiddleware start");
 
-      if (!token) {
+      let cognitoSub: string;
+
+      // Check if already authenticated by API Gateway (cloud environment)
+      // API Gateway puts JWT claims in requestContext.authorizer.jwt.claims
+      const requestContext = event.requestContext as unknown as {
+        authorizer?: {
+          jwt?: {
+            claims?: {
+              sub?: string;
+            };
+          };
+        };
+      };
+      if (requestContext?.authorizer?.jwt?.claims?.sub) {
+        console.log("✅ Using API Gateway JWT validation (Production)");
+        cognitoSub = requestContext.authorizer.jwt.claims.sub;
+      } else {
+        // Local environment - validate token manually from Authorization header
+        console.log("⚠️  Using middleware JWT validation (Local Development)");
+        console.log(
+          "   If you see this in CloudWatch for production, API Gateway authorizer is not working!"
+        );
+
+        // Get token from Authorization header
+        const authHeader =
+          event.headers.authorization || event.headers.Authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return {
+            statusCode: 401,
+            body: JSON.stringify({
+              success: false,
+              message:
+                "Missing or invalid Authorization header. Expected: Bearer <token>",
+            }),
+          };
+        }
+
+        const token = authHeader.substring(7);
+
+        // Verify Cognito token and get claims
+        const claims = await verifyToken(token);
+
+        // Extract cognitoSub from token
+        if (!claims.sub) {
+          return {
+            statusCode: 401,
+            body: JSON.stringify({
+              success: false,
+              message: "Invalid token: missing sub claim",
+            }),
+          };
+        }
+        cognitoSub = claims.sub;
+      }
+
+      // Look up user by cognitoSub to get the actual User.id (UUID)
+      const user = await User.findOne({
+        where: { cognitoSub },
+        attributes: ["id", "cognitoSub"],
+      });
+
+      if (!user) {
         return {
-          statusCode: 401,
-          body: JSON.stringify({ error: "Not authenticated" }),
+          statusCode: 404,
+          body: JSON.stringify({
+            success: false,
+            message: "User not found",
+          }),
         };
       }
-      const payload = jwt.verify(token, process.env["JWT_SECRET"]!) as {
-        userId: string;
-      };
 
-      // Add userId to both event and context
-      event.userId = payload.userId;
+      // Attach both userId (UUID) and cognitoSub to the event
+      event.userId = user.id;
+      event.cognitoSub = cognitoSub;
 
       return await handler(event, context, callback);
-    } catch (err: any) {
+    } catch (err) {
       return {
         statusCode: 401,
-        body: JSON.stringify({ error: err.message || "Invalid token" }),
+        body: JSON.stringify({
+          success: false,
+          message: getErrorMessage(err) || "Invalid token",
+        }),
       };
     }
   };

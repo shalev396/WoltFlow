@@ -1,0 +1,144 @@
+{
+  "title": "SMS Forwarding Setup",
+  "description": "SMS forwarding allows WoltFlow to automatically handle Cibus two-factor authentication by receiving and processing SMS verification codes on your behalf during automation runs.",
+  "whyNeeded": {
+    "title": "Why SMS Forwarding is Needed",
+    "description": "When WoltFlow logs into your Cibus account, Cibus may send a verification code to your phone for security. SMS forwarding allows our automation to receive and process these codes automatically, ensuring uninterrupted daily runs."
+  },
+  "apiSetup": {
+    "title": "API Endpoint Setup",
+    "developerInfo": {
+      "title": "Developer Information",
+      "description": "SMS forwarding requires technical setup using our API endpoint. Your SMS forwarding app will send HTTP requests to this endpoint when it receives relevant messages."
+    },
+    "endpointUrl": {
+      "title": "API Endpoint URL"
+    },
+    "headers": {
+      "title": "Headers"
+    },
+    "requestBody": {
+      "title": "Request Body (JSON)"
+    },
+    "authentication": {
+      "title": "Authentication",
+      "description": "Replace {code} with your personal API key generated from WoltFlow settings.",
+      "code": "your-api-key-here"
+    }
+  },
+  "androidSetup": {
+    "title": "Android Configuration",
+    "description": "Choose between our official WoltFlow SMS Forwarder (recommended) or alternative apps for Android SMS forwarding.",
+    "official": {
+      "title": "WoltFlow SMS Forwarder",
+      "badge": "Recommended",
+      "description": "Our official SMS forwarding app designed specifically for WoltFlow integration. Features automatic configuration and optimized performance.",
+      "features": {
+        "title": "Features:",
+        "list": [
+          "Pre-configured for WoltFlow",
+          "Automatic API key detection",
+          "Smart filtering for 2FA codes",
+          "Minimal battery usage"
+        ]
+      },
+      "button": "Coming Soon"
+    },
+    "alternative": {
+      "title": "Alternative Apps",
+      "smsForwarder": {
+        "title": "SMS Forwarder",
+        "description": "Popular third-party app with webhook support",
+        "badge": "Coming Soon"
+      },
+      "automate": {
+        "title": "Automate (Tasker)",
+        "description": "Advanced automation with SMS forwarding capabilities",
+        "badge": "Coming Soon"
+      }
+    }
+  },
+  "iosSetup": {
+    "title": "iOS Configuration",
+    "description": "iOS has strict restrictions on SMS access, but you can use the Shortcuts app to create automated workflows for SMS forwarding.",
+    "shortcuts": {
+      "title": "iOS Shortcuts Setup",
+      "badge": "Semi-Automatic",
+      "description": "Use the iOS Shortcuts app to automatically forward SMS messages from Wolt Two Factor Authentication to WoltFlow.",
+      "stepsTitle": "Step-by-Step Instructions:",
+      "steps": [
+        {
+          "title": "Open Shortcuts App",
+          "description": "Launch the Shortcuts app on your iPhone and tap the \"Automation\" tab"
+        },
+        {
+          "title": "Create New Automation",
+          "description": "Tap the \"+\" button to create a new automation"
+        },
+        {
+          "title": "Search for \"Message\"",
+          "description": "Search for and select \"Message\" as your trigger"
+        },
+        {
+          "title": "Configure Sender",
+          "description": "Set the sender to \"Wolt Two Factor Authentication\" (the exact number will be provided later)"
+        },
+        {
+          "title": "Message Contains",
+          "description": "In \"Message contains\", press space then enter. This captures all messages from this number."
+        },
+        {
+          "title": "Enable Immediate Activation",
+          "description": "Turn on \"Run Immediately\" to avoid manual confirmation"
+        },
+        {
+          "title": "Add Action: Text",
+          "description": "Tap \"New Blank Automation\" then search for and add \"Text\" action. Enter your WoltFlow API key here."
+        },
+        {
+          "title": "Add Action: Get Contents of URL",
+          "description": "Search for and add \"Get Contents of URL\" action"
+        },
+        {
+          "title": "Configure HTTP Request",
+          "description": "Configure the HTTP request with the following details:",
+          "details": {
+            "url": "URL:",
+            "method": "Method: POST",
+            "headers": "Headers: Add \"X-API-Key\" with value from the Text box (step 7)",
+            "requestBody": "Request Body: JSON format",
+            "bodyContent": "Body Content:"
+          }
+        }
+      ],
+      "limitations": {
+        "title": "iOS Limitations",
+        "description": "iOS Shortcuts requires user confirmation for network requests. While this setup works, it may require manual approval for each SMS forward. For fully automatic forwarding, consider using a dedicated Android device."
+      }
+    },
+    "alternatives": {
+      "title": "Alternative iOS Solutions",
+      "dualDevice": {
+        "title": "Dual Device Setup",
+        "description": "Use an Android device or tablet for SMS forwarding while keeping your main iPhone",
+        "badge": "Recommended"
+      },
+      "email2fa": {
+        "title": "Email 2FA Switch",
+        "description": "Check if Cibus supports email-based 2FA instead of SMS",
+        "badge": "If Available"
+      }
+    }
+  },
+  "testing": {
+    "title": "Testing Your Setup",
+    "verify": {
+      "title": "Verify SMS Forwarding",
+      "description": "After setting up your SMS forwarding, send yourself a test message containing a 6-digit verification code. Check that the message is successfully forwarded to the WoltFlow API endpoint. You can monitor this in your app's forwarding logs."
+    },
+    "complete": {
+      "description": "Once SMS forwarding is configured, you can proceed to set up email forwarding to complete your automation setup.",
+      "button": "Continue to Email Forwarding Setup"
+    }
+  }
+}

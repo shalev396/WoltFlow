@@ -1,11 +1,13 @@
 import {
-  SNSClient,
-  PublishCommand,
-  PublishCommandInput,
-} from "@aws-sdk/client-sns";
+  PinpointSMSVoiceV2Client,
+  SendTextMessageCommand,
+  type SendTextMessageCommandInput,
+} from "@aws-sdk/client-pinpoint-sms-voice-v2";
 
-// Initialize SNS client for il-central-1 region
-const snsClient = new SNSClient({ region: "il-central-1" });
+// Initialize Pinpoint SMS Voice V2 client
+const pinpointSmsClient = new PinpointSMSVoiceV2Client({
+  region: process.env.AWS_REGION,
+});
 
 export interface SendSmsBySenderIDOptions {
   phoneNumber: string;
@@ -44,10 +46,9 @@ export async function sendSmsBySenderID(
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
-    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
-    if (!enabledSMS) {
+    if (!process.env.ENABLED_SMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
       );
       return {
         success: false,
@@ -83,23 +84,15 @@ export async function sendSmsBySenderID(
       };
     }
 
-    const publishInput: PublishCommandInput = {
-      PhoneNumber: formattedPhoneNumber,
-      Message: message,
-      MessageAttributes: {
-        "AWS.SNS.SMS.SenderID": {
-          DataType: "String",
-          StringValue: senderID,
-        },
-        "AWS.SNS.SMS.SMSType": {
-          DataType: "String",
-          StringValue: smsType,
-        },
-      },
+    const sendMessageInput: SendTextMessageCommandInput = {
+      DestinationPhoneNumber: formattedPhoneNumber,
+      MessageBody: message,
+      OriginationIdentity: senderID,
+      MessageType: smsType === "Promotional" ? "PROMOTIONAL" : "TRANSACTIONAL",
     };
 
-    const publishCommand = new PublishCommand(publishInput);
-    const result = await snsClient.send(publishCommand);
+    const sendMessageCommand = new SendTextMessageCommand(sendMessageInput);
+    const result = await pinpointSmsClient.send(sendMessageCommand);
 
     console.log(
       `SMS sent successfully via Sender ID "${senderID}" to ${formattedPhoneNumber}:`,
@@ -137,10 +130,9 @@ export async function sendSmsByLongCode(
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
-    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
-    if (!enabledSMS) {
+    if (!process.env.ENABLED_SMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
       );
       return {
         success: false,
@@ -187,23 +179,15 @@ export async function sendSmsByLongCode(
       };
     }
 
-    const publishInput: PublishCommandInput = {
-      PhoneNumber: formattedPhoneNumber,
-      Message: message,
-      MessageAttributes: {
-        "AWS.SNS.SMS.OriginationNumber": {
-          DataType: "String",
-          StringValue: formattedOriginationNumber,
-        },
-        "AWS.SNS.SMS.SMSType": {
-          DataType: "String",
-          StringValue: smsType,
-        },
-      },
+    const sendMessageInput: SendTextMessageCommandInput = {
+      DestinationPhoneNumber: formattedPhoneNumber,
+      MessageBody: message,
+      OriginationIdentity: formattedOriginationNumber,
+      MessageType: smsType === "Promotional" ? "PROMOTIONAL" : "TRANSACTIONAL",
     };
 
-    const publishCommand = new PublishCommand(publishInput);
-    const result = await snsClient.send(publishCommand);
+    const sendMessageCommand = new SendTextMessageCommand(sendMessageInput);
+    const result = await pinpointSmsClient.send(sendMessageCommand);
 
     console.log(
       `SMS sent successfully via Long Code "${formattedOriginationNumber}" to ${formattedPhoneNumber}:`,
@@ -241,10 +225,10 @@ export async function sendSmsBySharedNumber(
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
-    const enabledSMS = process.env["enabledSMS"]?.toLowerCase() === "true";
+    const enabledSMS = process.env.ENABLED_SMS;
     if (!enabledSMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env["enabledSMS"]})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
       );
       return {
         success: false,
@@ -275,19 +259,16 @@ export async function sendSmsBySharedNumber(
       };
     }
 
-    const publishInput: PublishCommandInput = {
-      PhoneNumber: formattedPhoneNumber,
-      Message: message,
-      MessageAttributes: {
-        "AWS.SNS.SMS.SMSType": {
-          DataType: "String",
-          StringValue: smsType,
-        },
-      },
+    const sendMessageInput: SendTextMessageCommandInput = {
+      DestinationPhoneNumber: formattedPhoneNumber,
+      MessageBody: message,
+      MessageType: smsType === "Promotional" ? "PROMOTIONAL" : "TRANSACTIONAL",
+      // Note: For shared numbers, we don't specify OriginationIdentity
+      // AWS will use a shared pool number automatically
     };
 
-    const publishCommand = new PublishCommand(publishInput);
-    const result = await snsClient.send(publishCommand);
+    const sendMessageCommand = new SendTextMessageCommand(sendMessageInput);
+    const result = await pinpointSmsClient.send(sendMessageCommand);
 
     console.log(
       `SMS sent successfully via Shared Number to ${formattedPhoneNumber}:`,

@@ -1,44 +1,74 @@
-// models/User.ts
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Op } from "sequelize";
 import sequelize from "../config/database.js";
 
 export default class User extends Model {
-  declare userId: string; // Google sub (unique ID)
-  declare refreshToken: string; // Google refresh token
-  declare name?: string; // User's display name (optional for existing users)
-  declare email?: string; // User's email address (optional for existing users)
-  declare apiKey?: string; // API key for SMS forwarding and external access
-  // Timestamps
+  declare id: string; // UUID primary key
+  declare cognitoSub: string; // Cognito sub (unique external ID)
+  declare name: string | null; // User's display name
+  declare email: string | null; // User's email address
+  declare apiKey: string | null; // API key for SMS forwarding and external access
+  declare lastLoginAt: Date | null; // Last login timestamp
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
 
 User.init(
   {
-    userId: {
-      type: DataTypes.STRING,
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    refreshToken: {
+    cognitoSub: {
       type: DataTypes.STRING,
       allowNull: false,
+      comment: "Cognito sub (unique external identifier)",
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: true, // Allow null for existing users
+      allowNull: true,
+      comment: "User's display name",
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: true, // Allow null for existing users
+      allowNull: true,
+      validate: {
+        isEmail: true,
+      },
+      comment: "User's email address",
     },
     apiKey: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: true,
+      comment: "API key for external integrations and SMS forwarding",
+    },
+    lastLoginAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "Last login timestamp",
     },
   },
   {
-    tableName: "Users",
     sequelize,
+    tableName: "Users",
+    timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ["cognitoSub"],
+      },
+      {
+        unique: true,
+        fields: ["apiKey"],
+        where: {
+          apiKey: {
+            [Op.ne]: null,
+          },
+        },
+      },
+      {
+        fields: ["email"],
+      },
+    ],
   }
 );

@@ -1,27 +1,16 @@
-// src/App.tsx
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
 import { useEffect } from "react";
+import { RouterProvider } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./components/shared/theme-provider";
 import { Toaster } from "./components/ui/sonner";
 import { queryClient } from "./lib/queryClient";
+import LoadingScreen from "./components/shared/LoadingScreen";
+import { ConsentProvider } from "./contexts/ConsentContext";
+import { ConsentManager } from "./components/shared/consent/ConsentManager";
 
-import Landing from "@/pages/Landing";
-import Dashboard from "@/pages/Dashboard";
-import Runs from "@/pages/Runs";
-import Settings from "@/pages/Settings";
-import NotFound from "@/pages/NotFound";
-import TermsOfService from "@/pages/TermsOfService";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import LoadingScreen from "@/components/LoadingScreen";
-
+import { router } from "./routers/Router";
 import { checkAuth } from "./store/slices/userSlice";
 import type { RootState, AppDispatch } from "./store/store";
 
@@ -43,7 +32,10 @@ export default function App() {
     return (
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
-          <LoadingScreen message="Starting WoltFlow..." />
+          <ConsentProvider>
+            <LoadingScreen message="Starting WoltFlow..." />
+            <ConsentManager />
+          </ConsentProvider>
         </ThemeProvider>
       </QueryClientProvider>
     );
@@ -52,43 +44,12 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="woltflow-theme">
-        <Router>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/runs"
-              element={
-                <ProtectedRoute>
-                  <Runs />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/privacy"
-              element={<Navigate to="/privacy-policy.html" replace />}
-            />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-        <Toaster />
-        <ReactQueryDevtools initialIsOpen={false} />
+        <ConsentProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+          <ConsentManager />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </ConsentProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

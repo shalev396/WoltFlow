@@ -1,73 +1,29 @@
-export interface Run {
-  id?: number;
-  user_id: number;
-  created_at: Date;
-  updated_at: Date;
-  status: "failed" | "in progress" | "success";
-  stage:
-    | "triggered"
-    | "refreshing tokens"
-    | "buying gift"
-    | "getting code from mail"
-    | "applying gift"
-    | "done";
-  amount: number;
-  is_notify: boolean;
-  mode: "full-run" | "buy-only" | "cross-account";
-}
+// ============================================================================
+// TYPES INDEX
+// ============================================================================
+// Re-export all types from organized files for backward compatibility
+// Import from specific files (e.g., "@/types/api") when possible for better tree-shaking
 
-export interface Screenshot {
-  id?: number;
-  run_id: number;
-  url: string;
-  is_error: boolean;
-}
+// API types
+export type * from "./api";
 
-export interface GoogleUser {
-  email: string;
-  name: string;
-  picture: string;
-}
+// Authentication types
+export type * from "./auth";
 
-export interface UserSettings {
-  settingsId: number;
-  userId: string;
-  isNotification: boolean;
-  notificationOnSuccess?: boolean;
-  notificationOnError?: boolean;
-  notificationMethod?: "sms" | "email" | null;
-  phoneNumber?: string | null;
-  phoneVerified?: boolean;
-  email?: string | null;
-  emailVerified?: boolean;
-  enabledSMS: boolean; // Whether SMS functionality is enabled via environment variable
-  hasGmailAccess: boolean; // Whether user granted Gmail access during OAuth
-  automationEnabled: boolean; // Whether automation is enabled
-  automationMode: "full-run" | "buy-only" | "cross-account"; // Automation mode
-  cookies: string | null; // deprecated
-  wrtoken: string | null;
-  wtoken: string | null;
-  cibusName: string | null;
-  cibusPassword: string | null;
-  cibusCompany: string | null;
-  giftAmount: string | null; // Server returns as string "35.00"
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Run and screenshot types
+export type * from "./runs";
 
-export type UserSettingsUpdate = Partial<
-  Omit<UserSettings, "settingsId" | "userId" | "createdAt" | "updatedAt">
->;
+// Settings types
+export type * from "./settings";
 
-export type FormSettings = {
-  isNotification: boolean;
-  hasGmailAccess: boolean;
-  automationEnabled: boolean;
-  automationMode: "full-run" | "buy-only" | "cross-account";
-  wrtoken: string;
-  wtoken: string;
-  cibusName: string;
-  cibusPassword: string;
-  cibusCompany: string;
-  giftAmount: number;
-};
+// Two-factor authentication types
+export type * from "./twoFactor";
+
+// Forward/API key types
+export type * from "./forward";
+
+// Inbox and email types
+export type * from "./inbox";
+
+// Code types
+export type * from "./codes";

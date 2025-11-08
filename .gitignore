@@ -23,6 +23,8 @@ wheels/
 # Environments
 .env
 .env.prod
+.env.dev
+.env.qa
 .venv
 env/
 venv/
@@ -65,3 +67,6 @@ Server/dist/
 *chrome-layer
 *chromedriver-layer
 note.md
+#dev
+*oldversion
+!WoltFlowLogo.png

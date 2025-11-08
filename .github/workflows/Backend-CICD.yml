@@ -7,8 +7,9 @@ permissions:
 on:
   push:
     branches:
-      - "main" # Production deployment
-      - "dev" # Development deployment
+      - "main" # Production
+      - "dev" # Development
+      - "qa" # QA
     paths:
       - "Server/**"
       - ".github/workflows/Backend-CICD.yml"
@@ -17,6 +18,8 @@ jobs:
   deploy-backend:
     name: Deploy Backend
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}
 
     steps:
       - name: Checkout code
@@ -27,15 +30,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Load environment variables from ENV
-        run: |
-          echo '${{ secrets.ENV }}' > .env
+      - name: Set stage
+        id: stage
+        run: echo "name=${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}" >> $GITHUB_OUTPUT
+
+      - name: Load environment variables
+        run: echo '${{ secrets.ENV }}' > .env.${{ steps.stage.outputs.name }}
         working-directory: Server
 
-      - name: Export .env variables
+      - name: Export environment variables
         uses: falti/dotenv-action@v1.1.4
         with:
-          path: Server/.env
+          path: Server/.env.${{ steps.stage.outputs.name }}
           export-variables: true
           keys-case: bypass
           mask-variables: true
@@ -58,16 +64,8 @@ jobs:
         run: npm run build
         working-directory: Server
 
-      - name: Deploy to dev stage
-        if: github.ref == 'refs/heads/dev'
-        run: npm run deploy:dev
-        working-directory: Server
-        env:
-          SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}
-
-      - name: Deploy to prod stage
-        if: github.ref == 'refs/heads/main'
-        run: npm run deploy:prod
+      - name: Deploy to ${{ steps.stage.outputs.name }} stage
+        run: npm run deploy:${{ steps.stage.outputs.name }}
         working-directory: Server
         env:
           SERVERLESS_ACCESS_KEY: ${{ env.SERVERLESS_ACCESS_KEY }}

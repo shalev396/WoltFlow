@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "documentation": "Documentation",
+    "dashboard": "Dashboard",
+    "runs": "Runs",
+    "inbox": "Inbox",
+    "settings": "Settings",
+    "logout": "Log out",
+    "login": "Sign In"
+  },
+  "footer": {
+    "tagline": "Automate your Wolt gift card purchases with ease",
+    "company": "Company",
+    "about": "About Us",
+    "contact": "Contact",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "extensionPrivacy": "Extension Privacy",
+    "cookieSettings": "Cookie Settings",
+    "resources": "Resources",
+    "documentation": "Documentation",
+    "apiDocs": "API Docs",
+    "support": "Support",
+    "rights": "© 2025 WoltFlow. All rights reserved."
+  },
+  "language": {
+    "select": "Select Language",
+    "english": "English",
+    "hebrew": "עברית"
+  },
+  "loading": {
+    "tagline": "Automated Wolt Gift Card Management",
+    "defaultMessage": "Loading...",
+    "initializingSession": "Initializing your session..."
+  }
+}

@@ -1,11 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query";
-import {
-  runsService,
-  type RunFilters,
-  type RunsResponse,
-  type RunWithScreenshots,
-} from "@/services/runs";
+import { runsService } from "@/services/runs";
+import type { RunFilters, RunsResponse, RunWithScreenshots } from "@/types";
 
 export const RUNS_QUERY_KEY = ["runs"] as const;
 
