@@ -1,4 +1,4 @@
-import { User, Settings, Inbox } from "../models/index.js";
+import { User, Settings } from "../models/index.js";
 import { v4 as uuidv4 } from "uuid";
 
 /**
@@ -57,23 +57,6 @@ export async function ensureUserSettings(userIdOrSub: string): Promise<void> {
       runSettingsId: null,
     });
     console.log(`✅ Created Settings: ${settings.id}`);
-
-    // Check if Inbox already exists
-    const existingInbox = await Inbox.findOne({
-      where: { userId },
-    });
-
-    if (!existingInbox) {
-      // Create Inbox
-      const placeholderEmail = `user-${userId.substring(0, 8)}@pending.setup`;
-
-      const inbox = await Inbox.create({
-        id: uuidv4(),
-        userId,
-        emailAddress: placeholderEmail,
-      });
-      console.log(`✅ Created Inbox: ${inbox.id}`);
-    }
   } catch (error) {
     console.error(`❌ Error in ensureUserSettings:`, error);
   }
