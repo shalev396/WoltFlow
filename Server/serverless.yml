@@ -135,6 +135,18 @@ provider:
   iam:
     role:
       statements:
+        # Cognito Permissions - Account linking in PreSignUp trigger
+        - Effect: Allow
+          Action:
+            - cognito-idp:ListUsers
+            - cognito-idp:AdminLinkProviderForUser
+            - cognito-idp:AdminGetUser
+            - cognito-idp:AdminCreateUser
+            - cognito-idp:AdminSetUserPassword
+            - cognito-idp:AdminDeleteUser
+          Resource:
+            - arn:aws:cognito-idp:${self:provider.region}:*:userpool/*
+
         # VPC/ENI Permissions - Required for Lambda to run in VPC
         - Effect: Allow
           Action:
@@ -193,15 +205,6 @@ provider:
           Action:
             - ses:SendEmail
           Resource: "*"
-
-        # Cognito Permissions for Account Linking
-        - Effect: Allow
-          Action:
-            - cognito-idp:AdminLinkProviderForUser
-            - cognito-idp:AdminGetUser
-            - cognito-idp:ListUsers
-          Resource:
-            - arn:aws:cognito-idp:${self:provider.region}:*:userpool/*
 
 # Package Configuration
 package:
@@ -461,14 +464,23 @@ functions:
           path: /api/auth/google/callback
           method: get
 
-  preAuthenticationTrigger:
-    handler: ./build/auth/preAuthenticationTrigger.handler
+  preSignUp:
+    handler: ./build/auth/preSignUp.handler
     package:
       patterns:
         - "!build/**"
-        - "build/auth/preAuthenticationTrigger.mjs"
+        - "build/auth/preSignUp.mjs"
         - "package.json"
-    # No HTTP events - triggered by Cognito
+    # No HTTP events - triggered by Cognito PreSignUp
+
+  postConfirmation:
+    handler: ./build/auth/postConfirmation.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/postConfirmation.mjs"
+        - "package.json"
+    # No HTTP events - triggered by Cognito PostConfirmation
 
   # ================================
   # AUTOMATION FUNCTIONS
@@ -1387,7 +1399,8 @@ resources:
           AdvancedSecurityMode: OFF
         # Lambda Triggers for Account Linking
         LambdaConfig:
-          PreAuthentication: !GetAtt PreAuthenticationTriggerLambdaFunction.Arn
+          PreSignUp: !GetAtt PreSignUpLambdaFunction.Arn
+          PostConfirmation: !GetAtt PostConfirmationLambdaFunction.Arn
 
     # Cognito Domain for OAuth flows
     CognitoUserPoolDomain:
@@ -1461,11 +1474,20 @@ resources:
           - COGNITO
           - Google
 
-    # Lambda Permission for PreAuthentication Trigger
-    CognitoLambdaInvokePermission:
+    # Lambda Permission for PreSignUp Trigger
+    CognitoPreSignUpLambdaInvokePermission:
       Type: AWS::Lambda::Permission
       Properties:
-        FunctionName: !Ref PreAuthenticationTriggerLambdaFunction
+        FunctionName: !Ref PreSignUpLambdaFunction
+        Action: lambda:InvokeFunction
+        Principal: cognito-idp.amazonaws.com
+        SourceArn: !GetAtt CognitoUserPool.Arn
+
+    # Lambda Permission for PostConfirmation Trigger
+    CognitoPostConfirmationLambdaInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName: !Ref PostConfirmationLambdaFunction
         Action: lambda:InvokeFunction
         Principal: cognito-idp.amazonaws.com
         SourceArn: !GetAtt CognitoUserPool.Arn
@@ -1491,3 +1513,10 @@ resources:
         Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}
       Export:
         Name: ${self:service}-${self:provider.stage}-Issuer
+
+    CloudFrontDistributionId:
+      Description: CloudFront Distribution ID for cache invalidation
+      Value:
+        Ref: CloudFrontDistribution
+      Export:
+        Name: ${self:service}-${self:provider.stage}-CloudFrontDistributionId

@@ -5,20 +5,7 @@ import axios from "axios";
  * Google OAuth Callback Handler
  *
  * This handler processes the OAuth callback after Google authentication.
- * It exchanges the authorization code for Cognito tokens.
- *
- * Flow:
- * 1. User authenticates with Google
- * 2. Google redirects to Cognito
- * 3. Cognito redirects to frontend with authorization code
- * 4. Frontend calls this endpoint with the code
- * 5. This handler exchanges code for tokens with Cognito
- * 6. Returns user data and tokens to frontend
- *
- * Account Linking:
- * - If user exists with email/password, Google identity is linked
- * - If user doesn't exist, new account is created
- * - Handled automatically by Cognito based on email matching
+ * It exchanges the authorization code for Cognito tokens and creates/updates the user in the database.
  *
  * @param {string} code - OAuth authorization code from query params
  * @returns {APIGatewayProxyResult} User data and authentication tokens
@@ -48,7 +35,7 @@ export const handler: APIGatewayProxyHandler = async (
     const cognitoClientId = process.env.COGNITO_CLIENT_ID;
     const region = process.env.AWS_REGION || "us-east-1";
 
-    // Detect if request is coming from localhost by checking the origin/referer header
+    // Detect if request is coming from localhost
     const origin = event.headers?.["origin"] || event.headers?.["Origin"] || "";
     const referer =
       event.headers?.["referer"] || event.headers?.["Referer"] || "";
@@ -82,17 +69,19 @@ export const handler: APIGatewayProxyHandler = async (
       tokenResponse.data;
 
     // Decode the ID token to get user information
-    // ID token is a JWT with user claims
     const tokenParts = id_token.split(".");
     const payload = JSON.parse(Buffer.from(tokenParts[1], "base64").toString());
 
     // Extract user information from token
     const user = {
-      id: payload.sub, // Cognito user ID
+      id: payload.sub,
       email: payload.email,
       name: payload.name || payload.email,
-      emailVerified: payload.email_verified || true, // Google accounts are pre-verified
+      emailVerified: payload.email_verified || true,
     };
+
+    // Database sync is handled by PostConfirmation trigger - don't duplicate here
+    console.log(`✅ Google authentication successful for: ${payload.sub}`);
 
     return {
       statusCode: 200,
@@ -120,9 +109,8 @@ export const handler: APIGatewayProxyHandler = async (
   } catch (error: unknown) {
     console.error("Error processing Google OAuth callback:", error);
 
-    // Log detailed error for debugging
     if (axios.isAxiosError(error)) {
-      console.error("Cognito token exchange error:", error.response?.data);
+      console.error("Cognito token exchange failed:", error.response?.data);
     }
 
     return {

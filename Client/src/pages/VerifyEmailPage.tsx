@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation, Link, useParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "@/store/slices/userSlice";
 import { authService } from "@/services";
 import AuthLayout from "@/components/shared/AuthLayout";
 import { Button } from "@/components/ui/button";
@@ -15,10 +17,17 @@ export default function VerifyEmailPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const { lng } = useParams<{ lng: string }>();
-  const emailFromState = (location.state as { email?: string })?.email;
+  const emailFromState = (
+    location.state as { email?: string; password?: string }
+  )?.email;
+  const passwordFromState = (
+    location.state as { email?: string; password?: string }
+  )?.password;
 
   const [email] = useState(emailFromState || "");
+  const [password] = useState(passwordFromState || "");
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,19 +45,39 @@ export default function VerifyEmailPage() {
     setIsLoading(true);
 
     try {
+      // Step 1: Verify the email
       await authService.confirmSignup({ email, code });
       setSuccess(true);
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        navigate(`/${lng}/auth/login`);
-      }, 2000);
+
+      // Step 2: Auto-login if we have the password
+      if (password) {
+        try {
+          const loginResponse = await authService.login({ email, password });
+          dispatch(loginSuccess(loginResponse));
+
+          // Redirect to dashboard
+          setTimeout(() => {
+            navigate(`/${lng}/dashboard`);
+          }, 1500);
+        } catch (loginError) {
+          console.error("Auto-login failed:", loginError);
+          // If auto-login fails, redirect to login page
+          setTimeout(() => {
+            navigate(`/${lng}/auth/login`);
+          }, 2000);
+        }
+      } else {
+        // No password available, redirect to login
+        setTimeout(() => {
+          navigate(`/${lng}/auth/login`);
+        }, 2000);
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || t("errors.invalidCode"));
       } else {
         setError(t("errors.unknownError"));
       }
-    } finally {
       setIsLoading(false);
     }
   };

@@ -1,40 +1,32 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "@/store/slices/userSlice";
 import { authService } from "@/services";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import Layout from "@/components/shared/Layout";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertCircle } from "lucide-react";
 
 /**
- * Google OAuth Callback Page
+ * Google OAuth Callback Handler
  *
- * This page handles the OAuth redirect from Cognito after Google authentication.
- * It extracts the authorization code from the URL and exchanges it for tokens.
- *
- * Flow:
- * 1. User authenticates with Google
- * 2. Google redirects to Cognito
- * 3. Cognito redirects here with authorization code
- * 4. This page calls backend to exchange code for tokens
- * 5. Stores tokens and redirects to dashboard
+ * Handles the redirect from Google OAuth and exchanges the authorization code for tokens.
  */
 export default function GoogleCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { t } = useTranslation("auth");
   const { lng } = useParams<{ lng: string }>();
 
-  const [error, setError] = useState("");
-  const [isProcessing, setIsProcessing] = useState(true);
-
-  // Use ref to prevent double-execution in React StrictMode (development)
+  const [error, setError] = useState<string | null>(null);
   const hasProcessed = useRef(false);
 
   useEffect(() => {
-    // Prevent double-execution (React StrictMode in dev causes useEffect to run twice)
+    // Prevent double execution in StrictMode
     if (hasProcessed.current) {
       return;
     }
@@ -42,18 +34,18 @@ export default function GoogleCallbackPage() {
 
     const handleCallback = async () => {
       try {
-        // Get authorization code from URL
         const code = searchParams.get("code");
         const errorParam = searchParams.get("error");
         const errorDescription = searchParams.get("error_description");
 
-        // Check for OAuth errors from Cognito
+        // Handle errors from Cognito
         if (errorParam) {
           throw new Error(
             errorDescription || `Authentication failed: ${errorParam}`
           );
         }
 
+        // Validate code exists
         if (!code) {
           throw new Error("No authorization code received");
         }
@@ -61,110 +53,78 @@ export default function GoogleCallbackPage() {
         // Exchange code for tokens
         const response = await authService.handleGoogleCallback(code);
 
-        // Store tokens and user data in Redux
+        // Store tokens and user data
         dispatch(loginSuccess(response));
 
         // Redirect to dashboard
         navigate(`/${lng}/dashboard`, { replace: true });
       } catch (err: unknown) {
         console.error("Google OAuth callback error:", err);
-        setError(
+
+        const message =
           err instanceof Error
             ? err.message
-            : "Failed to complete Google authentication"
-        );
-        setIsProcessing(false);
+            : "An error occurred during authentication";
+        setError(message);
       }
     };
 
     handleCallback();
   }, [searchParams, navigate, dispatch, lng]);
 
-  return (
-    <Layout>
-      <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md">
-          <Card className="overflow-hidden border-border/50 shadow-2xl p-0">
-            {isProcessing ? (
-              /* Branded gradient background with animated blobs */
-              <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 overflow-hidden">
-                {/* Animated gradient orbs */}
-                <div className="absolute inset-0">
-                  <div className="absolute top-0 -right-4 w-48 h-48 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-                  <div className="absolute top-0 -left-4 w-48 h-48 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-                  <div className="absolute -bottom-8 left-20 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
+          <Card className="w-full max-w-md shadow-lg border-border/50">
+            <CardContent className="p-8">
+              <div className="text-center space-y-6">
+                <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-destructive" />
                 </div>
-
-                {/* Content */}
-                <div className="relative flex flex-col items-center justify-center p-12 text-white">
-                  {/* Spinner */}
-                  <div className="mb-6">
-                    <div className="inline-block h-16 w-16 animate-spin rounded-full border-4 border-solid border-white border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]">
-                      <span className="sr-only">Loading...</span>
-                    </div>
-                  </div>
-
-                  {/* Text */}
-                  <h2 className="text-2xl font-bold tracking-tight mb-2">
-                    Completing Google Sign-In
-                  </h2>
-                  <p className="text-blue-100 text-center max-w-sm">
-                    Please wait while we finalize your authentication...
-                  </p>
-
-                  {/* Brand name */}
-                  <div className="mt-8 opacity-50">
-                    <p className="text-sm font-semibold">WoltFlow</p>
-                  </div>
+                <div className="space-y-2">
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {t("callback.authenticationFailed")}
+                  </h1>
+                  <Alert variant="destructive" className="text-left">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 </div>
+                <Button
+                  onClick={() =>
+                    navigate(`/${lng}/auth/login`, { replace: true })
+                  }
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  {t("callback.backToLogin")}
+                </Button>
               </div>
-            ) : (
-              /* Error State */
-              <div className="p-8 space-y-6">
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-
-                <div className="text-center">
-                  <button
-                    onClick={() => navigate(`/${lng}/auth/login`)}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Return to Login
-                  </button>
-                </div>
-              </div>
-            )}
+            </CardContent>
           </Card>
         </div>
+      </Layout>
+    );
+  }
 
-        {/* Add custom CSS animations matching AuthLayout */}
-        <style>{`
-          @keyframes blob {
-            0% {
-              transform: translate(0px, 0px) scale(1);
-            }
-            33% {
-              transform: translate(30px, -50px) scale(1.1);
-            }
-            66% {
-              transform: translate(-20px, 20px) scale(0.9);
-            }
-            100% {
-              transform: translate(0px, 0px) scale(1);
-            }
-          }
-          .animate-blob {
-            animation: blob 7s infinite;
-          }
-          .animation-delay-2000 {
-            animation-delay: 2s;
-          }
-          .animation-delay-4000 {
-            animation-delay: 4s;
-          }
-        `}</style>
+  return (
+    <Layout>
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
+        <Card className="w-full max-w-md shadow-lg border-border/50">
+          <CardContent className="p-8">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {t("callback.processingGoogle")}
+              </h1>
+              <p className="text-muted-foreground">
+                {t("callback.pleaseWait")}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

@@ -71,8 +71,27 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
-      - name: Deploy to S3 and CloudFront
+      - name: Get CloudFront Distribution ID
+        id: get-cf-id
+        run: |
+          STACK_NAME="woltflow-server-dev"
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            STACK_NAME="woltflow-server-prod"
+          fi
+          CF_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
+          echo "distribution_id=$CF_ID" >> $GITHUB_OUTPUT
+          echo "Found CloudFront Distribution ID: $CF_ID"
+
+      - name: Deploy to S3 (dev)
         if: github.ref == 'refs/heads/dev'
         run: |
           aws s3 sync ./Client/dist s3://${{ env.S3_CLIENT_BUCKET_NAME }}/ --delete
-          aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+
+      - name: Deploy to S3 (prod)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws s3 sync ./Client/dist s3://${{ env.S3_CLIENT_BUCKET_NAME }}/ --delete
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ steps.get-cf-id.outputs.distribution_id }} --paths "/*"

@@ -22,6 +22,21 @@ export const errorInterceptor = async (
   error: AxiosError
 ): Promise<AxiosError> => {
   if (error.response?.status === 401) {
+    // Check if this is a login/signup attempt failure (wrong credentials)
+    const requestUrl = error.config?.url || "";
+    const isAuthAttempt =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/signup") ||
+      requestUrl.includes("/auth/confirm");
+
+    if (isAuthAttempt) {
+      // This is an expected auth failure (wrong password, etc.)
+      // Don't trigger logout, just pass the error through
+      console.log("🔐 Authentication attempt failed - wrong credentials");
+      return Promise.reject(error);
+    }
+
+    // This is an unexpected 401 (expired token, etc.)
     console.log("🚫 401 Unauthorized - Token invalid or user terminated");
 
     // Clear all tokens and logout via Redux

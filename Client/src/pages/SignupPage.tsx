@@ -27,8 +27,9 @@ export default function SignupPage() {
 
     try {
       await authService.signup({ email, password, name });
-      // Redirect to verify email page with email in state
-      navigate(`/${lng}/auth/verify`, { state: { email } });
+      // Redirect to verify email page with email AND password in state
+      // This allows auto-login after verification
+      navigate(`/${lng}/auth/verify`, { state: { email, password } });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || t("errors.emailAlreadyExists"));
