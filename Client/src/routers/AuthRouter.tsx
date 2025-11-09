@@ -3,7 +3,8 @@ import { GuestRoute } from "@/routers/GuestRoute";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
-import GoogleCallbackPage from "@/pages/GoogleCallbackPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
 export function AuthRouter() {
   return (
@@ -24,13 +25,24 @@ export function AuthRouter() {
           </GuestRoute>
         }
       />
-      {/* Verify page doesn't need GuestRoute - accessible when coming from signup */}
       <Route path="verify" element={<VerifyEmailPage />} />
-      {/* Callback page doesn't need GuestRoute - it processes OAuth and redirects */}
-      <Route path="callback" element={<GoogleCallbackPage />} />
-      {/* Redirect /auth to /auth/login */}
+      <Route
+        path="forgot-password"
+        element={
+          <GuestRoute>
+            <ForgotPasswordPage />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="reset-password"
+        element={
+          <GuestRoute>
+            <ResetPasswordPage />
+          </GuestRoute>
+        }
+      />
       <Route path="/" element={<Navigate to="login" replace />} />
-      {/* 404 for unknown auth routes */}
       <Route path="*" element={<Navigate to="login" replace />} />
     </Routes>
   );

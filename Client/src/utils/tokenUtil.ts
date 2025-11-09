@@ -49,16 +49,17 @@ export const refreshTokens = async (): Promise<{
       return null;
     }
 
-    const cognitoIssuer = import.meta.env.VITE_COGNITO_ISSUER;
+    const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
     const cognitoClientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+    const region = import.meta.env.VITE_AWS_REGION;
 
-    if (!cognitoIssuer || !cognitoClientId) {
+    if (!cognitoDomain || !cognitoClientId) {
       console.error("Missing Cognito configuration");
       return null;
     }
 
-    // Call Cognito token endpoint
-    const tokenEndpoint = `${cognitoIssuer}/oauth2/token`;
+    // Call Cognito token endpoint using domain (not issuer URL)
+    const tokenEndpoint = `https://${cognitoDomain}.auth.${region}.amazoncognito.com/oauth2/token`;
 
     const response = await axios.post(
       tokenEndpoint,

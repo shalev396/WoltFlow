@@ -44,25 +44,21 @@ export const authService = {
     return response.data.data!;
   },
 
-  // Google OAuth - Get authorization URL
-  async getGoogleAuthUrl(): Promise<string> {
-    const response = await api.get<ApiResponse<{ authUrl: string }>>(
-      "/auth/google/url"
-    );
-    return response.data.data!.authUrl;
+  // Forgot password - Request password reset code
+  async forgotPassword(email: string): Promise<void> {
+    await api.post<ApiResponse>("/auth/forgot-password", { email });
   },
 
-  // Google OAuth - Handle callback with authorization code
-  async handleGoogleCallback(code: string): Promise<{
-    user: CognitoUser;
-    tokens: { idToken: string; refreshToken: string; expiresIn: number };
-  }> {
-    const response = await api.get<
-      ApiResponse<{
-        user: CognitoUser;
-        tokens: { idToken: string; refreshToken: string; expiresIn: number };
-      }>
-    >(`/auth/google/callback?code=${encodeURIComponent(code)}`);
-    return response.data.data!;
+  // Reset password - Confirm with code and new password
+  async resetPassword(
+    email: string,
+    code: string,
+    password: string
+  ): Promise<void> {
+    await api.post<ApiResponse>("/auth/reset-password", {
+      email,
+      code,
+      password,
+    });
   },
 };
