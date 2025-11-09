@@ -40,7 +40,9 @@ export const handler = async (
     );
 
     const idToken = result.AuthenticationResult?.IdToken;
+    const accessToken = result.AuthenticationResult?.AccessToken;
     const refreshToken = result.AuthenticationResult?.RefreshToken;
+    const expiresIn = result.AuthenticationResult?.ExpiresIn;
 
     if (!idToken) {
       throw new Error("No ID token received from Cognito");
@@ -81,8 +83,9 @@ export const handler = async (
           },
           tokens: {
             idToken: idToken,
+            accessToken: accessToken,
             refreshToken: refreshToken,
-            expiresIn: 3600, // 1 hour in seconds
+            expiresIn: expiresIn,
           },
         },
       }),
