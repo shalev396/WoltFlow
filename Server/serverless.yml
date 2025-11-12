@@ -459,6 +459,19 @@ functions:
           path: /api/auth/reset-password
           method: post
 
+  refreshToken:
+    handler: ./build/auth/refreshToken.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/refreshToken.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/refresh
+          method: post
+          # No authorization required - endpoint validates refresh token itself
+
   # ================================
   # AUTOMATION FUNCTIONS
   # ================================

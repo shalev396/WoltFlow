@@ -9,6 +9,12 @@ interface JWTPayload {
   iat: number;
 }
 
+interface CognitoRefreshTokenResponse {
+  idToken: string;
+  accessToken: string;
+  expiresIn: number;
+}
+
 /**
  * Decode JWT token to get user info
  */
@@ -36,7 +42,7 @@ export const isTokenExpired = (token: string): boolean => {
 };
 
 /**
- * Refresh tokens using Cognito refresh token
+ * Refresh tokens using backend API (which calls Cognito InitiateAuth)
  */
 export const refreshTokens = async (): Promise<{
   idToken: string;
@@ -49,51 +55,59 @@ export const refreshTokens = async (): Promise<{
       return null;
     }
 
-    const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
-    const cognitoClientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-    const region = import.meta.env.VITE_AWS_REGION;
+    console.log("🔄 Refreshing tokens via backend API...");
 
-    if (!cognitoDomain || !cognitoClientId) {
-      console.error("Missing Cognito configuration");
-      return null;
-    }
+    // Determine API endpoint based on environment
+    const isLocal = import.meta.env.VITE_ENV === "local";
+    const baseURL = isLocal
+      ? "http://localhost:3000/api"
+      : `${window.location.origin}/api`;
 
-    // Call Cognito token endpoint using domain (not issuer URL)
-    const tokenEndpoint = `https://${cognitoDomain}.auth.${region}.amazoncognito.com/oauth2/token`;
-
-    const response = await axios.post(
-      tokenEndpoint,
-      new URLSearchParams({
-        grant_type: "refresh_token",
-        client_id: cognitoClientId,
-        refresh_token: refreshToken,
-      }),
+    // Call our backend refresh endpoint
+    const response = await axios.post<{
+      success: boolean;
+      data?: CognitoRefreshTokenResponse;
+      message?: string;
+    }>(
+      `${baseURL}/auth/refresh`,
+      { refreshToken },
       {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { "Content-Type": "application/json" },
       }
     );
 
-    const { id_token, access_token } = response.data;
+    if (!response.data.success || !response.data.data) {
+      console.error("❌ Token refresh failed:", response.data.message);
+      return null;
+    }
 
-    if (!id_token) {
-      console.error("No ID token received from token refresh");
+    const { idToken, accessToken } = response.data.data;
+
+    if (!idToken) {
+      console.error("❌ No ID token received from token refresh");
       return null;
     }
 
     // Store new tokens
-    localStorage.setItem("idToken", id_token);
-    if (access_token) {
-      localStorage.setItem("accessToken", access_token);
+    localStorage.setItem("idToken", idToken);
+    if (accessToken) {
+      localStorage.setItem("accessToken", accessToken);
     }
 
     console.log("✅ Tokens refreshed successfully");
-    return { idToken: id_token, accessToken: access_token };
+    return { idToken, accessToken };
   } catch (error) {
-    console.error("Failed to refresh tokens:", error);
-    // Clear invalid tokens
-    localStorage.removeItem("idToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("accessToken");
+    console.error("❌ Failed to refresh tokens:", error);
+
+    // Only clear tokens if it's a 401 or explicit auth error
+    // Don't clear on network errors (user might be offline)
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      console.error("❌ Refresh token expired or invalid - clearing tokens");
+      localStorage.removeItem("idToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("accessToken");
+    }
+
     return null;
   }
 };
