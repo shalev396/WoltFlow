@@ -337,11 +337,11 @@ export const handler = async (
     );
     if (iframe) {
       await driver.switchTo().frame(iframe);
-
+      //TODO: fix this part for cibus new UI
       // Step 2: Enter Cibus credentials
       const usernameInput = await waitForElement(
         driver,
-        By.xpath("//input[@placeholder='שם משתמש']"),
+        By.xpath("//input[@id='user']"),
         10000
       );
       if (usernameInput) {
@@ -349,9 +349,37 @@ export const handler = async (
         await usernameInput.sendKeys(cibusSettings.cibusUsername || "");
       }
 
+      // Try to click "אישור" button after username input (may appear in some flows)
+      // Try multiple xpath variations since we can't test locally
+      const approvalButton = await waitForElement(
+        driver,
+        By.xpath("//button[contains(text(),'אישור')]"),
+        5000
+      );
+      if (approvalButton) {
+        console.log("Found 'אישור' button, clicking it");
+        await safeClick(driver, approvalButton);
+        await sleep(1000);
+      } else {
+        console.log("'אישור' button not found, trying continue button");
+      }
+
+      // Try the original continue button as fallback
+      const continueButton = await waitForElement(
+        driver,
+        By.xpath(
+          "//div[@class='login-btn-container']//button[@type='button'][contains(text(),'שנמשיך?')]"
+        ),
+        10000
+      );
+      if (continueButton) {
+        console.log("Found 'שנמשיך?' button, clicking it");
+        await safeClick(driver, continueButton);
+      }
+
       const passwordInput = await waitForElement(
         driver,
-        By.xpath("//input[@placeholder='סיסמה']"),
+        By.xpath("//input[@id='password']"),
         10000
       );
       if (passwordInput) {
@@ -361,13 +389,14 @@ export const handler = async (
 
       const companyInput = await waitForElement(
         driver,
-        By.xpath("//input[@placeholder='חברה']"),
+        By.xpath("//input[@id='company-inp']"),
         10000
       );
       if (companyInput) {
         await companyInput.clear();
         await companyInput.sendKeys(cibusSettings.cibusCompany || "");
       }
+      //preSS //button[contains(text(),'כניסה')]
       console.log("end step 9");
       if (LEVEL === "9") {
         await sleep(1000);
@@ -377,7 +406,7 @@ export const handler = async (
       // Step 3: Complete Cibus login
       const loginButton = await waitForElement(
         driver,
-        By.id("btnSubmit"),
+        By.xpath("//button[contains(text(),'כניסה')]"),
         10000
       );
       if (loginButton) {
@@ -393,11 +422,11 @@ export const handler = async (
       // handle 2FA
       const otpInput = await waitForElement(
         driver,
-        By.xpath("//input[@id='txtOTP']"),
+        By.xpath("//input[@id='otp-input-0']"),
         10000
       );
       if (otpInput) {
-        await sleep(30000);
+        await sleep(45000);
 
         // Fetch the most recent unused Cibus 2FA code for this user
         const cibus2FA = await Cibus2FA.findOne({
@@ -423,7 +452,7 @@ export const handler = async (
       }
       const loginButton2 = await waitForElement(
         driver,
-        By.id("btnSubmit"),
+        By.xpath("//button[@type='button']"),
         10000
       );
       if (loginButton2) {
@@ -433,7 +462,7 @@ export const handler = async (
       // Step 4: Confirm Cibus payment
       const paymentButton = await waitForElement(
         driver,
-        By.id("btnPay"),
+        By.xpath("//button[contains(text(),'אישור התשלום באמצעות סיבוס')]"),
         15000
       );
       if (paymentButton) {

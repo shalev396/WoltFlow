@@ -176,7 +176,7 @@ provider:
             - s3:DeleteObject # Delete expired emails, user data
             - s3:CopyObject # ingestEmail moves emails from raw/ to user folders
           Resource:
-            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}"
+            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}/*"
 
         # ECR Permissions (Docker-based Lambda functions: woltBuyGift, woltApplyGift)
         - Effect: Allow
@@ -459,6 +459,19 @@ functions:
           path: /api/auth/reset-password
           method: post
 
+  refreshToken:
+    handler: ./build/auth/refreshToken.handler
+    package:
+      patterns:
+        - "!build/**"
+        - "build/auth/refreshToken.mjs"
+        - "package.json"
+    events:
+      - httpApi:
+          path: /api/auth/refresh
+          method: post
+          # No authorization required - endpoint validates refresh token itself
+
   # ================================
   # AUTOMATION FUNCTIONS
   # ================================
@@ -497,7 +510,7 @@ functions:
       command: ["build/automation/C_woltBuyGift.handler"]
     memorySize: 1536
     ephemeralStorageSize: 1536
-    timeout: 285
+    timeout: 300
     # No HTTP events - only called by Step Functions
 
   # Non-selenium function for email processing

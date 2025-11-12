@@ -46,6 +46,9 @@ import {
 import { twoFactorService } from "@/services/twoFactor";
 import { formatPhoneNumber } from "@/utils/validation";
 
+// Check if SMS is enabled via environment variable
+const isSmsEnabled = import.meta.env.VITE_SMS_ENABLED === "true";
+
 interface VerificationState {
   isVerifying: boolean;
   step: "input" | "verify" | "success";
@@ -130,6 +133,12 @@ export default function NotificationsForm() {
     method: "sms" | "email",
     contact: string
   ) => {
+    // Check if SMS is disabled
+    if (method === "sms" && !isSmsEnabled) {
+      toast.error("SMS functionality is currently disabled");
+      return;
+    }
+
     const isValid =
       method === "sms" ? validatePhone(contact) : validateEmail(contact);
 
@@ -408,10 +417,18 @@ export default function NotificationsForm() {
                         <SelectItem value="none">
                           {t("notificationsForm.contactMethod.none")}
                         </SelectItem>
-                        <SelectItem value="sms">
+                        <SelectItem value="sms" disabled={!isSmsEnabled}>
                           <div className="flex items-center gap-2">
                             <Phone className="h-4 w-4" />
                             {t("notificationDialog.primaryMethod.sms")}
+                            {!isSmsEnabled && (
+                              <Badge
+                                variant="secondary"
+                                className="text-xs ml-2"
+                              >
+                                Disabled
+                              </Badge>
+                            )}
                           </div>
                         </SelectItem>
                         <SelectItem value="email">
