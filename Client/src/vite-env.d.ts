@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_COGNITO_CLIENT_ID: string; // 2abcdefghijklmnopqrstuv
   readonly VITE_COGNITO_DOMAIN: string; // server (just the prefix, not full URL)
   readonly VITE_COGNITO_ISSUER: string; // https://cognito-idp.il-central-1.amazonaws.com/il-central-1_XXXXXXXXX
+  // Feature Flags
+  readonly VITE_SMS_ENABLED: string; // "true" or "false" - Enable/disable SMS notifications
 }
 
 interface ImportMeta {

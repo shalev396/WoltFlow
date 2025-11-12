@@ -176,7 +176,7 @@ provider:
             - s3:DeleteObject # Delete expired emails, user data
             - s3:CopyObject # ingestEmail moves emails from raw/ to user folders
           Resource:
-            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}"
+            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}/*"
 
         # ECR Permissions (Docker-based Lambda functions: woltBuyGift, woltApplyGift)
         - Effect: Allow

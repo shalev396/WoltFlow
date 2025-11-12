@@ -43,8 +43,8 @@ import {
   isValid2FACode,
 } from "@/utils/validation";
 
-// Check if in development mode
-const isDev = import.meta.env.VITE_ENV === "Development1";
+// Check if SMS is enabled via environment variable
+const isSmsEnabled = import.meta.env.VITE_SMS_ENABLED === "true";
 
 interface NotificationSettingsDialogProps {
   open: boolean;
@@ -74,9 +74,6 @@ export function NotificationSettingsDialog({
 }: NotificationSettingsDialogProps) {
   const { t } = useTranslation("settings");
   const { data: settings, refetch } = useNotificationSettingsQuery();
-
-  // SMS is now controlled by backend environment variables, not user settings
-  const isSmsEnabled = true; // Will be handled by backend validation
 
   const [step, setStep] = useState<VerificationStep>("setup");
   const [isLoading, setIsLoading] = useState(false);
@@ -141,7 +138,7 @@ export function NotificationSettingsDialog({
       setActiveVerificationMethod(null);
       setCooldownSeconds(0);
     }
-  }, [settings, open, isSmsEnabled]);
+  }, [settings, open]);
 
   // Cooldown timer
   useEffect(() => {
@@ -231,49 +228,27 @@ export function NotificationSettingsDialog({
 
     setIsLoading(true);
     try {
-      if (isDev) {
-        // Dev mode - simulate successful response
-        console.log(
-          `[DEV MODE] Skipping ${method.toUpperCase()} send to ${contact}`
-        );
-        const sessionId = `dev-session-${Date.now()}`;
-        toast.success(`[DEV] ${method.toUpperCase()} verification ready`);
-        setState((prev) => ({
-          ...prev,
-          [method]: {
-            ...prev[method],
-            sessionId: sessionId,
-          },
-        }));
+      const response = await twoFactorService.start2FA({
+        method,
+        contact: method === "sms" ? formatPhoneNumber(contact)! : contact,
+      });
 
-        setActiveVerificationMethod(method);
-        setStep(method === "sms" ? "verify-sms" : "verify-email");
-        setVerificationCode("");
-        setCooldownSeconds(30);
-      } else {
-        // Production mode
-        const response = await twoFactorService.start2FA({
-          method,
-          contact: method === "sms" ? formatPhoneNumber(contact)! : contact,
-        });
+      setState((prev) => ({
+        ...prev,
+        [method]: {
+          ...prev[method],
+          sessionId: response.sessionId,
+        },
+      }));
 
-        setState((prev) => ({
-          ...prev,
-          [method]: {
-            ...prev[method],
-            sessionId: response.sessionId,
-          },
-        }));
+      setActiveVerificationMethod(method);
+      setStep(method === "sms" ? "verify-sms" : "verify-email");
+      setVerificationCode("");
+      setCooldownSeconds(30);
 
-        setActiveVerificationMethod(method);
-        setStep(method === "sms" ? "verify-sms" : "verify-email");
-        setVerificationCode("");
-        setCooldownSeconds(30);
-
-        toast.success(
-          `Verification code sent via ${method === "sms" ? "SMS" : "email"}`
-        );
-      }
+      toast.success(
+        `Verification code sent via ${method === "sms" ? "SMS" : "email"}`
+      );
     } catch (error) {
       console.error("Failed to start verification:", error);
       toast.error("Failed to send verification code. Please try again.");
@@ -298,19 +273,11 @@ export function NotificationSettingsDialog({
 
     setIsLoading(true);
     try {
-      if (isDev) {
-        // Dev mode - simulate successful verification
-        console.log(
-          `[DEV MODE] Skipping ${method.toUpperCase()} verification for code: ${verificationCode}`
-        );
-      } else {
-        // Production mode
-        await twoFactorService.verify2FA({
-          method,
-          code: verificationCode,
-          // sessionId,
-        });
-      }
+      await twoFactorService.verify2FA({
+        method,
+        code: verificationCode,
+        // sessionId,
+      });
 
       setState((prev) => ({
         ...prev,
@@ -568,11 +535,6 @@ export function NotificationSettingsDialog({
           <DialogTitle className="flex items-center gap-2 pr-8 rtl:pl-8 rtl:pr-0">
             <Settings className="h-5 w-5 text-blue-600 flex-shrink-0" />
             {t("notificationDialog.title")}
-            {isDev && (
-              <Badge variant="secondary" className="text-xs">
-                {t("notificationDialog.devMode.badge")}
-              </Badge>
-            )}
           </DialogTitle>
           <DialogDescription>
             {step === "setup"
@@ -585,15 +547,6 @@ export function NotificationSettingsDialog({
                 })}
           </DialogDescription>
         </DialogHeader>
-
-        {isDev && (
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              {t("notificationDialog.devMode.alert")}
-            </AlertDescription>
-          </Alert>
-        )}
 
         <div className="space-y-4">
           {step === "setup" && (
@@ -901,15 +854,13 @@ export function NotificationSettingsDialog({
                     <Mail className="h-4 w-4" />
                   )}
                   <AlertDescription>
-                    {isDev
-                      ? t("notificationDialog.verification.devModeMessage")
-                      : t("notificationDialog.verification.productionMessage", {
-                          contact: state[activeVerificationMethod].contact,
-                          method:
-                            activeVerificationMethod === "sms"
-                              ? t("notificationDialog.primaryMethod.sms")
-                              : t("notificationDialog.primaryMethod.email"),
-                        })}
+                    {t("notificationDialog.verification.productionMessage", {
+                      contact: state[activeVerificationMethod].contact,
+                      method:
+                        activeVerificationMethod === "sms"
+                          ? t("notificationDialog.primaryMethod.sms")
+                          : t("notificationDialog.primaryMethod.email"),
+                    })}
                   </AlertDescription>
                 </Alert>
 
@@ -928,9 +879,7 @@ export function NotificationSettingsDialog({
                     className="text-center text-lg tracking-widest font-mono"
                   />
                   <p className="text-sm text-muted-foreground">
-                    {isDev
-                      ? t("notificationDialog.verification.devModePrompt")
-                      : t("notificationDialog.verification.productionPrompt")}
+                    {t("notificationDialog.verification.productionPrompt")}
                   </p>
                 </div>
 
@@ -948,31 +897,29 @@ export function NotificationSettingsDialog({
                     <X className="mr-2 h-4 w-4" />
                     {t("notificationDialog.verification.cancel")}
                   </Button>
-                  {!isDev && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      disabled={cooldownSeconds > 0 || isLoading}
-                      onClick={() =>
-                        handleStartVerification(activeVerificationMethod!)
-                      }
-                      className="flex-shrink-0"
-                    >
-                      {cooldownSeconds > 0 ? (
-                        <>
-                          <Clock className="mr-1 h-3 w-3" />
-                          {cooldownSeconds}s
-                        </>
-                      ) : isLoading ? (
-                        <>
-                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                          {t("notificationDialog.verification.sending")}
-                        </>
-                      ) : (
-                        t("notificationDialog.verification.resend")
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={cooldownSeconds > 0 || isLoading}
+                    onClick={() =>
+                      handleStartVerification(activeVerificationMethod!)
+                    }
+                    className="flex-shrink-0"
+                  >
+                    {cooldownSeconds > 0 ? (
+                      <>
+                        <Clock className="mr-1 h-3 w-3" />
+                        {cooldownSeconds}s
+                      </>
+                    ) : isLoading ? (
+                      <>
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        {t("notificationDialog.verification.sending")}
+                      </>
+                    ) : (
+                      t("notificationDialog.verification.resend")
+                    )}
+                  </Button>
                   <Button
                     onClick={handleVerifyCode}
                     disabled={

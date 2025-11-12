@@ -14,9 +14,6 @@ on:
       - "Client/**"
       - ".github/workflows/Frontend-CICD.yml"
 
-env:
-  STACK_BASE_NAME: woltflow-server
-
 jobs:
   deploy-frontend:
     name: Deploy Frontend
@@ -24,6 +21,27 @@ jobs:
     environment:
       name: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}
 
+    env:
+      # Non-sensitive configuration from environment variables
+      ## Global repository variables
+      VITE_AWS_REGION: ${{ vars.AWS_REGION }}
+      VITE_AWS_REGION_CITY: ${{vars.VITE_AWS_REGION_CITY}}
+      ## Per environment variables
+      VITE_DOMAIN_NAME: ${{vars.DOMAIN_NAME_CLOUD}}
+      VITE_EMAIL_SUBDOMAIN: ${{vars.EMAIL_SUBDOMAIN}}
+      VITE_SMS_ENABLED: ${{ vars.ENABLED_SMS }}
+      VITE_ENV: ${{vars.ENV}}
+
+      # Sensitive data from secrets (automatically masked in logs)
+      ## Global repository secrets
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      STACK_BASE_NAME: ${{ secrets.STACK_BASE_NAME }}
+      ## Per environment secrets
+      VITE_COGNITO_CLIENT_ID: ${{secrets.COGNITO_CLIENT_ID}}
+      VITE_COGNITO_DOMAIN: ${{secrets.COGNITO_DOMAIN}}
+      VITE_COGNITO_ISSUER: ${{secrets.COGNITO_ISSUER}}
+      VITE_COGNITO_USER_POOL_ID: ${{secrets.COGNITO_USER_POOL_ID}}
+      VITE_GOOGLE_ANALYTICS_ID: ${{secrets.VITE_GOOGLE_ANALYTICS_ID}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,18 +55,6 @@ jobs:
         id: stage
         run: echo "name=${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}" >> $GITHUB_OUTPUT
 
-      - name: Load environment variables
-        run: echo '${{ secrets.ENV }}' > .env.${{ steps.stage.outputs.name }}
-        working-directory: Server
-
-      - name: Export environment variables
-        uses: falti/dotenv-action@v1.1.4
-        with:
-          path: Server/.env.${{ steps.stage.outputs.name }}
-          export-variables: true
-          keys-case: bypass
-          mask-variables: true
-
       - name: Install dependencies
         run: npm install --legacy-peer-deps
         working-directory: Client
@@ -60,7 +66,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ env.VITE_AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
       - name: Get CloudFormation Outputs
