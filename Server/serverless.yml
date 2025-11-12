@@ -497,7 +497,7 @@ functions:
       command: ["build/automation/C_woltBuyGift.handler"]
     memorySize: 1536
     ephemeralStorageSize: 1536
-    timeout: 285
+    timeout: 300
     # No HTTP events - only called by Step Functions
 
   # Non-selenium function for email processing
