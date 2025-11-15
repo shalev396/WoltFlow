@@ -2,7 +2,8 @@ import axios from "axios";
 import { responseInterceptor, errorInterceptor } from "@/utils/authInterceptor";
 import { isTokenExpired, refreshTokens } from "@/utils/tokenUtil";
 
-const isLocal = import.meta.env.VITE_ENV === "local";
+// Check if running locally by checking if origin ends with shalev396.com
+const isLocal = !window.location.origin.includes("shalev396.com");
 const baseURL = isLocal
   ? "http://localhost:3000/api"
   : `${window.location.origin}/api`;

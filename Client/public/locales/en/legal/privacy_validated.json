@@ -27,7 +27,7 @@
         },
         "session": {
           "title": "Session (browser localStorage)",
-          "description": "Authentication tokens (idToken and refreshToken) stored in browser localStorage. No cookies used for authentication. No third-party ad cookies. Analytics is blocked by default until consent (see §7)."
+          "description": "Authentication tokens (idToken and refreshToken) stored in browser localStorage. No cookies used for authentication. No third-party ad cookies. Analytics is blocked by default until consent (see ┬º7)."
         }
       },
       "credentials": {
@@ -84,8 +84,8 @@
           "items": [
             "inboxId, s3EmailUrl, attachmentUrls[], fromEmail, fromName, toEmail, toName, subject, body, emailDate"
           ],
-          "flow": "Flow: messages sent to your assigned recipient address are received by AWS SES → delivered to S3 → processed; we create an Emails record linked to your Inbox.",
-          "retention": "Retention: default 90 days (see §5); S3 objects follow the same retention unless required shorter."
+          "flow": "Flow: messages sent to your assigned recipient address are received by AWS SES Γזע delivered to S3 Γזע processed; we create an Emails record linked to your Inbox.",
+          "retention": "Retention: default 90 days (see ┬º5); S3 objects follow the same retention unless required shorter."
         }
       },
       "runs": {
@@ -133,7 +133,7 @@
       },
       "analytics": {
         "title": "Analytics",
-        "description": "Opt-in only (see §7)."
+        "description": "Opt-in only (see ┬º7)."
       },
       "legalBasis": "Under Israeli law the primary bases here are performance of a relationship you initiate (providing the service you asked for) and legitimate interests (technical operation and security), together with consent where required (analytics cookies/identifiers). We also follow the duty to inform about what we collect, where it's stored, retention, and sharing."
     },
@@ -153,11 +153,11 @@
       "title": "Security (how we protect data)",
       "appLevel": {
         "title": "Application-level encryption",
-        "description": "AES-256 for Wolt tokens, Cibus username/password/company. These credentials are stored encrypted in the database and are only decrypted server-side when needed for automation. They may be returned to the browser (still encrypted in transit via HTTPS) for display in Settings, but are never exposed in plaintext to the client. Cognito authentication tokens are stored in browser localStorage and transmitted securely over HTTPS."
+        "description": "AES-256 for Wolt tokens, Cibus username/password/company. Decryption happens only inside server code; those values are never returned to the browser. Cognito authentication tokens are stored in browser localStorage and transmitted securely over HTTPS."
       },
       "transport": {
         "title": "Transport",
-        "description": "TLS for client⇄API and API⇄AWS services. (RDS and service links use AWS defaults; client traffic to us is always HTTPS.)"
+        "description": "TLS for clientΓחהAPI and APIΓחהAWS services. (RDS and service links use AWS defaults; client traffic to us is always HTTPS.)"
       },
       "atRest": {
         "title": "At rest",
@@ -172,11 +172,11 @@
       "title": "How Long We Keep Data (retention)",
       "oneTime": {
         "title": "One-time codes",
-        "description": "Cibus2FA, TwoFactorAuthentication (verification codes), and Code (gift codes) – deleted in a daily purge (may be deleted earlier by rolling cleanup)."
+        "description": "Cibus2FA, TwoFactorAuthentication (verification codes), and Code (gift codes) Γאף deleted in a daily purge (may be deleted earlier by rolling cleanup)."
       },
       "operational": {
         "title": "Operational history",
-        "description": "Run and Screenshot – 90 days."
+        "description": "Run and Screenshot Γאף 90 days."
       },
       "emails": {
         "title": "Emails & attachments",
@@ -184,11 +184,11 @@
       },
       "logs": {
         "title": "Logs",
-        "description": "CloudWatch / app logs – 30 days."
+        "description": "CloudWatch / app logs Γאף 30 days."
       },
       "account": {
         "title": "Account & settings",
-        "description": "User account, Settings, WoltSettings, CibusSettings, RunSettings, NotificationSettings, Inbox – kept until you delete your account."
+        "description": "User account, Settings, WoltSettings, CibusSettings, RunSettings, NotificationSettings, Inbox Γאף kept until you delete your account."
       },
       "deletion": "Account deletion: triggers deletion of all the above user-linked data, including runs, screenshots, emails, and stored credentials/tokens, subject only to technical delay for safe purge. (We do not keep database backups for this project.)"
     },
@@ -200,7 +200,7 @@
       },
       "delete": {
         "title": "Delete account (and all data)",
-        "description": "Available in Settings. This removes your account and linked data sets listed in §5."
+        "description": "Available in Settings. This removes your account and linked data sets listed in ┬º5."
       },
       "edit": {
         "title": "Edit data",
@@ -215,16 +215,27 @@
       },
       "analytics": {
         "title": "Analytics",
-        "description": "Google Analytics (GA4) runs only after consent. We implement Google Consent Mode V2 – Basic, which blocks Google tags until you choose on the banner. If you do not consent, GA remains off. You can change your consent anytime from the banner link in the app."
+        "description": "Google Analytics (GA4) runs only after consent. We implement Google Consent Mode V2 Γאף Basic, which blocks Google tags until you choose on the banner. If you do not consent, GA remains off. You can change your consent anytime from the banner link in the app."
       }
     },
     "thirdParty": {
       "title": "Third-party Services (categories)",
       "intro": "We use third-party processors to operate the product. They handle data only as needed to provide their specific function:",
-      "aws": {
-        "title": "Amazon Web Services (AWS)",
+      "cognito": {
+        "title": "Amazon Web Services - Cognito",
         "items": [
-          "AWS Cognito (authentication: email/password-based user accounts, secure token management)",
+          "AWS Cognito (authentication: email/password-based user accounts, secure token management)"
+        ]
+      },
+      "analytics": {
+        "title": "Google Analytics",
+        "items": [
+          "Google Analytics (GA4) - only after consent; see ┬º7"
+        ]
+      },
+      "aws": {
+        "title": "Amazon Web Services (AWS) - Infrastructure",
+        "items": [
           "Compute & API: Lambda, API Gateway, EC2 (as needed)",
           "Storage/Data: Aurora PostgreSQL (RDS), S3",
           "Messaging/Email: Amazon SES (receive email into S3; send outbound emails), AWS End User Messaging (for SMS/notifications, if configured)",
@@ -232,19 +243,13 @@
           "Network & Delivery: VPC, Route 53, CloudFront (global CDN & API edge), Certificate Manager (TLS)",
           "Platform: IAM (access control), CloudFormation (infrastructure as code)"
         ]
-      },
-      "analytics": {
-        "title": "Google Analytics",
-        "items": [
-          "Google Analytics (GA4) - only after consent; see Cookies & Analytics section"
-        ]
       }
     },
     "sharing": {
       "title": "Sharing",
       "intro": "We do not sell personal data. We share data only with:",
       "items": [
-        "Processors listed in §8 to operate the service; and",
+        "Processors listed in ┬º8 to operate the service; and",
         "Authorities if required by applicable law, court order, or regulator instruction."
       ]
     },
