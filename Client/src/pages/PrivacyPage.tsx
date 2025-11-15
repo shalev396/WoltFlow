@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Mail } from "lucide-react";
 import Layout from "@/components/shared/Layout";
@@ -8,35 +8,48 @@ const PRIVACY_POLICY_CONFIG = {
   lastUpdated: "04/09/2025",
   contactEmail: "shalev396@gmail.com",
   ownerOperator: "Shalev Ben-Moshe (individual, side-project)",
-  territory: `AWS, primary region ${import.meta.env.VITE_AWS_REGION} (${
-    import.meta.env.VITE_AWS_REGION_CITY
-  })`,
+  territory: "AWS, primary region il-central-1 (Tel Aviv)",
   productName: "WoltFlow",
+};
+
+// Helper function to safely render translation arrays
+const renderTranslationArray = (
+  t: (key: string, options?: { returnObjects: boolean }) => unknown,
+  key: string
+): React.ReactElement[] => {
+  const items = t(key, { returnObjects: true });
+  if (Array.isArray(items)) {
+    return items.map((item: string, idx: number) => <li key={idx}>{item}</li>);
+  }
+  return [];
 };
 
 export default function PrivacyPage() {
   const { t } = useTranslation("legal/privacy");
-  const region = import.meta.env.VITE_AWS_REGION;
-  const city = import.meta.env.VITE_AWS_REGION_CITY;
+  const region = "il-central-1";
+  const city = "Tel Aviv";
+
+  // Section counter for numbering
+  let sectionNumber = 0;
+  const getNextSection = () => ++sectionNumber;
 
   return (
     <Layout title={t("title")} description={t("description")}>
       <div className="max-w-4xl mx-auto">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">
-              {t("title")}
-            </CardTitle>
-            <p className="text-center text-muted-foreground">
-              {t("lastUpdated")}: {PRIVACY_POLICY_CONFIG.lastUpdated}
-            </p>
-          </CardHeader>
+          <CardContent className="space-y-8 pt-6">
+            {/* Last Updated */}
+            <div className="text-center">
+              <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
+              <p className="text-muted-foreground">
+                {t("lastUpdated")}: {PRIVACY_POLICY_CONFIG.lastUpdated}
+              </p>
+            </div>
 
-          <CardContent className="space-y-8">
             {/* Who We Are */}
             <section>
               <h2 className="text-2xl font-semibold mb-4">
-                {t("sections.whoWeAre.title")}
+                §{getNextSection()}. {t("sections.whoWeAre.title")}
               </h2>
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p>
@@ -72,7 +85,7 @@ export default function PrivacyPage() {
             {/* What Data We Collect */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.whatData.title")}
+                §{getNextSection()}. {t("sections.whatData.title")}
               </h2>
               <p className="text-muted-foreground mb-6">
                 {t("sections.whatData.intro")}
@@ -91,13 +104,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.auth.user.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.auth.user.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.auth.user.items"
+                        )}
                       </ul>
                     </div>
 
@@ -124,13 +134,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.credentials.wolt.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.credentials.wolt.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.credentials.wolt.items"
+                        )}
                       </ul>
                     </div>
 
@@ -139,13 +146,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.credentials.cibus.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.credentials.cibus.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.credentials.cibus.items"
+                        )}
                       </ul>
                     </div>
                   </div>
@@ -163,13 +167,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.codes.cibus2fa.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.codes.cibus2fa.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.codes.cibus2fa.items"
+                        )}
                       </ul>
                       <p className="text-muted-foreground text-sm pl-6 mt-2">
                         {t("sections.whatData.codes.cibus2fa.source")}
@@ -184,13 +185,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.codes.twoFactor.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.codes.twoFactor.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.codes.twoFactor.items"
+                        )}
                       </ul>
                       <p className="text-muted-foreground text-sm pl-6 mt-2">
                         {t("sections.whatData.codes.twoFactor.retention")}
@@ -202,13 +200,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.codes.code.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.codes.code.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.codes.code.items"
+                        )}
                       </ul>
                       <p className="text-muted-foreground text-sm pl-6 mt-2">
                         {t("sections.whatData.codes.code.retention")}
@@ -238,13 +233,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.email.emails.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.email.emails.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.email.emails.items"
+                        )}
                       </ul>
                       <p className="text-muted-foreground text-sm pl-6 mt-2">
                         {t("sections.whatData.email.emails.flow")}
@@ -277,13 +269,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.runs.run.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.runs.run.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.runs.run.items"
+                        )}
                       </ul>
                       <p className="text-muted-foreground text-sm pl-6 mt-2">
                         {t("sections.whatData.runs.run.purpose")}
@@ -295,13 +284,10 @@ export default function PrivacyPage() {
                         {t("sections.whatData.runs.screenshot.title")}
                       </h4>
                       <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {(
-                          t("sections.whatData.runs.screenshot.items", {
-                            returnObjects: true,
-                          }) as string[]
-                        ).map((item: string, idx: number) => (
-                          <li key={idx}>{item}</li>
-                        ))}
+                        {renderTranslationArray(
+                          t,
+                          "sections.whatData.runs.screenshot.items"
+                        )}
                       </ul>
                       <p className="text-muted-foreground text-sm pl-6 mt-2">
                         {t("sections.whatData.runs.screenshot.purpose")}
@@ -334,7 +320,7 @@ export default function PrivacyPage() {
             {/* Why We Collect It */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.whyCollect.title")}
+                §{getNextSection()}. {t("sections.whyCollect.title")}
               </h2>
 
               <div className="space-y-4">
@@ -385,7 +371,7 @@ export default function PrivacyPage() {
             {/* Where We Process & Store */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.whereProcess.title")}
+                §{getNextSection()}. {t("sections.whereProcess.title")}
               </h2>
 
               <div className="space-y-4">
@@ -423,7 +409,7 @@ export default function PrivacyPage() {
             {/* Security */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.security.title")}
+                §{getNextSection()}. {t("sections.security.title")}
               </h2>
 
               <div className="space-y-4">
@@ -470,7 +456,7 @@ export default function PrivacyPage() {
             {/* Retention */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.retention.title")}
+                §{getNextSection()}. {t("sections.retention.title")}
               </h2>
 
               <div className="space-y-4">
@@ -530,7 +516,7 @@ export default function PrivacyPage() {
             {/* Your Controls */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.controls.title")}
+                §{getNextSection()}. {t("sections.controls.title")}
               </h2>
 
               <div className="space-y-4">
@@ -568,16 +554,16 @@ export default function PrivacyPage() {
             {/* Cookies & Analytics */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.cookies.title")}
+                §{getNextSection()}. {t("sections.cookies.title")}
               </h2>
 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium mb-2">
-                    {t("sections.cookies.authCookie.title")}
+                    {t("sections.cookies.authToken.title")}
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    {t("sections.cookies.authCookie.description")}
+                    {t("sections.cookies.authToken.description")}
                   </p>
                 </div>
 
@@ -597,7 +583,7 @@ export default function PrivacyPage() {
             {/* Third-party Services */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.thirdParty.title")}
+                §{getNextSection()}. {t("sections.thirdParty.title")}
               </h2>
               <p className="text-muted-foreground mb-4">
                 {t("sections.thirdParty.intro")}
@@ -606,31 +592,22 @@ export default function PrivacyPage() {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium mb-2">
-                    {t("sections.thirdParty.google.title")}
+                    {t("sections.thirdParty.aws.title")}
                   </h3>
                   <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                    {(
-                      t("sections.thirdParty.google.items", {
-                        returnObjects: true,
-                      }) as string[]
-                    ).map((item: string, idx: number) => (
-                      <li key={idx}>{item}</li>
-                    ))}
+                    {renderTranslationArray(t, "sections.thirdParty.aws.items")}
                   </ul>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-medium mb-2">
-                    {t("sections.thirdParty.aws.title")}
+                    {t("sections.thirdParty.analytics.title")}
                   </h3>
                   <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                    {(
-                      t("sections.thirdParty.aws.items", {
-                        returnObjects: true,
-                      }) as string[]
-                    ).map((item: string, idx: number) => (
-                      <li key={idx}>{item}</li>
-                    ))}
+                    {renderTranslationArray(
+                      t,
+                      "sections.thirdParty.analytics.items"
+                    )}
                   </ul>
                 </div>
               </div>
@@ -641,19 +618,13 @@ export default function PrivacyPage() {
             {/* Sharing */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.sharing.title")}
+                §{getNextSection()}. {t("sections.sharing.title")}
               </h2>
               <p className="text-muted-foreground mb-4">
                 {t("sections.sharing.intro")}
               </p>
               <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                {(
-                  t("sections.sharing.items", {
-                    returnObjects: true,
-                  }) as string[]
-                ).map((item: string, idx: number) => (
-                  <li key={idx}>{item}</li>
-                ))}
+                {renderTranslationArray(t, "sections.sharing.items")}
               </ul>
             </section>
 
@@ -662,7 +633,7 @@ export default function PrivacyPage() {
             {/* Children */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.children.title")}
+                §{getNextSection()}. {t("sections.children.title")}
               </h2>
               <p className="text-muted-foreground">
                 {t("sections.children.description", {
@@ -676,7 +647,7 @@ export default function PrivacyPage() {
             {/* Changes */}
             <section>
               <h2 className="text-2xl font-semibold mb-6">
-                {t("sections.changes.title")}
+                §{getNextSection()}. {t("sections.changes.title")}
               </h2>
               <p className="text-muted-foreground mb-2">
                 {t("sections.changes.description")}
@@ -693,7 +664,7 @@ export default function PrivacyPage() {
             {/* Questions */}
             <section>
               <h2 className="text-2xl font-semibold mb-4">
-                {t("sections.questions.title")}
+                §{getNextSection()}. {t("sections.questions.title")}
               </h2>
               <p className="text-muted-foreground mb-4">
                 {t("sections.questions.description")}

@@ -64,7 +64,7 @@ export function SmsForwardingContent() {
               <h4 className="font-medium mb-2">{t("apiSetup.endpointUrl.title")}</h4>
               <div className="p-2 sm:p-3 bg-background border rounded overflow-x-auto">
                 <code className="text-xs sm:text-sm font-mono break-all">
-                  POST https://{import.meta.env.VITE_DOMAIN_NAME}
+                  POST https://https://woltfow.shalev396.com
                   /api/forward/sms
                 </code>
               </div>
@@ -224,7 +224,7 @@ export function SmsForwardingContent() {
                             <div>
                               <p className="font-medium mb-1">{step.details.url}</p>
                               <code className="bg-muted px-1 py-0.5 rounded text-xs break-all block">
-                                https://{import.meta.env.VITE_DOMAIN_NAME}
+                                https://woltfow.shalev396.com
                                 /api/forward/sms
                               </code>
                             </div>

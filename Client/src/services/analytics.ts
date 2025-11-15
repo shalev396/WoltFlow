@@ -8,7 +8,6 @@ declare global {
 
 // Environment variables
 const GA_TRACKING_ID = import.meta.env.VITE_GOOGLE_ANALYTICS_ID;
-const IS_DEVELOPMENT = import.meta.env.VITE_ENV === "dev";
 const GA_SCRIPT_ID = "google-analytics-script";
 
 class AnalyticsService {
@@ -84,7 +83,6 @@ class AnalyticsService {
       page_title: document.title,
       page_location: window.location.href,
       cookie_domain: "auto", // This is crucial for subdomain tracking
-      debug_mode: IS_DEVELOPMENT,
     });
 
     // Load external script
@@ -140,7 +138,6 @@ class AnalyticsService {
       page_path,
       page_title: page_title || document.title,
       cookie_domain: "auto",
-      debug_mode: IS_DEVELOPMENT,
     });
   }
 

@@ -107,7 +107,7 @@ export function EmailForwardingContent() {
                   <div className="flex items-start gap-2 mb-2">
                     <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <span className="font-mono text-xs text-muted-foreground break-all">
-                      [your-unique-id]@{import.meta.env.VITE_EMAIL_SUBDOMAIN}
+                      [your-unique-id]@users.woltflow.shalev396.com
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">

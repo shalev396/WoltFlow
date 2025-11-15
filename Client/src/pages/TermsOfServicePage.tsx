@@ -10,22 +10,42 @@ const TERMS_CONFIG = {
   effectiveDate: "04/09/2025",
   contactEmail: "shalev396@gmail.com",
   ownerOperator: "Shalev Ben-Moshe (individual, side-project)",
-  territory: `AWS, primary region ${import.meta.env.VITE_AWS_REGION} (${
-    import.meta.env.VITE_AWS_REGION_CITY
-  })`,
+  territory: "AWS, primary region il-central-1 (Tel Aviv)",
   productName: "WoltFlow",
   productDescription:
     "automation that buys Wolt gift credit using a user's Cibus meal benefit and applies it to the user's Wolt account",
 };
 
+// Helper function to safely render translation arrays
+const renderTranslationArray = (
+  t: (key: string, options?: { returnObjects: boolean }) => unknown,
+  key: string
+): React.ReactElement[] => {
+  const items = t(key, { returnObjects: true });
+  if (Array.isArray(items)) {
+    return items.map((item: string, idx: number) => <li key={idx}>{item}</li>);
+  }
+  return [];
+};
+
 export default function TermsOfService() {
   const { t } = useTranslation("legal/terms");
+
+  // Section counter for numbering
+  let sectionNumber = 0;
+  const getNextSection = () => ++sectionNumber;
 
   return (
     <Layout title={t("title")} description={t("description")}>
       <div className="max-w-4xl mx-auto">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="space-y-8 pt-6">
+            {/* Header */}
+            <div className="text-center">
+              <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
+            </div>
+
+            {/* Service Info */}
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">
                 {t("sections.serviceInfo.title")}
@@ -55,11 +75,13 @@ export default function TermsOfService() {
               </div>
             </section>
 
+            <Separator />
+
             <div className="space-y-8">
               {/* 1) Acceptance of the Terms */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.acceptance.title")}
+                  §{getNextSection()}. {t("sections.acceptance.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.acceptance.description", {
@@ -73,7 +95,7 @@ export default function TermsOfService() {
               {/* 2) What the Service Does */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.whatService.title")}
+                  §{getNextSection()}. {t("sections.whatService.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.whatService.p1")}
@@ -88,7 +110,7 @@ export default function TermsOfService() {
               {/* 3) Your Account; Eligibility */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.account.title")}
+                  §{getNextSection()}. {t("sections.account.title")}
                 </h2>
                 <div className="space-y-4">
                   <p className="text-muted-foreground leading-relaxed">
@@ -108,7 +130,7 @@ export default function TermsOfService() {
               {/* 4) Initial Setup & Your Inputs */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.setup.title")}
+                  §{getNextSection()}. {t("sections.setup.title")}
                 </h2>
                 <div className="space-y-4">
                   <p className="text-muted-foreground leading-relaxed">
@@ -135,7 +157,7 @@ export default function TermsOfService() {
               {/* 5) Third-Party Services */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.thirdParty.title")}
+                  §{getNextSection()}. {t("sections.thirdParty.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.thirdParty.description")}
@@ -147,7 +169,7 @@ export default function TermsOfService() {
               {/* 6) Permitted Use; Prohibited Activities */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.permitted.title")}
+                  §{getNextSection()}. {t("sections.permitted.title")}
                 </h2>
                 <div className="space-y-4">
                   <p className="text-muted-foreground leading-relaxed">
@@ -159,13 +181,7 @@ export default function TermsOfService() {
                     {t("sections.permitted.b.description")}
                   </p>
                   <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                    {(
-                      t("sections.permitted.b.items", {
-                        returnObjects: true,
-                      }) as string[]
-                    ).map((item: string, idx: number) => (
-                      <li key={idx}>{item}</li>
-                    ))}
+                    {renderTranslationArray(t, "sections.permitted.b.items")}
                   </ul>
                   <p className="text-muted-foreground leading-relaxed">
                     {t("sections.permitted.b.footer")}
@@ -178,7 +194,7 @@ export default function TermsOfService() {
               {/* 7) Running the Automation */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.running.title")}
+                  §{getNextSection()}. {t("sections.running.title")}
                 </h2>
                 <div className="space-y-4">
                   <p className="text-muted-foreground leading-relaxed">
@@ -198,7 +214,7 @@ export default function TermsOfService() {
               {/* 8) Payments, Fees, Taxes */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.payments.title")}
+                  §{getNextSection()}. {t("sections.payments.title")}
                 </h2>
                 <div className="space-y-4">
                   <p className="text-muted-foreground leading-relaxed">
@@ -215,7 +231,7 @@ export default function TermsOfService() {
               {/* 9) Risk Allocation & Disclaimers */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.risk.title")}
+                  §{getNextSection()}. {t("sections.risk.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
                   {t("sections.risk.intro")}
@@ -234,13 +250,7 @@ export default function TermsOfService() {
                     {t("sections.risk.c.description")}
                   </p>
                   <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                    {(
-                      t("sections.risk.c.items", {
-                        returnObjects: true,
-                      }) as string[]
-                    ).map((item: string, idx: number) => (
-                      <li key={idx}>{item}</li>
-                    ))}
+                    {renderTranslationArray(t, "sections.risk.c.items")}
                   </ul>
                   <p className="text-muted-foreground leading-relaxed">
                     <strong>d) {t("sections.risk.d.title")}</strong>{" "}
@@ -254,7 +264,7 @@ export default function TermsOfService() {
               {/* 10) Limitation of Liability */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.liability.title")}
+                  §{getNextSection()}. {t("sections.liability.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.liability.p1")}
@@ -269,7 +279,7 @@ export default function TermsOfService() {
               {/* 11) Indemnification */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.indemnification.title")}
+                  §{getNextSection()}. {t("sections.indemnification.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.indemnification.description")}
@@ -281,7 +291,7 @@ export default function TermsOfService() {
               {/* 12) Privacy */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.privacy.title")}
+                  §{getNextSection()}. {t("sections.privacy.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.privacy.description")}
@@ -293,7 +303,7 @@ export default function TermsOfService() {
               {/* 13) Intellectual Property */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.ip.title")}
+                  §{getNextSection()}. {t("sections.ip.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.ip.description")}
@@ -305,7 +315,7 @@ export default function TermsOfService() {
               {/* 14) Suspension; Termination */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.termination.title")}
+                  §{getNextSection()}. {t("sections.termination.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.termination.description")}
@@ -317,7 +327,7 @@ export default function TermsOfService() {
               {/* 15) Changes to the Service or Terms */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.changes.title")}
+                  §{getNextSection()}. {t("sections.changes.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.changes.description")}
@@ -329,7 +339,7 @@ export default function TermsOfService() {
               {/* 16) Governing Law; Venue */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.governing.title")}
+                  §{getNextSection()}. {t("sections.governing.title")}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   {t("sections.governing.description")}
@@ -341,7 +351,7 @@ export default function TermsOfService() {
               {/* 17) Miscellaneous */}
               <section>
                 <h2 className="text-2xl font-semibold mb-6">
-                  {t("sections.misc.title")}
+                  §{getNextSection()}. {t("sections.misc.title")}
                 </h2>
                 <div className="space-y-4">
                   <p className="text-muted-foreground leading-relaxed">
@@ -372,7 +382,7 @@ export default function TermsOfService() {
               {/* Contact section */}
               <section>
                 <h2 className="text-2xl font-semibold mb-4">
-                  {t("sections.questions.title")}
+                  §{getNextSection()}. {t("sections.questions.title")}
                 </h2>
                 <p className="text-muted-foreground mb-4">
                   {t("sections.questions.description")}

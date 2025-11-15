@@ -43,7 +43,7 @@ export function InboxContent() {
             </p>
             <div className="p-2 sm:p-3 bg-purple-100/70 dark:bg-purple-900/30 rounded border overflow-x-auto">
               <code className="text-xs font-mono text-purple-800 dark:text-purple-200 break-all block">
-                [your-unique-id]@{import.meta.env.VITE_EMAIL_SUBDOMAIN}
+                [your-unique-id]@users.woltflow.shalev396.com
               </code>
             </div>
             <p className="text-xs sm:text-sm text-purple-700 dark:text-purple-300 leading-relaxed break-words mt-2">

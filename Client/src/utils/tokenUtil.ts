@@ -57,8 +57,8 @@ export const refreshTokens = async (): Promise<{
 
     console.log("🔄 Refreshing tokens via backend API...");
 
-    // Determine API endpoint based on environment
-    const isLocal = import.meta.env.VITE_ENV === "local";
+    // Determine API endpoint based on domain (not local if ends with shalev396.com)
+    const isLocal = !window.location.origin.includes("shalev396.com");
     const baseURL = isLocal
       ? "http://localhost:3000/api"
       : `${window.location.origin}/api`;

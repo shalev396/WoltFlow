@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -12,27 +12,42 @@ const EXTENSION_PRIVACY_POLICY_CONFIG = {
   extensionDeveloper: "Shalev Ben-Moshe (individual, side-project)",
 };
 
+// Helper function to safely render translation arrays
+const renderTranslationArray = (
+  t: (key: string, options?: { returnObjects: boolean }) => unknown,
+  key: string
+): React.ReactElement[] => {
+  const items = t(key, { returnObjects: true });
+  if (Array.isArray(items)) {
+    return items.map((item: string, idx: number) => <li key={idx}>{item}</li>);
+  }
+  return [];
+};
+
 export default function ExtensionPrivacyPage() {
   const { language } = useLanguage();
   const { t } = useTranslation("legal/extensionPrivacy");
 
+  // Section counter for numbering
+  let sectionNumber = 0;
+  const getNextSection = () => ++sectionNumber;
+
   return (
     <Layout title={t("title")} description={t("description")}>
       <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center">
-            {t("title")}
-          </CardTitle>
-          <p className="text-center text-muted-foreground">
-            {t("lastUpdated")} {EXTENSION_PRIVACY_POLICY_CONFIG.lastUpdated}
-          </p>
-        </CardHeader>
+        <CardContent className="space-y-8 pt-6">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
+            <p className="text-muted-foreground">
+              {t("lastUpdated")} {EXTENSION_PRIVACY_POLICY_CONFIG.lastUpdated}
+            </p>
+          </div>
 
-        <CardContent className="space-y-8">
           {/* Introduction */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.introduction.title")}
+              §{getNextSection()}. {t("sections.introduction.title")}
             </h2>
             <p className="text-muted-foreground mb-4">
               {t("sections.introduction.description")}
@@ -44,7 +59,7 @@ export default function ExtensionPrivacyPage() {
           {/* What the Extension Does */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.whatDoes.title")}
+              §{getNextSection()}. {t("sections.whatDoes.title")}
             </h2>
 
             <div className="space-y-4">
@@ -53,13 +68,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.whatDoes.tokenDisplay.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.whatDoes.tokenDisplay.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.whatDoes.tokenDisplay.items"
+                  )}
                 </ul>
               </div>
 
@@ -68,13 +80,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.whatDoes.permissions.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.whatDoes.permissions.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.whatDoes.permissions.items"
+                  )}
                 </ul>
               </div>
             </div>
@@ -85,7 +94,7 @@ export default function ExtensionPrivacyPage() {
           {/* Data Handling */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.dataHandling.title")}
+              §{getNextSection()}. {t("sections.dataHandling.title")}
             </h2>
 
             <div className="space-y-4">
@@ -94,13 +103,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.dataHandling.access.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.dataHandling.access.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.dataHandling.access.items"
+                  )}
                 </ul>
               </div>
 
@@ -109,13 +115,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.dataHandling.storage.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.dataHandling.storage.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.dataHandling.storage.items"
+                  )}
                 </ul>
               </div>
 
@@ -124,13 +127,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.dataHandling.transmission.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.dataHandling.transmission.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.dataHandling.transmission.items"
+                  )}
                 </ul>
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function ExtensionPrivacyPage() {
           {/* Security Measures */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.security.title")}
+              §{getNextSection()}. {t("sections.security.title")}
             </h2>
 
             <div className="space-y-4">
@@ -150,13 +150,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.security.extension.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.security.extension.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.security.extension.items"
+                  )}
                 </ul>
               </div>
 
@@ -165,13 +162,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.security.protection.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.security.protection.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.security.protection.items"
+                  )}
                 </ul>
               </div>
             </div>
@@ -182,7 +176,7 @@ export default function ExtensionPrivacyPage() {
           {/* User Rights */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.rights.title")}
+              §{getNextSection()}. {t("sections.rights.title")}
             </h2>
 
             <div className="space-y-4">
@@ -191,13 +185,7 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.rights.control.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.rights.control.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(t, "sections.rights.control.items")}
                 </ul>
               </div>
 
@@ -206,13 +194,7 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.rights.data.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.rights.data.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(t, "sections.rights.data.items")}
                 </ul>
               </div>
             </div>
@@ -223,7 +205,7 @@ export default function ExtensionPrivacyPage() {
           {/* Third-Party Services */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.thirdParty.title")}
+              §{getNextSection()}. {t("sections.thirdParty.title")}
             </h2>
             <p className="text-muted-foreground mb-4">
               {t("sections.thirdParty.intro")}
@@ -235,13 +217,10 @@ export default function ExtensionPrivacyPage() {
                   {t("sections.thirdParty.cookieAccess.title")}
                 </h3>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                  {(
-                    t("sections.thirdParty.cookieAccess.items", {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
+                  {renderTranslationArray(
+                    t,
+                    "sections.thirdParty.cookieAccess.items"
+                  )}
                 </ul>
               </div>
             </div>
@@ -252,7 +231,7 @@ export default function ExtensionPrivacyPage() {
           {/* Contact Information */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.contact.title")}
+              §{getNextSection()}. {t("sections.contact.title")}
             </h2>
             <p className="text-muted-foreground mb-4">
               {t("sections.contact.intro")}
@@ -298,7 +277,7 @@ export default function ExtensionPrivacyPage() {
           {/* Updates */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.updates.title")}
+              §{getNextSection()}. {t("sections.updates.title")}
             </h2>
             <p className="text-muted-foreground">
               {t("sections.updates.description")}
@@ -310,7 +289,7 @@ export default function ExtensionPrivacyPage() {
           {/* Effective Date */}
           <section className="text-center">
             <h2 className="text-2xl font-semibold mb-4">
-              {t("sections.effective.title")}
+              §{getNextSection()}. {t("sections.effective.title")}
             </h2>
             <p className="text-sm text-muted-foreground">
               {t("sections.effective.p1", {

@@ -8,8 +8,6 @@ dotenv.config();
 
 // Export a function to sync database instead of doing it at module load time
 export async function syncDatabase() {
-  // const shouldSync = process.env.ENV === "local";
-  // if (shouldSync) {
   try {
     // Initialize model relationships before syncing
     initializeModelRelationships();
