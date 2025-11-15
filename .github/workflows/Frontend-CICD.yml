@@ -24,23 +24,14 @@ jobs:
     env:
       # Non-sensitive configuration from environment variables
       ## Global repository variables
-      VITE_AWS_REGION: ${{ vars.AWS_REGION }}
-      VITE_AWS_REGION_CITY: ${{vars.VITE_AWS_REGION_CITY}}
+      AWS_REGION: ${{ vars.AWS_REGION }}
       ## Per environment variables
-      VITE_DOMAIN_NAME: ${{vars.DOMAIN_NAME_CLOUD}}
-      VITE_EMAIL_SUBDOMAIN: ${{vars.EMAIL_SUBDOMAIN}}
       VITE_SMS_ENABLED: ${{ vars.ENABLED_SMS }}
-      VITE_ENV: ${{vars.ENV}}
-
       # Sensitive data from secrets (automatically masked in logs)
       ## Global repository secrets
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       STACK_BASE_NAME: ${{ secrets.STACK_BASE_NAME }}
       ## Per environment secrets
-      VITE_COGNITO_CLIENT_ID: ${{secrets.COGNITO_CLIENT_ID}}
-      VITE_COGNITO_DOMAIN: ${{secrets.COGNITO_DOMAIN}}
-      VITE_COGNITO_ISSUER: ${{secrets.COGNITO_ISSUER}}
-      VITE_COGNITO_USER_POOL_ID: ${{secrets.COGNITO_USER_POOL_ID}}
       VITE_GOOGLE_ANALYTICS_ID: ${{secrets.VITE_GOOGLE_ANALYTICS_ID}}
     steps:
       - name: Checkout code
@@ -66,7 +57,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ env.VITE_AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/my-github-actions-role
 
       - name: Get CloudFormation Outputs
