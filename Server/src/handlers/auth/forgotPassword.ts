@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandler, APIGatewayProxyResult } from "aws-lambda";
+import { type APIGatewayProxyHandler, type APIGatewayProxyResult } from "aws-lambda";
 import {
   CognitoIdentityProviderClient,
   ForgotPasswordCommand,

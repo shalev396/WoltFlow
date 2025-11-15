@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandler } from "aws-lambda";
+import { type APIGatewayProxyHandler } from "aws-lambda";
 import {
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
@@ -104,7 +104,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         },
       }),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ Token refresh failed:", error);
 
     // Check for specific Cognito errors
