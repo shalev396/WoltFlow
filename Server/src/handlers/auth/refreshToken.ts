@@ -108,26 +108,28 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     console.error("❌ Token refresh failed:", error);
 
     // Check for specific Cognito errors
-    if (error.name === "NotAuthorizedException") {
-      console.error("❌ Refresh token expired or invalid");
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          success: false,
-          message: "Refresh token expired or invalid",
-        }),
-      };
-    }
+    if (error && typeof error === "object" && "name" in error) {
+      if (error.name === "NotAuthorizedException") {
+        console.error("❌ Refresh token expired or invalid");
+        return {
+          statusCode: 401,
+          body: JSON.stringify({
+            success: false,
+            message: "Refresh token expired or invalid",
+          }),
+        };
+      }
 
-    if (error.name === "UserNotFoundException") {
-      console.error("❌ User not found");
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          success: false,
-          message: "User not found",
-        }),
-      };
+      if (error.name === "UserNotFoundException") {
+        console.error("❌ User not found");
+        return {
+          statusCode: 401,
+          body: JSON.stringify({
+            success: false,
+            message: "User not found",
+          }),
+        };
+      }
     }
 
     // Generic error response
