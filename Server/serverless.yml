@@ -113,10 +113,8 @@ provider:
     LAMBDA_SUBNET_ID: ${env:LAMBDA_SUBNET_ID}
     # APP
     ENABLED_SMS: ${env:ENABLED_SMS}
-    JWT_SECRET: ${env:JWT_SECRET}
     ENCRYPTION_KEY: ${env:ENCRYPTION_KEY}
     # COGNITO - Set these manually in .env after first deployment
-    COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
     COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
     COGNITO_ISSUER: ${env:COGNITO_ISSUER}
     # DEVELOPMENT
@@ -251,13 +249,12 @@ custom:
 
   # Auto-select domain name based on IS_LOCAL environment variable
   domainName:
-    true: ${env:DOMAIN_NAME_LOCAL}
+    true: "localhost:5173"
     false: ${env:DOMAIN_NAME_CLOUD}
 
   # Domain with protocol for CORS (conditional)
-  # Local: http://localhost:5173, Cloud: https://woltflow.com
   domainWithProtocol:
-    true: http://${env:DOMAIN_NAME_LOCAL}
+    true: http://localhost:5173
     false: https://${env:DOMAIN_NAME_CLOUD}
 
   # SSL/TLS Certificate configuration - use manually created certificates

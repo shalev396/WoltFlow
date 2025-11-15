@@ -493,9 +493,7 @@ export const handler = async (
       console.error("soft error", err);
       //add || true to debug script
       if (
-        process.env.ENV === "local"
-        // ||process.env.ENV === "dev"
-        // || true
+        process.env.ENV === "dev"
       ) {
         console.log("dev mode override success");
         success = true;

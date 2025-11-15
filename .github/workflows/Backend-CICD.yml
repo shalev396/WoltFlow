@@ -25,7 +25,6 @@ jobs:
       # Non-sensitive configuration from environment variables
       ## Global repository variables
       AWS_REGION: ${{ vars.AWS_REGION }}
-      DOMAIN_NAME_LOCAL: ${{ vars.DOMAIN_NAME_LOCAL }}
       ## Per environment variables
       DEVELOPMENT_DATE: ${{ vars.DEVELOPMENT_DATE }}
       DOMAIN_NAME_CLOUD: ${{ vars.DOMAIN_NAME_CLOUD }}
@@ -42,13 +41,11 @@ jobs:
       SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
 
       ## Per environment secrets
-      COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
       COGNITO_ISSUER: ${{ secrets.COGNITO_ISSUER }}
       COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
       DATABASE_URL_CLOUD: ${{ secrets.DATABASE_URL_CLOUD }}
       DATABASE_URL_LOCAL: ${{ secrets.DATABASE_URL_LOCAL }}
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       S3_ASSETS_BUCKET_NAME: ${{ secrets.S3_ASSETS_BUCKET_NAME }}
       S3_CLIENT_BUCKET_NAME: ${{ secrets.S3_CLIENT_BUCKET_NAME }}
       S3_EMAIL_BUCKET_NAME: ${{ secrets.S3_EMAIL_BUCKET_NAME }}

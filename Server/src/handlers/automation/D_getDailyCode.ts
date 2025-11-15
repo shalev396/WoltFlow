@@ -59,12 +59,12 @@ export const handler = async (
     await run.update({ stage: "getting_code_from_email" });
 
     let targetDate = new Date();
-    if (process.env.ENV === "local") {
-      if (process.env.DEVELOPMENT_DATE) {
-        const d = new Date(process.env.DEVELOPMENT_DATE);
-        if (!isNaN(d.getTime())) targetDate = d;
-      }
-    }
+    // if (process.env.ENV === "dev") {
+    //   if (process.env.DEVELOPMENT_DATE) {
+    //     const d = new Date(process.env.DEVELOPMENT_DATE);
+    //     if (!isNaN(d.getTime())) targetDate = d;
+    //   }
+    // }
 
     // Calculate date range for email search
     const startOfDay = new Date(targetDate);
