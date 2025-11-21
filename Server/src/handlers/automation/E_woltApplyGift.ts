@@ -142,7 +142,7 @@ export const handler = async (
     console.log("Entering gift card code in redemption form");
     const codeInput = await waitForElement(
       driver,
-      By.xpath("//input[@placeholder='קוד קופון']"),
+      By.xpath("//input[@data-test-id='redeem-code-input']"),
       10000
     );
 
