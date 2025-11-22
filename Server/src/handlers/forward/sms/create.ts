@@ -13,10 +13,26 @@ await initDB();
 
 export const handler: CustomAPIGatewayProxyHandler = async (event) => {
   try {
-    // Validate API key
-    const apiKey = event.headers?.["x-api-key"] || event.headers?.["X-API-Key"];
+    // Validate API key from headers OR query parameters (for Android compatibility)
+    // Check headers first (case-insensitive lookup)
+    let apiKey: string | undefined;
+
+    if (event.headers) {
+      apiKey = event.headers["X-API-Key"] || event.headers["x-api-key"];
+    }
+
+    // If not found in headers, check query parameters
+    if (!apiKey && event.queryStringParameters) {
+      apiKey =
+        event.queryStringParameters["apiKey"] ||
+        event.queryStringParameters["api-key"];
+    }
+
     if (!apiKey) {
-      return createErrorResponse("API key is required", 401);
+      return createErrorResponse(
+        "API key is required in headers (X-API-Key) or query parameters (apiKey)",
+        401
+      );
     }
 
     // Find user by API key
