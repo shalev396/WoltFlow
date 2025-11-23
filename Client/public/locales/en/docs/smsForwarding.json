@@ -11,11 +11,19 @@
       "title": "Developer Information",
       "description": "SMS forwarding requires technical setup using our API endpoint. Your SMS forwarding app will send HTTP requests to this endpoint when it receives relevant messages."
     },
+    "androidNotice": {
+      "title": "Android Compatibility Notice",
+      "description": "Some Android SMS forwarding apps don't support custom headers. For these apps, you can pass the API key as a query parameter (apiKey=your-key). However, using headers (X-API-Key) is more secure and is the recommended approach."
+    },
     "endpointUrl": {
       "title": "API Endpoint URL"
     },
     "headers": {
-      "title": "Headers"
+      "title": "Headers (Recommended)"
+    },
+    "queryParams": {
+      "title": "Query Parameters (Android Compatibility)",
+      "description": "Alternative authentication method for apps that don't support custom headers"
     },
     "requestBody": {
       "title": "Request Body (JSON)"

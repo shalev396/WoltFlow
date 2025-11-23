@@ -9,6 +9,7 @@ import {
   Settings,
   Zap,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,7 @@ import { useTranslation } from "react-i18next";
 export function SmsForwardingContent() {
   const { language } = useLanguage();
   const { t } = useTranslation("docs/smsForwarding");
-  
+
   return (
     <section id="sms-forwarding" className="space-y-8">
       <div className="flex items-center gap-3">
@@ -49,10 +50,27 @@ export function SmsForwardingContent() {
       <div id="sms-api-setup" className="space-y-6 scroll-mt-32">
         <h2 className="text-3xl font-semibold">{t("apiSetup.title")}</h2>
 
+        {/* Android Compatibility Notice */}
+        <div className="p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
+                {t("apiSetup.androidNotice.title")}
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
+                {t("apiSetup.androidNotice.description")}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="p-3 sm:p-6 bg-muted/50 rounded-lg border">
           <div className="flex items-center gap-3 mb-4">
             <Code className="h-6 w-6 text-muted-foreground" />
-            <h3 className="text-xl font-semibold">{t("apiSetup.developerInfo.title")}</h3>
+            <h3 className="text-xl font-semibold">
+              {t("apiSetup.developerInfo.title")}
+            </h3>
           </div>
 
           <p className="text-muted-foreground mb-4">
@@ -61,17 +79,26 @@ export function SmsForwardingContent() {
 
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium mb-2">{t("apiSetup.endpointUrl.title")}</h4>
+              <h4 className="font-medium mb-2">
+                {t("apiSetup.endpointUrl.title")}
+              </h4>
               <div className="p-2 sm:p-3 bg-background border rounded overflow-x-auto">
                 <code className="text-xs sm:text-sm font-mono break-all">
-                  POST https://https://woltfow.shalev396.com
-                  /api/forward/sms
+                  POST https://woltflow.shalev396.com/api/forward/sms
                 </code>
               </div>
             </div>
 
             <div>
-              <h4 className="font-medium mb-2">{t("apiSetup.headers.title")}</h4>
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-medium">{t("apiSetup.headers.title")}</h4>
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-green-50 text-green-700 border-green-200"
+                >
+                  Recommended
+                </Badge>
+              </div>
               <div className="p-2 sm:p-3 bg-background border rounded overflow-x-auto">
                 <code className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
                   X-API-Key: your-api-key-here
@@ -80,7 +107,29 @@ export function SmsForwardingContent() {
             </div>
 
             <div>
-              <h4 className="font-medium mb-2">{t("apiSetup.requestBody.title")}</h4>
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-medium">
+                  {t("apiSetup.queryParams.title")}
+                </h4>
+                <Badge variant="outline" className="text-xs">
+                  Android
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">
+                {t("apiSetup.queryParams.description")}
+              </p>
+              <div className="p-2 sm:p-3 bg-background border rounded overflow-x-auto">
+                <code className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
+                  POST
+                  https://woltflow.shalev396.com/api/forward/sms?apiKey=your-api-key-here
+                </code>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">
+                {t("apiSetup.requestBody.title")}
+              </h4>
               <div className="p-2 sm:p-3 bg-background border rounded overflow-x-auto">
                 <pre className="text-xs sm:text-sm text-muted-foreground font-mono whitespace-pre-wrap">
                   {`{
@@ -91,9 +140,13 @@ export function SmsForwardingContent() {
             </div>
 
             <div>
-              <h4 className="font-medium mb-2">{t("apiSetup.authentication.title")}</h4>
+              <h4 className="font-medium mb-2">
+                {t("apiSetup.authentication.title")}
+              </h4>
               <p className="text-sm text-muted-foreground">
-                {t("apiSetup.authentication.description", { code: t("apiSetup.authentication.code") })}
+                {t("apiSetup.authentication.description", {
+                  code: t("apiSetup.authentication.code"),
+                })}
               </p>
             </div>
           </div>
@@ -103,9 +156,7 @@ export function SmsForwardingContent() {
       <div id="android-setup" className="space-y-6 scroll-mt-32">
         <h2 className="text-3xl font-semibold">{t("androidSetup.title")}</h2>
 
-        <p className="text-muted-foreground">
-          {t("androidSetup.description")}
-        </p>
+        <p className="text-muted-foreground">{t("androidSetup.description")}</p>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="border-2 border-purple-100 bg-purple-50/50 dark:border-purple-800/50 dark:bg-purple-950/20">
@@ -113,7 +164,9 @@ export function SmsForwardingContent() {
               <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-lg sm:text-xl text-purple-700 dark:text-purple-300">
                 <div className="flex items-center gap-2">
                   <Zap className="h-5 w-5 flex-shrink-0" />
-                  <span className="break-words">{t("androidSetup.official.title")}</span>
+                  <span className="break-words">
+                    {t("androidSetup.official.title")}
+                  </span>
                 </div>
                 <Badge className="bg-purple-100 text-purple-800 text-xs w-fit">
                   {t("androidSetup.official.badge")}
@@ -127,9 +180,15 @@ export function SmsForwardingContent() {
                 </p>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium">{t("androidSetup.official.features.title")}</h4>
+                  <h4 className="font-medium">
+                    {t("androidSetup.official.features.title")}
+                  </h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    {(t("androidSetup.official.features.list", { returnObjects: true }) as string[]).map((feature: string, idx: number) => (
+                    {(
+                      t("androidSetup.official.features.list", {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((feature: string, idx: number) => (
                       <li key={idx} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-purple-600" />
                         {feature}
@@ -158,7 +217,9 @@ export function SmsForwardingContent() {
             <CardContent>
               <div className="space-y-4">
                 <div className="p-3 border rounded-lg">
-                  <h4 className="font-medium mb-1">{t("androidSetup.alternative.smsForwarder.title")}</h4>
+                  <h4 className="font-medium mb-1">
+                    {t("androidSetup.alternative.smsForwarder.title")}
+                  </h4>
                   <p className="text-xs text-muted-foreground mb-2">
                     {t("androidSetup.alternative.smsForwarder.description")}
                   </p>
@@ -168,7 +229,9 @@ export function SmsForwardingContent() {
                 </div>
 
                 <div className="p-3 border rounded-lg">
-                  <h4 className="font-medium mb-1">{t("androidSetup.alternative.automate.title")}</h4>
+                  <h4 className="font-medium mb-1">
+                    {t("androidSetup.alternative.automate.title")}
+                  </h4>
                   <p className="text-xs text-muted-foreground mb-2">
                     {t("androidSetup.alternative.automate.description")}
                   </p>
@@ -185,9 +248,7 @@ export function SmsForwardingContent() {
       <div id="ios-setup" className="space-y-6 scroll-mt-32">
         <h2 className="text-3xl font-semibold">{t("iosSetup.title")}</h2>
 
-        <p className="text-muted-foreground">
-          {t("iosSetup.description")}
-        </p>
+        <p className="text-muted-foreground">{t("iosSetup.description")}</p>
 
         <Card className="border-2 border-gray-100 bg-gray-50/50 dark:border-gray-800/50 dark:bg-gray-950/20">
           <CardHeader>
@@ -204,28 +265,46 @@ export function SmsForwardingContent() {
               </p>
 
               <div className="space-y-4">
-                <h4 className="font-medium">{t("iosSetup.shortcuts.stepsTitle")}</h4>
+                <h4 className="font-medium">
+                  {t("iosSetup.shortcuts.stepsTitle")}
+                </h4>
 
                 <div className="space-y-3">
-                  {(t("iosSetup.shortcuts.steps", { returnObjects: true }) as Array<{title: string; description: string; details?: {url: string; method: string; headers: string; requestBody: string; bodyContent: string}}>).map((step, idx: number) => (
-                    <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 p-2 sm:p-4 bg-muted/30 rounded-lg">
+                  {(
+                    t("iosSetup.shortcuts.steps", {
+                      returnObjects: true,
+                    }) as Array<{
+                      title: string;
+                      description: string;
+                      details?: {
+                        url: string;
+                        method: string;
+                        headers: string;
+                        requestBody: string;
+                        bodyContent: string;
+                      };
+                    }>
+                  ).map((step, idx: number) => (
+                    <div
+                      key={idx}
+                      className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 p-2 sm:p-4 bg-muted/30 rounded-lg"
+                    >
                       <div className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
                         {idx + 1}
                       </div>
                       <div>
-                        <p className="font-medium break-words">
-                          {step.title}
-                        </p>
+                        <p className="font-medium break-words">{step.title}</p>
                         <p className="text-sm text-muted-foreground">
                           {step.description}
                         </p>
                         {step.details && (
                           <div className="text-xs sm:text-sm text-muted-foreground space-y-2 mt-2">
                             <div>
-                              <p className="font-medium mb-1">{step.details.url}</p>
+                              <p className="font-medium mb-1">
+                                {step.details.url}
+                              </p>
                               <code className="bg-muted px-1 py-0.5 rounded text-xs break-all block">
-                                https://woltfow.shalev396.com
-                                /api/forward/sms
+                                https://woltflow.shalev396.com/api/forward/sms
                               </code>
                             </div>
                             <p>
@@ -238,9 +317,13 @@ export function SmsForwardingContent() {
                               <strong>{step.details.requestBody}</strong>
                             </p>
                             <div>
-                              <p className="font-medium mb-1">{step.details.bodyContent}</p>
+                              <p className="font-medium mb-1">
+                                {step.details.bodyContent}
+                              </p>
                               <code className="bg-muted px-1 py-0.5 rounded text-xs break-all block">
-                                {'{ "message": "[Message Content from trigger]" }'}
+                                {
+                                  '{ "message": "[Message Content from trigger]" }'
+                                }
                               </code>
                             </div>
                           </div>
@@ -278,7 +361,9 @@ export function SmsForwardingContent() {
           <CardContent>
             <div className="space-y-4">
               <div className="p-3 border rounded-lg">
-                <h4 className="font-medium mb-1">{t("iosSetup.alternatives.dualDevice.title")}</h4>
+                <h4 className="font-medium mb-1">
+                  {t("iosSetup.alternatives.dualDevice.title")}
+                </h4>
                 <p className="text-xs text-muted-foreground mb-2">
                   {t("iosSetup.alternatives.dualDevice.description")}
                 </p>
@@ -288,7 +373,9 @@ export function SmsForwardingContent() {
               </div>
 
               <div className="p-3 border rounded-lg">
-                <h4 className="font-medium mb-1">{t("iosSetup.alternatives.email2fa.title")}</h4>
+                <h4 className="font-medium mb-1">
+                  {t("iosSetup.alternatives.email2fa.title")}
+                </h4>
                 <p className="text-xs text-muted-foreground mb-2">
                   {t("iosSetup.alternatives.email2fa.description")}
                 </p>
