@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
+import { safeTranslationArray } from "@/utils/translationHelpers";
 
 export function InboxContent() {
   const { language } = useLanguage();
@@ -75,10 +76,10 @@ export function InboxContent() {
                     {t("howItWorks.emailReception.emailContentTitle")}
                   </h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    {(
+                    {safeTranslationArray<string>(
                       t("howItWorks.emailReception.emailContent", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((item, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-green-600" />
@@ -109,10 +110,10 @@ export function InboxContent() {
                     {t("howItWorks.automaticProcessing.autoProcessingTitle")}
                   </h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    {(
+                    {safeTranslationArray<string>(
                       t("howItWorks.automaticProcessing.autoProcessing", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((item, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-green-600" />
@@ -132,10 +133,10 @@ export function InboxContent() {
           </h3>
 
           <div className="space-y-3">
-            {(
+            {safeTranslationArray<{ title: string; description: string }>(
               t("howItWorks.processingFlow.steps", {
                 returnObjects: true,
-              }) as Array<{ title: string; description: string }>
+              })
             ).map((step, index) => (
               <div
                 key={index}
@@ -174,10 +175,10 @@ export function InboxContent() {
             <CardContent>
               <div className="space-y-3">
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  {(
+                  {safeTranslationArray<string>(
                     t("managingEmails.inboxFeatures.features", {
                       returnObjects: true,
-                    }) as string[]
+                    })
                   ).map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
@@ -199,10 +200,10 @@ export function InboxContent() {
             <CardContent>
               <div className="space-y-3">
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  {(
+                  {safeTranslationArray<string>(
                     t("managingEmails.searchFilter.features", {
                       returnObjects: true,
-                    }) as string[]
+                    })
                   ).map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
@@ -237,10 +238,14 @@ export function InboxContent() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            {(
+            {safeTranslationArray<{
+              type: string;
+              title: string;
+              description: string;
+            }>(
               t("managingEmails.attachmentHandling.attachmentTypes", {
                 returnObjects: true,
-              }) as Array<{ type: string; title: string; description: string }>
+              })
             ).map((attachment, index) => (
               <div key={index} className="p-3 border rounded-lg">
                 <h4 className="font-medium mb-2 flex items-center gap-2">
@@ -288,10 +293,10 @@ export function InboxContent() {
                     {t("privacySecurity.dataIsolation.securityMeasuresTitle")}
                   </h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    {(
+                    {safeTranslationArray<string>(
                       t("privacySecurity.dataIsolation.securityMeasures", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((measure, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-green-600" />
@@ -322,10 +327,10 @@ export function InboxContent() {
                     {t("privacySecurity.privacyPolicy.commitmentsTitle")}
                   </h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    {(
+                    {safeTranslationArray<string>(
                       t("privacySecurity.privacyPolicy.commitments", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((commitment, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-green-600" />
@@ -345,15 +350,15 @@ export function InboxContent() {
           </h3>
 
           <div className="grid sm:grid-cols-3 gap-4">
-            {(
+            {safeTranslationArray<{
+              period: string;
+              title: string;
+              description: string;
+              color: string;
+            }>(
               t("privacySecurity.dataRetention.policies", {
                 returnObjects: true,
-              }) as Array<{
-                period: string;
-                title: string;
-                description: string;
-                color: string;
-              }>
+              })
             ).map((policy, index) => (
               <div
                 key={index}

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
+import { safeTranslationArray } from "@/utils/translationHelpers";
 
 export function CibusCredentialsContent() {
   const { language } = useLanguage();
@@ -55,10 +56,10 @@ export function CibusCredentialsContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {(
+                {safeTranslationArray<string>(
                   t("whatIsCibus.whatWoltFlowDoes.features", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
@@ -78,10 +79,10 @@ export function CibusCredentialsContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {(
+                {safeTranslationArray<string>(
                   t("whatIsCibus.securityPrivacy.features", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
@@ -121,10 +122,10 @@ export function CibusCredentialsContent() {
                     {t("requiredCredentials.username.exampleLabel")}
                   </p>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    {(
+                    {safeTranslationArray<string>(
                       t("requiredCredentials.username.examples", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((example, idx) => (
                       <li key={idx}>• {example}</li>
                     ))}
@@ -180,10 +181,10 @@ export function CibusCredentialsContent() {
                     {t("requiredCredentials.companyName.tipsLabel")}
                   </p>
                   <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                    {(
+                    {safeTranslationArray<string>(
                       t("requiredCredentials.companyName.tips", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((tip, idx) => (
                       <li key={idx}>{tip}</li>
                     ))}
@@ -332,10 +333,10 @@ export function CibusCredentialsContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {(
+                {safeTranslationArray<string>(
                   t("twoFactorAuth.smsSupport.features", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
@@ -355,10 +356,10 @@ export function CibusCredentialsContent() {
             </CardHeader>
             <CardContent>
               <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                {(
+                {safeTranslationArray<string>(
                   t("twoFactorAuth.setupRequirements.steps", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((step, idx) => (
                   <li key={idx}>{step}</li>
                 ))}
@@ -407,11 +408,11 @@ export function CibusCredentialsContent() {
                     {t("troubleshooting.commonIssues.invalidCredentials.title")}
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-4">
-                    {(
+                    {safeTranslationArray<string>(
                       t(
                         "troubleshooting.commonIssues.invalidCredentials.solutions",
                         { returnObjects: true }
-                      ) as string[]
+                      )
                     ).map((solution, idx) => (
                       <li key={idx}>{solution}</li>
                     ))}
@@ -423,10 +424,10 @@ export function CibusCredentialsContent() {
                     {t("troubleshooting.commonIssues.twoFACodes.title")}
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-4">
-                    {(
+                    {safeTranslationArray<string>(
                       t("troubleshooting.commonIssues.twoFACodes.solutions", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((solution, idx) => (
                       <li key={idx}>{solution}</li>
                     ))}
@@ -438,11 +439,11 @@ export function CibusCredentialsContent() {
                     {t("troubleshooting.commonIssues.companyNotFound.title")}
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-4">
-                    {(
+                    {safeTranslationArray<string>(
                       t(
                         "troubleshooting.commonIssues.companyNotFound.solutions",
                         { returnObjects: true }
-                      ) as string[]
+                      )
                     ).map((solution, idx) => (
                       <li key={idx}>{solution}</li>
                     ))}

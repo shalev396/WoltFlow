@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
+import { safeTranslationArray } from "@/utils/translationHelpers";
 
 export function EmailForwardingContent() {
   const { language } = useLanguage();
@@ -72,10 +73,10 @@ export function EmailForwardingContent() {
                     {t("gmailForwarding.nativeGmailForwarding.benefitsTitle")}
                   </h4>
                   <ul className="space-y-1 text-xs sm:text-sm text-muted-foreground">
-                    {(
+                    {safeTranslationArray<string>(
                       t("gmailForwarding.nativeGmailForwarding.benefits", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((benefit: string, idx: number) => (
                       <li key={idx} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-green-600 flex-shrink-0" />

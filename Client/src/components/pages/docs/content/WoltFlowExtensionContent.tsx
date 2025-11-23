@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
+import { safeTranslationArray } from "@/utils/translationHelpers";
 
 export function WoltFlowExtensionContent() {
   const { language } = useLanguage();
@@ -297,10 +298,10 @@ export function WoltFlowExtensionContent() {
                     {t("troubleshooting.noCredentialsFound.solutionsTitle")}
                   </h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-4">
-                    {(
+                    {safeTranslationArray<string>(
                       t("troubleshooting.noCredentialsFound.solutions", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((solution: string, idx: number) => (
                       <li key={idx}>{solution}</li>
                     ))}
@@ -328,10 +329,10 @@ export function WoltFlowExtensionContent() {
                     {t("troubleshooting.iconNotVisible.checkLocationsTitle")}
                   </h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-4">
-                    {(
+                    {safeTranslationArray<string>(
                       t("troubleshooting.iconNotVisible.checkLocations", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((location: string, idx: number) => (
                       <li key={idx}>{location}</li>
                     ))}
@@ -393,10 +394,10 @@ export function WoltFlowExtensionContent() {
                     {t("troubleshooting.securityConcerns.featuresTitle")}
                   </h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-4">
-                    {(
+                    {safeTranslationArray<string>(
                       t("troubleshooting.securityConcerns.features", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((feature: string, idx: number) => (
                       <li key={idx}>{feature}</li>
                     ))}
