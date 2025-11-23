@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
+import { safeTranslationArray } from "@/utils/translationHelpers";
 
 export function ManualSetupContent() {
   const { language } = useLanguage();
@@ -245,10 +246,10 @@ export function ManualSetupContent() {
                   {t("stepByStep.step3.cantFind.title")}
                 </p>
                 <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  {(
+                  {safeTranslationArray<string>(
                     t("stepByStep.step3.cantFind.tips", {
                       returnObjects: true,
-                    }) as string[]
+                    })
                   ).map((tip: string, idx: number) => (
                     <li key={idx}>{tip}</li>
                   ))}
@@ -349,10 +350,10 @@ export function ManualSetupContent() {
               </p>
 
               <div className="space-y-3">
-                {(
+                {safeTranslationArray<string>(
                   t("stepByStep.step6.steps", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((step: string, idx: number) => (
                   <div
                     key={idx}
@@ -426,10 +427,10 @@ export function ManualSetupContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {(
+                {safeTranslationArray<string>(
                   t("tokenSecurity.keepPrivate.tips", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((tip: string, idx: number) => (
                   <li key={idx} className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 bg-red-600 rounded-full mt-2 flex-shrink-0"></div>
@@ -449,10 +450,10 @@ export function ManualSetupContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {(
+                {safeTranslationArray<string>(
                   t("tokenSecurity.deviceManagement.tips", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((tip: string, idx: number) => (
                   <li key={idx} className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>

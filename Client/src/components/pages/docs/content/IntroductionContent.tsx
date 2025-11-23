@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
+import { safeTranslationArray } from "@/utils/translationHelpers";
 
 export function IntroductionContent() {
   const { language } = useLanguage();
@@ -184,10 +185,10 @@ export function IntroductionContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {(
+                {safeTranslationArray<string>(
                   t("securityPrivacy.bankLevelEncryption.features", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((feature: string, index: number) => (
                   <li key={index} className="flex items-center gap-2">
                     <CheckCircle className="h-3 w-3 text-green-600" />
@@ -207,10 +208,10 @@ export function IntroductionContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {(
+                {safeTranslationArray<string>(
                   t("securityPrivacy.individualPrivacy.features", {
                     returnObjects: true,
-                  }) as string[]
+                  })
                 ).map((feature: string, index: number) => (
                   <li key={index} className="flex items-center gap-2">
                     <CheckCircle className="h-3 w-3 text-green-600" />

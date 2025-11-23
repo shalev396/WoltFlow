@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
+import { safeTranslationArray } from "@/utils/translationHelpers";
 
 export function SmsForwardingContent() {
   const { language } = useLanguage();
@@ -184,10 +185,10 @@ export function SmsForwardingContent() {
                     {t("androidSetup.official.features.title")}
                   </h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    {(
+                    {safeTranslationArray<string>(
                       t("androidSetup.official.features.list", {
                         returnObjects: true,
-                      }) as string[]
+                      })
                     ).map((feature: string, idx: number) => (
                       <li key={idx} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-purple-600" />
@@ -270,20 +271,20 @@ export function SmsForwardingContent() {
                 </h4>
 
                 <div className="space-y-3">
-                  {(
+                  {safeTranslationArray<{
+                    title: string;
+                    description: string;
+                    details?: {
+                      url: string;
+                      method: string;
+                      headers: string;
+                      requestBody: string;
+                      bodyContent: string;
+                    };
+                  }>(
                     t("iosSetup.shortcuts.steps", {
                       returnObjects: true,
-                    }) as Array<{
-                      title: string;
-                      description: string;
-                      details?: {
-                        url: string;
-                        method: string;
-                        headers: string;
-                        requestBody: string;
-                        bodyContent: string;
-                      };
-                    }>
+                    })
                   ).map((step, idx: number) => (
                     <div
                       key={idx}
