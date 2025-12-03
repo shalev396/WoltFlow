@@ -13,6 +13,7 @@ import {
 } from "../../../utils/responseUtil.js";
 
 interface SaveRunSettingsRequest {
+  automationEnabled?: boolean;
   automationMode?: "full-run" | "buy-only" | "cross-account";
   giftAmount?: number | null;
 }
@@ -51,6 +52,7 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       } else {
         // Create new run settings
         runSettings = await RunSettings.create({
+          automationEnabled: false,
           automationMode: "full-run",
           giftAmount: null,
         });
@@ -64,6 +66,9 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Update run settings fields
       const updates: Partial<typeof requestData> = {};
 
+      if (requestData.automationEnabled !== undefined) {
+        updates.automationEnabled = requestData.automationEnabled;
+      }
       if (requestData.automationMode !== undefined) {
         updates.automationMode = requestData.automationMode;
       }

@@ -66,7 +66,7 @@ export default function AutomationSettingsForm() {
         : 40;
 
       form.reset({
-        automationEnabled: runSettings.automationMode !== undefined,
+        automationEnabled: runSettings.automationEnabled || false,
         automationMode: runSettings.automationMode || "full-run",
         giftAmount,
       });
@@ -80,9 +80,8 @@ export default function AutomationSettingsForm() {
   }) => {
     try {
       await updateRunSettingsMutation.mutateAsync({
-        automationMode: data.automationEnabled
-          ? data.automationMode
-          : undefined,
+        automationEnabled: data.automationEnabled,
+        automationMode: data.automationMode,
         giftAmount: data.giftAmount,
       });
     } catch (error) {

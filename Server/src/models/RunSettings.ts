@@ -3,6 +3,7 @@ import sequelize from "../config/database.js";
 
 export default class RunSettings extends Model {
   declare id: string;
+  declare automationEnabled: boolean;
   declare automationMode: "full-run" | "buy-only" | "cross-account";
   declare giftAmount: number | null; // Default gift card amount
   declare readonly createdAt: Date;
@@ -16,7 +17,12 @@ RunSettings.init(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-
+    automationEnabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: "Whether automation is enabled for this user",
+    },
     automationMode: {
       type: DataTypes.ENUM("full-run", "buy-only", "cross-account"),
       allowNull: false,
