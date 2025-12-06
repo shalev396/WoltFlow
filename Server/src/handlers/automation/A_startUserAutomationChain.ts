@@ -90,11 +90,9 @@ export const handler = async (event?: {
         const runSettings = userSettings?.runSettings;
         const notificationSettings = userSettings?.notificationSettings;
 
-        // Skip users without run settings (automation disabled)
-        if (!runSettings) {
-          console.log(
-            `Skipping user ${user.id} - no run settings found (automation disabled)`
-          );
+        // Skip users without run settings or with automation disabled
+        if (!runSettings || !runSettings.automationEnabled) {
+          console.log(`Skipping user ${user.id} - automation disabled`);
           continue;
         }
 

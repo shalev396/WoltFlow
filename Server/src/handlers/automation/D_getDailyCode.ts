@@ -58,7 +58,7 @@ export const handler = async (
     // Update run stage
     await run.update({ stage: "getting_code_from_email" });
 
-    let targetDate = new Date();
+    const targetDate = new Date();
     // if (process.env.ENV === "dev") {
     //   if (process.env.DEVELOPMENT_DATE) {
     //     const d = new Date(process.env.DEVELOPMENT_DATE);
