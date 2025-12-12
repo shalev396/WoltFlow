@@ -17,7 +17,6 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
-  MoreHorizontal,
   Eye,
   Image as ImageIcon,
 } from "lucide-react";
@@ -29,9 +28,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -60,6 +56,7 @@ import {
 import { useRunsQuery } from "@/queries/runs";
 import type { RunWithScreenshots, RunFilters } from "@/types";
 import { RunDetailsDialog } from "@/components/shared/RunDetailsDialog";
+import { ScreenshotsDialog } from "./ScreenshotsDialog";
 
 const getStatusBadge = (status: string) => {
   const baseClasses =
@@ -199,10 +196,12 @@ const createColumns = (
     cell: ({ row }) => {
       const screenshots = row.original.screenshots;
       return screenshots && screenshots.length > 0 ? (
-        <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
-          <ImageIcon className="h-3 w-3 mr-1" />
-          {screenshots.length}
-        </Button>
+        <ScreenshotsDialog screenshots={screenshots} runId={row.original.id}>
+          <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
+            <ImageIcon className="h-3 w-3 mr-1" />
+            {screenshots.length}
+          </Button>
+        </ScreenshotsDialog>
       ) : (
         <span className="text-xs text-muted-foreground">{t("table.none")}</span>
       );
@@ -215,32 +214,14 @@ const createColumns = (
       const run = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">{t("table.actions.openMenu")}</span>
-              <MoreHorizontal className="h-4 w-4" />
+        <RunDetailsDialog
+          run={run}
+          trigger={
+            <Button variant="ghost" size="sm" className="h-8 px-2">
+              <Eye className="h-4 w-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{t("table.columns.actions")}</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(run.id)}
-            >
-              {t("table.actions.copyRunId")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <RunDetailsDialog
-              run={run}
-              trigger={
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  {t("table.actions.viewDetails")}
-                </DropdownMenuItem>
-              }
-            />
-          </DropdownMenuContent>
-        </DropdownMenu>
+          }
+        />
       );
     },
   },
@@ -356,13 +337,13 @@ export function RunsDataTable({
         <CardContent>
           {/* Filters */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4">
-            <div className="flex flex-1 gap-4 w-full">
+            <div className="flex flex-col sm:flex-row flex-1 gap-3 w-full">
               {/* Status Filter */}
               <Select
                 value={filters.status || "all"}
                 onValueChange={handleStatusFilter}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue
                     placeholder={t("table.filters.filterByStatus")}
                   />
@@ -391,7 +372,7 @@ export function RunsDataTable({
                 value={filters.automationMode || "all"}
                 onValueChange={handleModeFilter}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder={t("table.filters.filterByMode")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -438,15 +419,37 @@ export function RunsDataTable({
             </DropdownMenu>
           </div>
 
-          {/* Table */}
-          <div className="rounded-md border">
+          {/* Table with responsive column visibility */}
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
+                      // Responsive visibility classes for headers
+                      let headerClass = "text-center";
+                      
+                      // Always visible: actions, date, status
+                      // sm (640px+): + stage
+                      // md (768px+): + screenshots
+                      // lg (1024px+): + id, amount
+                      // xl (1280px+): + select checkbox
+                      
+                      if (header.column.id === "select") {
+                        headerClass += " hidden xl:table-cell";
+                      } else if (header.column.id === "id") {
+                        headerClass += " hidden lg:table-cell";
+                      } else if (header.column.id === "stage") {
+                        headerClass += " hidden sm:table-cell";
+                      } else if (header.column.id === "amount") {
+                        headerClass += " hidden lg:table-cell";
+                      } else if (header.column.id === "screenshots") {
+                        headerClass += " hidden md:table-cell";
+                      }
+                      // actions, createdAt, status are always visible
+                      
                       return (
-                        <TableHead key={header.id} className="text-center">
+                        <TableHead key={header.id} className={headerClass}>
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -477,14 +480,31 @@ export function RunsDataTable({
                       data-state={row.getIsSelected() && "selected"}
                       className="hover:bg-muted/50"
                     >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="text-center">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
+                      {row.getVisibleCells().map((cell) => {
+                        // Apply same responsive visibility to cells
+                        let cellClass = "text-center";
+                        
+                        if (cell.column.id === "select") {
+                          cellClass += " hidden xl:table-cell";
+                        } else if (cell.column.id === "id") {
+                          cellClass += " hidden lg:table-cell";
+                        } else if (cell.column.id === "stage") {
+                          cellClass += " hidden sm:table-cell";
+                        } else if (cell.column.id === "amount") {
+                          cellClass += " hidden lg:table-cell";
+                        } else if (cell.column.id === "screenshots") {
+                          cellClass += " hidden md:table-cell";
+                        }
+                        
+                        return (
+                          <TableCell key={cell.id} className={cellClass}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))
                 ) : (
