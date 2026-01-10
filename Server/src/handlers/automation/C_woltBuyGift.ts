@@ -278,7 +278,7 @@ export const handler = async (
     const checkoutElement = await waitForElement(
       driver,
       By.xpath(
-        "/html/body/div[2]/div[2]/main/div[3]/div[2]/div[1]/ul/li/a/div[2]/div[1]/span"
+        "/html/body/div[2]/div[2]/main/div[1]/div[2]/div[1]/ul/li/a/div[2]/div[1]/span"
       ),
       8000
     );
@@ -492,9 +492,7 @@ export const handler = async (
       console.log("confirmation element not found");
       console.error("soft error", err);
       //add || true to debug script
-      if (
-        process.env.ENV === "dev"
-      ) {
+      if (process.env.ENV === "dev") {
         console.log("dev mode override success");
         success = true;
       } else {

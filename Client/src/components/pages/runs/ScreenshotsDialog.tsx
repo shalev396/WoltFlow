@@ -62,7 +62,11 @@ export function ScreenshotsDialog({
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {t("screenshots.title")} - {t("screenshots.count", { current: currentIndex + 1, total: screenshots.length })}
+            {t("screenshots.title")} -{" "}
+            {t("screenshots.count", {
+              current: currentIndex + 1,
+              total: screenshots.length,
+            })}
           </DialogTitle>
           <DialogDescription>
             {currentScreenshot?.stage
@@ -154,4 +158,3 @@ export function ScreenshotsDialog({
     </Dialog>
   );
 }
-

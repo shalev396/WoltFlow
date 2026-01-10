@@ -428,13 +428,13 @@ export function RunsDataTable({
                     {headerGroup.headers.map((header) => {
                       // Responsive visibility classes for headers
                       let headerClass = "text-center";
-                      
+
                       // Always visible: actions, date, status
                       // sm (640px+): + stage
                       // md (768px+): + screenshots
                       // lg (1024px+): + id, amount
                       // xl (1280px+): + select checkbox
-                      
+
                       if (header.column.id === "select") {
                         headerClass += " hidden xl:table-cell";
                       } else if (header.column.id === "id") {
@@ -447,7 +447,7 @@ export function RunsDataTable({
                         headerClass += " hidden md:table-cell";
                       }
                       // actions, createdAt, status are always visible
-                      
+
                       return (
                         <TableHead key={header.id} className={headerClass}>
                           {header.isPlaceholder
@@ -483,7 +483,7 @@ export function RunsDataTable({
                       {row.getVisibleCells().map((cell) => {
                         // Apply same responsive visibility to cells
                         let cellClass = "text-center";
-                        
+
                         if (cell.column.id === "select") {
                           cellClass += " hidden xl:table-cell";
                         } else if (cell.column.id === "id") {
@@ -495,7 +495,7 @@ export function RunsDataTable({
                         } else if (cell.column.id === "screenshots") {
                           cellClass += " hidden md:table-cell";
                         }
-                        
+
                         return (
                           <TableCell key={cell.id} className={cellClass}>
                             {flexRender(
