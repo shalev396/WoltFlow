@@ -70,7 +70,19 @@
       "selectRow": "Select row",
       "timeUntilNextRun": "Time until next run"
     },
-    "none": "None"
+    "none": "None",
+    "actions": {
+      "details": "Details"
+    }
+  },
+  "screenshots": {
+    "title": "Run Screenshots",
+    "description": "View screenshots captured during this run",
+    "count": "{{current}} of {{total}}",
+    "stage": "Stage: {{stage}}",
+    "noImage": "No image available",
+    "download": "Download",
+    "close": "Close"
   },
   "filters": {
     "title": "Filters",
