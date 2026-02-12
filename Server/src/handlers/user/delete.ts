@@ -5,7 +5,6 @@ import {
   Settings,
   NotificationSettings,
   WoltSettings,
-  CibusSettings,
   RunSettings,
   TwoFactorAuthentication,
   Inbox,
@@ -13,7 +12,6 @@ import {
   Run,
   Screenshot,
   Code,
-  Cibus2FA,
 } from "../../models/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import {
@@ -220,14 +218,13 @@ async function deleteCompleteUserData(userId: string): Promise<{
     emails: number;
     attachments: number;
   };
-  deletedFromDatabase: {
-    twoFactorAuthentications: number;
-    screenshots: number;
-    codes: number;
-    emails: number;
-    runs: number;
-    cibus2FAcodes: number;
-    inbox: number;
+    deletedFromDatabase: {
+      twoFactorAuthentications: number;
+      screenshots: number;
+      codes: number;
+      emails: number;
+      runs: number;
+      inbox: number;
     settings: number;
     user: number;
   };
@@ -244,7 +241,6 @@ async function deleteCompleteUserData(userId: string): Promise<{
       codes: 0,
       emails: 0,
       runs: 0,
-      cibus2FAcodes: 0,
       inbox: 0,
       settings: 0,
       user: 0,
@@ -376,13 +372,6 @@ async function deleteCompleteUserData(userId: string): Promise<{
     console.log(`Deleted ${deletedRuns} Run records`);
   }
 
-  // Delete Cibus2FA codes (depends on User)
-  const deletedCibus2FA = await Cibus2FA.destroy({
-    where: { userId },
-  });
-  result.deletedFromDatabase.cibus2FAcodes = deletedCibus2FA;
-  console.log(`Deleted ${deletedCibus2FA} Cibus2FA records`);
-
   // Delete Inbox (depends on User)
   if (inbox) {
     const deletedInbox = await Inbox.destroy({
@@ -403,11 +392,6 @@ async function deleteCompleteUserData(userId: string): Promise<{
     if (settings.woltSettingsId) {
       await WoltSettings.destroy({
         where: { id: settings.woltSettingsId },
-      });
-    }
-    if (settings.cibusSettingsId) {
-      await CibusSettings.destroy({
-        where: { id: settings.cibusSettingsId },
       });
     }
     if (settings.runSettingsId) {

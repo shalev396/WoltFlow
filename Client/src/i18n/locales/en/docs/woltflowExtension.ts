@@ -1,0 +1,126 @@
+export default {
+  "title": "WoltFlow Token Reviewer",
+  "badges": {
+    "recommended": "Recommended",
+    "free": "Free"
+  },
+  "description": "The WoltFlow Token Reviewer extension is the easiest way to extract your Wolt credentials. With just one click, you can securely copy your authentication tokens without dealing with developer tools or complex manual processes.",
+  "privacyFirst": {
+    "title": "Privacy & Security First",
+    "description": "The WoltFlow Token Reviewer operates entirely locally in your browser. It does not send your credentials anywhere or store them permanently. You maintain full control over your data at all times.",
+    "linkText": "Read our privacy policy",
+    "linkSuffix": "for complete details."
+  },
+  "installation": {
+    "title": "Installation",
+    "step1": {
+      "title": "Download the Extension",
+      "description": "Get the WoltFlow Token Reviewer extension from the Chrome Web Store or download it directly.",
+      "buttons": {
+        "chromeWebStore": "Chrome Web Store"
+      }
+    },
+    "step2": {
+      "title": "Install in Your Browser",
+      "description": "Follow your browser's standard extension installation process. The extension will appear as \"WoltFlow Token Reviewer\" in your extensions list.",
+      "browserSupport": {
+        "title": "Browser Support",
+        "description": "Currently supports Chrome, Edge, and other Chromium-based browsers."
+      }
+    },
+    "step3": {
+      "title": "Verify Installation",
+      "description": "After installation, you should see the WoltFlow icon in your browser toolbar. Click it to open the extension popup and confirm it's working.",
+      "iconLocation": "Extension Icon Location:",
+      "iconLocationDescription": "Usually appears in the top-right corner of your browser, next to the address bar. You may need to click the puzzle piece icon to see all extensions."
+    }
+  },
+  "extractingCredentials": {
+    "title": "Extracting Your Credentials",
+    "loginRequired": {
+      "title": "Login Required",
+      "description": "You must be logged into Wolt in your browser before using the extension. If you're not logged in, the extension will display a message asking you to log in first."
+    },
+    "step1": {
+      "title": "Navigate to Wolt",
+      "description": "Go to",
+      "woltLink": "wolt.com",
+      "descriptionSuffix": "and make sure you're logged into your account. You should see your profile and be able to browse restaurants."
+    },
+    "step2": {
+      "title": "Open the Extension",
+      "description": "Click the WoltFlow extension icon in your browser toolbar. A small popup window will appear with your credential information.",
+      "cantFindIcon": "Can't find the icon?",
+      "cantFindIconDescription": "Look for the puzzle piece icon in your toolbar and click it to see all extensions, then click the WoltFlow icon."
+    },
+    "step3": {
+      "title": "Copy Your Credentials",
+      "description": "The extension will display your Wolt authentication tokens. Click the copy buttons to copy each credential to your clipboard.",
+      "accessToken": {
+        "title": "Access Token (wtoken)",
+        "description": "Short-lived token for API access. Copy this first."
+      },
+      "refreshToken": {
+        "title": "Refresh Token (wrtoken)",
+        "description": "Long-lived token for automatic renewal. Copy this second."
+      }
+    },
+    "step4": {
+      "title": "Save to WoltFlow Settings",
+      "description": "Navigate to your WoltFlow Settings page and paste the copied tokens into the appropriate fields in the Wolt Credentials section.",
+      "button": "Open Settings Page"
+    }
+  },
+  "troubleshooting": {
+    "title": "Troubleshooting",
+    "noCredentialsFound": {
+      "title": "Extension Shows \"No Credentials Found\"",
+      "description": "This message appears when you're not properly logged into Wolt or when the extension can't access your session data.",
+      "solutionsTitle": "Solutions to try:",
+      "solutions": [
+        "Make sure you're logged into Wolt in the same browser",
+        "Refresh the Wolt page and try again",
+        "Clear your browser cache and log back into Wolt",
+        "Try using an incognito/private window",
+        "Disable other extensions temporarily to check for conflicts"
+      ]
+    },
+    "iconNotVisible": {
+      "title": "Extension Icon Not Visible",
+      "description": "Sometimes browser extensions are hidden or disabled after installation.",
+      "checkLocationsTitle": "Check these locations:",
+      "checkLocations": [
+        "Look in the extensions menu (puzzle piece icon)",
+        "Check if the extension is enabled in browser settings",
+        "Pin the extension to your toolbar for easy access",
+        "Verify the extension installed correctly in your extensions page"
+      ]
+    },
+    "credentialsKeepChanging": {
+      "title": "Credentials Keep Changing",
+      "description": "Wolt tokens are unique per device and can change when you log in/out or clear cookies.",
+      "bestPractice": {
+        "title": "Best Practice",
+        "description": "Extract credentials from a device/browser you don't frequently log in/out of Wolt. Consider using a dedicated browser or device for WoltFlow setup."
+      }
+    },
+    "securityConcerns": {
+      "title": "Security & Privacy Concerns",
+      "description": "The extension is designed with privacy and security as top priorities.",
+      "featuresTitle": "Security features:",
+      "features": [
+        "No data is sent to external servers",
+        "Credentials are only displayed locally in the popup",
+        "No persistent storage of your credentials",
+        "Minimal permissions requested"
+      ],
+      "viewPrivacyPolicy": "View Privacy Policy"
+    }
+  },
+  "needMoreHelp": {
+    "title": "Need More Help?",
+    "description": "If you're still having trouble with the extension, you can always use the",
+    "manualSetupLink": "manual setup method",
+    "descriptionSuffix": "instead. Both methods give you the same credentials needed for WoltFlow automation."
+  }
+} as const;

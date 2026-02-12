@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import os from "os";
 import {
   By,
   type IWebDriverOptionsCookie,
@@ -148,7 +149,7 @@ export function getGiftCardUrl(amount: number): string | null {
 export async function setupWoltCookies(
   driver: WebDriver,
   wrToken: string,
-  wToken: string
+  wToken: string,
 ): Promise<void> {
   try {
     // Cookies Setup
@@ -214,7 +215,7 @@ export function safeClick(
   driver: WebDriver,
   element: WebElement,
   timeout = 3000,
-  retries = 3
+  retries = 3,
 ) {
   // wait until clickable, then click with retries and JS fallback for overlays
   return (async () => {
@@ -265,7 +266,7 @@ export function safeClick(
 export async function waitForElement(
   driver: WebDriver,
   locator: By,
-  timeoutMs = 3000
+  timeoutMs = 3000,
 ): Promise<WebElement | null> {
   try {
     console.log("waiting for element", timeoutMs, "ms");
@@ -276,10 +277,11 @@ export async function waitForElement(
   } catch (err) {
     console.log(`Element not found within ${timeoutMs}ms: ${locator}`);
 
-    // Only save screenshot to filesystem in development mode
+    // Only save screenshot to filesystem in development mode.
+    // Use os.tmpdir() so Lambda can write (process.cwd() is read-only there).
     if (process.env.ENV === "dev") {
       const base64 = await driver.takeScreenshot();
-      const dir = path.resolve(process.cwd(), "screenshots");
+      const dir = path.join(os.tmpdir(), "screenshots");
       fs.mkdirSync(dir, { recursive: true });
       const filename = path.join(dir, `timeout_${Date.now()}.png`);
       fs.writeFileSync(filename, base64, "base64");
@@ -290,10 +292,19 @@ export async function waitForElement(
       locator.toString() ===
         "By(xpath, //*[normalize-space(text())='אשמח להמשיך'])" ||
       locator.toString() === "By(xpath, //button[@aria-label='מחיקה'])" ||
+      locator.toString() === "By(xpath, //button[@aria-label='סגירה'])" ||
       locator.toString() ===
-        `//button[@data-test-id="PaymentMethodsList.PaymentMethod"and @data-payment-method-id="cibus"]` ||
+        "By(xpath, //*[@id='_r_e4_']/div/div/div[2]/div/div[1]/div/div[2]/div[2]/ul/li/div/button/span/span[1])" ||
+      (locator.toString().includes("תשלום") &&
+        locator.toString().includes("//main//div")) ||
       locator.toString() ===
-        "/html/body/div[4]/div[10]/div/div[2]/div/aside/div[2]/div/div[1]/div/div[2]/div[2]/div[1]/button/div[2]"
+        "/html/body/div[4]/div[10]/div/div[2]/div/aside/div[2]/div/div[1]/div/div[2]/div[2]/div[1]/button/div[2]" ||
+      locator
+        .toString()
+        .includes(
+          "//main//ul/li//span[contains(normalize-space(), 'גיפט קארד')",
+        ) ||
+      locator.toString() === "By(xpath, //main//ul/li[1]//a//span[1])"
     ) {
       return null;
     }
@@ -311,7 +322,7 @@ export interface TokenResponse {
 }
 
 export async function refreshTokens(
-  refreshToken: string
+  refreshToken: string,
 ): Promise<TokenResponse> {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
@@ -330,7 +341,7 @@ export async function refreshTokens(
   try {
     const response = await fetch(
       "https://authentication.wolt.com/v1/wauth2/access_token",
-      requestOptions
+      requestOptions,
     );
     const result = await response.text();
     console.log("result", result);

@@ -18,7 +18,7 @@ export async function ensureUserSettings(userIdOrSub: string): Promise<void> {
     // UUID format: 8-4-4-4-12 hex characters
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        userIdOrSub
+        userIdOrSub,
       );
 
     if (isUUID) {
@@ -53,7 +53,6 @@ export async function ensureUserSettings(userIdOrSub: string): Promise<void> {
       userId,
       notificationSettingsId: null,
       woltSettingsId: null,
-      cibusSettingsId: null,
       runSettingsId: null,
     });
     console.log(`✅ Created Settings: ${settings.id}`);

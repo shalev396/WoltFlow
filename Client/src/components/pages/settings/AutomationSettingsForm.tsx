@@ -33,9 +33,9 @@ import { AutomationToggle } from "@/components/shared/AutomationToggle";
 import { AutomationModeSelector } from "@/components/shared/AutomationModeSelector";
 
 import {
-  cibusSettingsSchema,
-  type CibusSettingsFormData,
-} from "@/lib/validations/settings/cibus";
+  runSettingsSchema,
+  type RunSettingsFormData,
+} from "@/lib/validations/settings/run";
 import {
   useRunSettingsQuery,
   useUpdateRunSettingsMutation,
@@ -46,8 +46,8 @@ export default function AutomationSettingsForm() {
   const { data: runSettings } = useRunSettingsQuery();
   const updateRunSettingsMutation = useUpdateRunSettingsMutation();
 
-  const form = useForm<CibusSettingsFormData>({
-    resolver: zodResolver(cibusSettingsSchema),
+  const form = useForm<RunSettingsFormData>({
+    resolver: zodResolver(runSettingsSchema),
     defaultValues: {
       automationEnabled: false,
       automationMode: "full-run" as const,
@@ -143,7 +143,7 @@ export default function AutomationSettingsForm() {
                         <SelectTrigger>
                           <SelectValue
                             placeholder={t(
-                              "automationForm.giftAmount.placeholder"
+                              "automationForm.giftAmount.placeholder",
                             )}
                           />
                         </SelectTrigger>

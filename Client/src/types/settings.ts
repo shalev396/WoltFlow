@@ -1,7 +1,7 @@
 // ============================================================================
 // SETTINGS TYPES
 // ============================================================================
-// Types related to user settings: notification, Wolt, Cibus, and run settings
+// Types related to user settings: notification, Wolt, and run settings
 
 // ============================================================================
 // MAIN SETTINGS HUB
@@ -12,7 +12,6 @@ export interface Settings {
   userId: string; // Foreign key to Users table
   notificationSettingsId: string | null; // Foreign key to NotificationSettings table
   woltSettingsId: string | null; // Foreign key to WoltSettings table
-  cibusSettingsId: string | null; // Foreign key to CibusSettings table
   runSettingsId: string | null; // Foreign key to RunSettings table
   createdAt: Date;
   updatedAt: Date;
@@ -60,24 +59,6 @@ export interface WoltSettings {
 export interface WoltSettingsUpdate {
   woltRefreshToken?: string | null;
   woltAccessToken?: string | null;
-}
-
-// ============================================================================
-// CIBUS SETTINGS
-// ============================================================================
-export interface CibusSettings {
-  id: string; // UUID
-  cibusUsername: string | null;
-  cibusPassword: string | null;
-  cibusCompany: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CibusSettingsUpdate {
-  cibusUsername?: string | null;
-  cibusPassword?: string | null;
-  cibusCompany?: string | null;
 }
 
 // ============================================================================

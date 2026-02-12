@@ -1,0 +1,169 @@
+export default {
+  title: "Manual Token Setup",
+  badges: {
+    advanced: "Advanced",
+    alternative: "Alternative Method",
+  },
+  description:
+    "This guide shows you how to manually extract your Wolt authentication tokens using browser developer tools. This method is perfect if you prefer not to install extensions or need more control over the process.",
+  preferExtension: {
+    title: "Prefer the Extension?",
+    description: "If you're looking for an easier method, check out our",
+    linkText: "WoltFlow Token Reviewer guide",
+    descriptionSuffix:
+      "which automates this entire process with a single click.",
+  },
+  understandingTokens: {
+    title: "Understanding Wolt Tokens",
+    description:
+      "Wolt uses two types of authentication tokens to manage user sessions. Both are required for WoltFlow to function properly:",
+    accessToken: {
+      title: "Access Token (wtoken)",
+      description:
+        "A short-lived token that provides immediate access to Wolt's API endpoints for making purchases and applying gift cards.",
+      badges: {
+        shortLived: "Short-lived",
+        autoRefreshed: "Auto-refreshed",
+      },
+      example: 'Typically starts with: {"accessToken": "eyJhb...',
+    },
+    refreshToken: {
+      title: "Refresh Token (wrtoken)",
+      description:
+        "A long-lived token used to automatically generate new access tokens when they expire, ensuring continuous automation.",
+      badges: {
+        longLived: "Long-lived",
+        essential: "Essential",
+      },
+      example: "Typically starts with: pNNSVDL3O...",
+    },
+    deviceSpecific: {
+      title: "Device-Specific Tokens",
+      description:
+        "Each device and browser generates unique tokens when you log into Wolt. For best results, extract tokens from a device where you won't frequently log in and out of Wolt, as this can invalidate existing tokens.",
+    },
+  },
+  stepByStep: {
+    title: "Step-by-Step Token Extraction",
+    step1: {
+      title: "Open Wolt in Your Browser",
+      description: "Navigate to",
+      woltLink: "wolt.com",
+      descriptionSuffix:
+        "and log into your account. Make sure you're fully logged in and can see your profile and browse restaurants normally.",
+      important: {
+        label: "Important:",
+        text: "You must be logged into Wolt for the tokens to be available. The extraction process only works when you have an active session.",
+      },
+    },
+    step2: {
+      title: "Open Developer Tools",
+      description:
+        "Open your browser's developer tools using one of these methods:",
+      keyboardShortcut: {
+        title: "Keyboard Shortcut",
+        windows: "Press F12 or Ctrl+Shift+I (Windows/Linux)",
+        mac: "Cmd+Option+I (Mac)",
+      },
+      rightClickMenu: {
+        title: "Right-Click Menu",
+        description:
+          'Right-click anywhere on the page and select "Inspect Element" or "Inspect"',
+      },
+    },
+    step3: {
+      title: "Navigate to Application Tab",
+      description:
+        'In the developer tools, look for the "Application" tab (Chrome/Edge) or "Storage" tab (Firefox). Click on it to open the storage inspection panel.',
+      cantFind: {
+        title: "🔍 Can't find the tab?",
+        tips: [
+          "Look for a >> arrow if tabs are collapsed",
+          'Try "Storage" instead of "Application"',
+          "Check if developer tools are in a separate window",
+        ],
+      },
+    },
+    step4: {
+      title: "Access Cookies",
+      description:
+        'In the Application tab, expand the "Cookies" section in the left sidebar. You should see "https://wolt.com" listed under the Cookies section.',
+      path: "Path: Application → Cookies → https://wolt.com",
+      note: "Click on the https://wolt.com entry to view all cookies stored by the Wolt website.",
+    },
+    step5: {
+      title: "Locate Your Tokens",
+      description:
+        "In the Cookies view, look for the specific cookie names that contain your authentication tokens:",
+      accessToken: {
+        title: "Access Token",
+        description:
+          'Look for the cookie named "__wtoken". This is your access token and the value will be a long string.',
+        cookieName: "Cookie name: __wtoken",
+      },
+      refreshToken: {
+        title: "Refresh Token",
+        description:
+          'Look for the cookie named "__wrtoken". This is your refresh token and the value will be a long string.',
+        cookieName: "Cookie name: __wrtoken",
+      },
+    },
+    step6: {
+      title: "Copy Token Values",
+      description:
+        "For each token, click on the value field to select it, then copy the entire token string. Make sure to copy the complete value without any spaces or line breaks.",
+      steps: [
+        "Copy the access token (__wtoken) cookie value",
+        "Copy the refresh token (__wrtoken) cookie value",
+      ],
+      warning: {
+        title: "Copy Complete Values",
+        description:
+          "Make sure you copy the entire token value. These are usually very long strings (200+ characters). If you copy only part of the token, authentication will fail.",
+      },
+    },
+    step7: {
+      title: "Add to WoltFlow Settings",
+      description:
+        "Navigate to your WoltFlow Settings page and paste the copied cookie values into the Wolt Credentials section.",
+      button: "Open Settings Page",
+      fieldMapping: {
+        label: "Field Mapping:",
+        description:
+          'Paste the __wtoken cookie value in the "Wolt Access Token" field and the __wrtoken cookie value in the "Wolt Refresh Token" field.',
+      },
+    },
+  },
+  tokenSecurity: {
+    title: "Token Security Best Practices",
+    keepPrivate: {
+      title: "Keep Tokens Private",
+      tips: [
+        "Never share your tokens with anyone",
+        "Don't post them in forums or support channels",
+        "Store them only in WoltFlow settings",
+        "Clear browser history after extraction if on shared devices",
+      ],
+    },
+    deviceManagement: {
+      title: "Device Management",
+      tips: [
+        "Use a stable device for token extraction",
+        "Avoid frequent Wolt login/logout on that device",
+        "Monitor your Wolt account for unauthorized activity",
+        "Change your Wolt password if you suspect compromise",
+      ],
+    },
+    securityWarning: {
+      title: "Critical Security Warning",
+      description:
+        "Your authentication tokens provide full access to your Wolt account. Treat them with the same care as your password. If you suspect your tokens have been compromised, immediately change your Wolt password and extract new tokens.",
+    },
+  },
+  extractionComplete: {
+    title: "Extraction Complete!",
+    description:
+      "Once you've successfully copied your tokens to WoltFlow settings, you can continue with configuring email forwarding and automation preferences to complete your setup.",
+    button: "Continue Setup Guide",
+  },
+} as const;

@@ -26,10 +26,6 @@ export function DocsRouter() {
         element={<DocsLayout currentSection="manual-setup" />}
       />
       <Route
-        path="sms-forwarding"
-        element={<DocsLayout currentSection="sms-forwarding" />}
-      />
-      <Route
         path="email-forwarding"
         element={<DocsLayout currentSection="email-forwarding" />}
       />

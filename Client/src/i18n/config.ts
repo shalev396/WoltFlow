@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import HttpBackend from "i18next-http-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
+import { resources } from "./resources";
 
 // Supported languages
 export const SUPPORTED_LANGUAGES = ["en", "he"] as const;
@@ -55,14 +55,14 @@ export const updateDocumentDirection = (lng: string): void => {
   }
 };
 
-// Initialize i18next
+// Initialize i18next (resources are bundled; no HTTP backend)
 i18n
-  .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     fallbackLng: "en",
     debug: false,
+    resources,
 
     // Supported languages
     supportedLngs: SUPPORTED_LANGUAGES,
@@ -79,6 +79,7 @@ i18n
       "consent",
       "navbar",
       "docsSidebar",
+      "auth",
       // Legal namespaces
       "legal/privacy",
       "legal/terms",
@@ -88,16 +89,10 @@ i18n
       "docs/gettingStarted",
       "docs/woltflowExtension",
       "docs/manualSetup",
-      "docs/smsForwarding",
       "docs/emailForwarding",
       "docs/inbox",
     ],
     defaultNS: "common",
-
-    // Backend configuration
-    backend: {
-      loadPath: "/locales/{{lng}}/{{ns}}.json",
-    },
 
     // Detection options
     detection: {

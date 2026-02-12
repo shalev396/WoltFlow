@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import Layout from "@/components/shared/Layout";
 import WoltForm from "@/components/pages/settings/WoltForm";
-import CibusForm from "@/components/pages/settings/CibusForm";
 import AutomationSettingsForm from "@/components/pages/settings/AutomationSettingsForm";
 import NotificationsForm from "@/components/pages/settings/NotificationsForm";
 import ApiKeyForm from "@/components/pages/settings/ApiKeyForm";
@@ -26,18 +25,13 @@ export default function SettingsPage() {
             <WoltForm />
           </div>
 
-          {/* Top Right - Cibus Settings */}
+          {/* Top Right - Notification Settings */}
           <div className="order-2 h-full">
-            <CibusForm />
-          </div>
-
-          {/* Middle Left - Notification Settings */}
-          <div className="order-3 lg:order-3 h-full">
             <NotificationsForm />
           </div>
 
-          {/* Middle Right - Automation Settings */}
-          <div className="order-4 lg:order-4 h-full">
+          {/* Bottom Left - Automation Settings */}
+          <div className="order-3 h-full">
             <AutomationSettingsForm />
           </div>
         </div>

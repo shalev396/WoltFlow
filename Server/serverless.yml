@@ -547,18 +547,6 @@ functions:
           authorizer:
             name: cognitoAuthorizer
 
-  smsForward:
-    handler: ./build/forward/sms/create.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/forward/sms/create.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/forward/sms
-          method: post
-
   # ================================
   # DASHBOARD FUNCTIONS
   # ================================
@@ -611,35 +599,6 @@ functions:
   # ================================
   # SETTINGS FUNCTIONS
   # ================================
-
-  # Cibus Settings
-  getCibusSettings:
-    handler: ./build/settings/cibus/Get.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/cibus/Get.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/cibus
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  updateCibusSettings:
-    handler: ./build/settings/cibus/Update.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/cibus/Update.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/cibus
-          method: put
-          authorizer:
-            name: cognitoAuthorizer
 
   # Notification Settings
   getNotificationSettings:

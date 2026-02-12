@@ -1,0 +1,13 @@
+export default {
+  "routes": {
+    "documentation": "Documentation",
+    "dashboard": "Dashboard",
+    "runs": "Runs",
+    "inbox": "Inbox",
+    "settings": "Settings"
+  },
+  "auth": {
+    "logout": "Log out",
+    "login": "Login"
+  }
+} as const;

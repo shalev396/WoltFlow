@@ -6,7 +6,6 @@ import {
   Settings,
   NotificationSettings,
   WoltSettings,
-  CibusSettings,
   RunSettings,
   TwoFactorAuthentication,
   Inbox,
@@ -14,7 +13,6 @@ import {
   Run,
   Screenshot,
   Code,
-  Cibus2FA,
 } from "../../models/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import {
@@ -55,7 +53,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
       // Fetch all connected settings
       let notificationSettings = null;
       let woltSettings = null;
-      let cibusSettings = null;
       let runSettings = null;
       let twoFactorAuthentications: TwoFactorAuthentication[] = [];
 
@@ -77,12 +74,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           woltSettings = await WoltSettings.findByPk(
             settings.woltSettingsId,
             {}
-          );
-        }
-
-        if (settings.cibusSettingsId) {
-          cibusSettings = await CibusSettings.findByPk(
-            settings.cibusSettingsId
           );
         }
 
@@ -122,11 +113,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         where: { userId },
       });
 
-      // Fetch Cibus 2FA codes
-      const cibus2FAcodes = await Cibus2FA.findAll({
-        where: { userId },
-      });
-
       // Prepare complete export data
       const exportData: CompleteUserExport = {
         user: user.toJSON(),
@@ -135,7 +121,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
           ? notificationSettings.toJSON()
           : null,
         woltSettings: woltSettings ? woltSettings.toJSON() : null,
-        cibusSettings: cibusSettings ? cibusSettings.toJSON() : null,
         runSettings: runSettings ? runSettings.toJSON() : null,
         twoFactorAuthentications: twoFactorAuthentications.map((tfa) =>
           tfa.toJSON()
@@ -145,7 +130,6 @@ export const handler: CustomAPIGatewayProxyHandler = authMiddleware(
         runs: runs.map((run) => run.toJSON()),
         screenshots: screenshots.map((screenshot) => screenshot.toJSON()),
         codes: codes.map((code) => code.toJSON()),
-        cibus2FAcodes: cibus2FAcodes.map((code) => code.toJSON()),
       };
 
       // Create ZIP file with CSV and all files

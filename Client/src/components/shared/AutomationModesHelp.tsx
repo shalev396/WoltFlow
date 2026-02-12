@@ -36,7 +36,6 @@ export function AutomationModesHelp() {
       cons: [t("automationModesHelp.modes.fullRun.cons.con1")],
       requirements: [
         t("automationModesHelp.modes.fullRun.requirements.req1"),
-        t("automationModesHelp.modes.fullRun.requirements.req2"),
         t("automationModesHelp.modes.fullRun.requirements.req3"),
       ],
       bestFor: t("automationModesHelp.modes.fullRun.bestFor"),
@@ -57,10 +56,7 @@ export function AutomationModesHelp() {
         t("automationModesHelp.modes.buyOnly.pros.pro3"),
       ],
       cons: [t("automationModesHelp.modes.buyOnly.cons.con1")],
-      requirements: [
-        t("automationModesHelp.modes.buyOnly.requirements.req1"),
-        t("automationModesHelp.modes.buyOnly.requirements.req2"),
-      ],
+      requirements: [t("automationModesHelp.modes.buyOnly.requirements.req1")],
       bestFor: t("automationModesHelp.modes.buyOnly.bestFor"),
     },
   ];
