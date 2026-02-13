@@ -13,7 +13,7 @@ const TERMS_CONFIG = {
   territory: "AWS, primary region il-central-1 (Tel Aviv)",
   productName: "WoltFlow",
   productDescription:
-    "automation that buys Wolt gift credit using a user's Cibus meal benefit and applies it to the user's Wolt account",
+    "automation that buys Wolt gift credit using Wolt Benefits and applies it to the user's Wolt account",
 };
 
 // Helper function to safely render translation arrays

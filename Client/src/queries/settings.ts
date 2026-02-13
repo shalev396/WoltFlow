@@ -6,8 +6,6 @@ import type {
   NotificationSettingsUpdate,
   WoltSettings,
   WoltSettingsUpdate,
-  CibusSettings,
-  CibusSettingsUpdate,
   RunSettings,
   RunSettingsUpdate,
 } from "@/types";
@@ -17,7 +15,6 @@ import type {
 // ============================================================================
 export const NOTIFICATION_SETTINGS_KEY = ["settings", "notification"] as const;
 export const WOLT_SETTINGS_KEY = ["settings", "wolt"] as const;
-export const CIBUS_SETTINGS_KEY = ["settings", "cibus"] as const;
 export const RUN_SETTINGS_KEY = ["settings", "run"] as const;
 
 // ============================================================================
@@ -121,56 +118,6 @@ export function useUpdateWoltSettingsMutation() {
     onSuccess: (updatedSettings) => {
       queryClient.setQueryData(WOLT_SETTINGS_KEY, updatedSettings);
       toast.success("Wolt settings updated successfully", {
-        description: "Your changes have been saved",
-      });
-    },
-  });
-}
-
-// ============================================================================
-// CIBUS SETTINGS QUERIES
-// ============================================================================
-export function useCibusSettingsQuery() {
-  return useQuery({
-    queryKey: CIBUS_SETTINGS_KEY,
-    queryFn: settingsService.getCibusSettings,
-    staleTime: 15 * 60 * 1000, // 15 minutes
-  });
-}
-
-export function useUpdateCibusSettingsMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: settingsService.updateCibusSettings,
-    onMutate: async (newSettings: CibusSettingsUpdate) => {
-      await queryClient.cancelQueries({ queryKey: CIBUS_SETTINGS_KEY });
-
-      const previousSettings = queryClient.getQueryData<CibusSettings | null>(
-        CIBUS_SETTINGS_KEY
-      );
-
-      if (previousSettings) {
-        queryClient.setQueryData<CibusSettings>(CIBUS_SETTINGS_KEY, {
-          ...previousSettings,
-          ...newSettings,
-          updatedAt: new Date(),
-        });
-      }
-
-      return { previousSettings };
-    },
-    onError: (_error, _newSettings, context) => {
-      if (context?.previousSettings) {
-        queryClient.setQueryData(CIBUS_SETTINGS_KEY, context.previousSettings);
-      }
-      toast.error("Failed to update Cibus settings", {
-        description: "Please try again later",
-      });
-    },
-    onSuccess: (updatedSettings) => {
-      queryClient.setQueryData(CIBUS_SETTINGS_KEY, updatedSettings);
-      toast.success("Cibus settings updated successfully", {
         description: "Your changes have been saved",
       });
     },

@@ -1,7 +1,6 @@
 import { Op } from "sequelize";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import {
-  Cibus2FA,
   TwoFactorAuthentication,
   Code,
   Run,
@@ -212,7 +211,6 @@ async function deleteEmailFromS3(
 async function cleanExpiredData(): Promise<{
   totalDeleted: number;
   deletedByType: {
-    cibus2FA: number;
     twoFA: number;
     codes: number;
     runs: number;
@@ -224,19 +222,6 @@ async function cleanExpiredData(): Promise<{
 }> {
   const now = new Date();
   console.log(`[DATA_CLEANUP] Starting data cleanup at ${now.toISOString()}`);
-
-  // Clean One-time codes (daily purge)
-  console.log("[DATA_CLEANUP] Cleaning expired Cibus 2FA codes...");
-  const expiredCibus2FA = await Cibus2FA.destroy({
-    where: {
-      dataExpiresAt: {
-        [Op.lt]: now,
-      },
-    },
-  });
-  console.log(
-    `[DATA_CLEANUP] Deleted ${expiredCibus2FA} expired Cibus2FA records`
-  );
 
   console.log("[DATA_CLEANUP] Cleaning expired 2FA verification codes...");
   const expiredTwoFA = await TwoFactorAuthentication.destroy({
@@ -332,7 +317,6 @@ async function cleanExpiredData(): Promise<{
 
   // Summary
   const totalDeleted =
-    expiredCibus2FA +
     expiredTwoFA +
     expiredCodes +
     expiredRuns +
@@ -340,7 +324,6 @@ async function cleanExpiredData(): Promise<{
     expiredEmails;
 
   const deletedByType = {
-    cibus2FA: expiredCibus2FA,
     twoFA: expiredTwoFA,
     codes: expiredCodes,
     runs: expiredRuns,

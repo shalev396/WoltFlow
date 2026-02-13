@@ -1,0 +1,89 @@
+export default {
+  title: "Welcome to WoltFlow",
+  description:
+    "WoltFlow is an automation solution that helps you maximize your meal benefits by automatically claiming your Wolt Benefits and converting them to Wolt gift cards every day.",
+  whatIsWoltflow: {
+    title: "What is WoltFlow?",
+    automatedSolution: {
+      title: "Automated Solution",
+      description:
+        "A comprehensive automation system that handles your entire meal benefit workflow, from claiming to redemption, without any manual intervention required.",
+    },
+    dailyBenefits: {
+      title: "Daily Benefits",
+      description:
+        "Automatically claims your daily Wolt Benefits (meal allowance) and converts it to Wolt credits, ensuring you never miss out on your benefits.",
+    },
+    transformWorkflow: {
+      title: "Transform Your Meal Benefits Workflow",
+      description:
+        "Instead of manually using your meal benefits daily, purchasing gift cards, waiting for emails, and then redeeming codes on Wolt, WoltFlow handles this entire process automatically.",
+      timeSaver: "Save 5-10 minutes daily with automated processing",
+    },
+  },
+  howItWorks: {
+    title: "How It Works",
+    steps: {
+      "1": {
+        title: "Daily Automation Trigger",
+        description:
+          "Every day at 12:00 PM Israel time (noon), our secure automation system initiates your personalized meal benefit process.",
+      },
+      "2": {
+        title: "Secure Account Access",
+        description:
+          "Using your encrypted credentials, the system securely accesses your Wolt Benefits and Wolt account to begin the transfer process.",
+      },
+      "3": {
+        title: "Gift Card Purchase",
+        description:
+          "The automation purchases a Wolt gift card using your available Wolt Benefits balance, with the amount you've configured in your settings.",
+      },
+      "4": {
+        title: "Email Processing",
+        descriptionPart1: "The gift card code is forwarded to",
+        descriptionPart2:
+          ", where our system automatically extracts the redemption code.",
+        inboxLink: "your personalized WoltFlow email address",
+      },
+      "5": {
+        title: "Automatic Redemption",
+        description:
+          "The extracted gift card code is automatically applied to your Wolt account, instantly adding the credit balance for your next order.",
+      },
+    },
+    perfectTiming: {
+      title: "Perfect Timing, Every Day",
+      description:
+        "We run the automation at 12:00 PM Israel time, ensuring maximum success rates for your daily claims.",
+    },
+  },
+  securityPrivacy: {
+    title: "Security & Privacy",
+    bankLevelEncryption: {
+      title: "Bank-Level Encryption",
+      features: [
+        "All credentials encrypted with AES-256",
+        "Secure AWS infrastructure hosting",
+        "TLS 1.3 for all data transmission",
+      ],
+    },
+    individualPrivacy: {
+      title: "Individual Privacy",
+      features: [
+        "Unique email address per user",
+        "Complete data isolation",
+        "No cross-user data mixing",
+      ],
+    },
+    yourDataYourControl: {
+      title: "Your Data, Your Control",
+      description:
+        "Each user receives a completely isolated email address and data environment. We only access the minimum information required for the automation to function, and all data is encrypted both in transit and at rest. You can delete your account and all associated data at any time.",
+    },
+  },
+  cta: {
+    getStarted: "Get Started Now",
+    downloadExtension: "Download Extension",
+  },
+} as const;

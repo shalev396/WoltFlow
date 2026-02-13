@@ -3,7 +3,6 @@ import {
   Play,
   Globe,
   Settings,
-  MessageCircle,
   Mail,
   Inbox,
 } from "lucide-react";
@@ -48,16 +47,6 @@ export const docSections: DocSection[] = [
       { id: "understanding-tokens", title: "Understanding Tokens" },
       { id: "manual-extraction", title: "Manual Extraction" },
       { id: "token-security", title: "Token Security" },
-    ],
-  },
-  {
-    id: "sms-forwarding",
-    title: "SMS Forwarding",
-    icon: MessageCircle,
-    subsections: [
-      { id: "sms-api-setup", title: "API Setup" },
-      { id: "android-setup", title: "Android Configuration" },
-      { id: "ios-setup", title: "iOS Configuration" },
     ],
   },
   {

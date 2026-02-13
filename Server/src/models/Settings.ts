@@ -6,7 +6,6 @@ export default class Settings extends Model {
   declare userId: string; // Foreign key to Users table
   declare notificationSettingsId: string | null; // Foreign key to NotificationSettings table
   declare woltSettingsId: string | null; // Foreign key to WoltSettings table
-  declare cibusSettingsId: string | null; // Foreign key to CibusSettings table
   declare runSettingsId: string | null; // Foreign key to RunSettings table
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -53,17 +52,6 @@ Settings.init(
       onDelete: "SET NULL",
       comment: "Reference to WoltSettings table",
     },
-    cibusSettingsId: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      references: {
-        model: "CibusSettings",
-        key: "id",
-      },
-      onUpdate: "CASCADE",
-      onDelete: "SET NULL",
-      comment: "Reference to CibusSettings table",
-    },
     runSettingsId: {
       type: DataTypes.UUID,
       allowNull: true,
@@ -92,13 +80,10 @@ Settings.init(
         fields: ["woltSettingsId"],
       },
       {
-        fields: ["cibusSettingsId"],
-      },
-      {
         fields: ["runSettingsId"],
       },
     ],
-  }
+  },
 );
 
 // Relationships are defined in models/index.ts to avoid circular dependencies

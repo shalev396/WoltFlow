@@ -104,7 +104,7 @@ export default function ApiKeyForm() {
                 className="w-full sm:w-fit"
               >
                 <Link
-                  to={`/${language}/docs/sms-forwarding`}
+                  to={`/${language}/docs/email-forwarding`}
                   className="flex items-center justify-center gap-2"
                 >
                   <ExternalLink className="h-4 w-4 flex-shrink-0" />

@@ -4,7 +4,6 @@ import { IntroductionContent } from "./content/IntroductionContent";
 import { GettingStartedContent } from "./content/GettingStartedContent";
 import { WoltFlowExtensionContent } from "./content/WoltFlowExtensionContent";
 import { ManualSetupContent } from "./content/ManualSetupContent";
-import { SmsForwardingContent } from "./content/SmsForwardingContent";
 import { EmailForwardingContent } from "./content/EmailForwardingContent";
 import { InboxContent } from "./content/InboxContent";
 
@@ -54,8 +53,6 @@ export function DocsSectionContent({
         return <WoltFlowExtensionContent />;
       case "manual-setup":
         return <ManualSetupContent />;
-      case "sms-forwarding":
-        return <SmsForwardingContent />;
       case "email-forwarding":
         return <EmailForwardingContent />;
       case "inbox":

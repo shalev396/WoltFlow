@@ -105,7 +105,6 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
     "userId",
     "notificationSettingsId",
     "woltSettingsId",
-    "cibusSettingsId",
     "runSettingsId",
     "createdAt",
     "updatedAt",
@@ -115,15 +114,6 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
     "id",
     "woltRefreshToken",
     "woltAccessToken",
-    "createdAt",
-    "updatedAt",
-  ]);
-
-  addTableSection("Cibus Settings", exportData.cibusSettings, false, [
-    "id",
-    "cibusUsername",
-    "cibusPassword",
-    "cibusCompany",
     "createdAt",
     "updatedAt",
   ]);
@@ -220,20 +210,6 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
     "siteUrl",
     "screenshotUrl",
     "isError",
-    "dataExpiresAt",
-    "createdAt",
-    "updatedAt",
-  ]);
-
-  addTableSection("Cibus 2FA", exportData.cibus2FAcodes, true, [
-    "id",
-    "userId",
-    "code",
-    "message",
-    "receivedAt",
-    "expiresAt",
-    "isUsed",
-    "usedAt",
     "dataExpiresAt",
     "createdAt",
     "updatedAt",

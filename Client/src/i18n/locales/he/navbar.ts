@@ -1,0 +1,13 @@
+export default {
+  "routes": {
+    "documentation": "תיעוד",
+    "dashboard": "לוח בקרה",
+    "runs": "ריצות",
+    "inbox": "תיבת דואר",
+    "settings": "הגדרות"
+  },
+  "auth": {
+    "logout": "התנתק",
+    "login": "התחבר"
+  }
+} as const;

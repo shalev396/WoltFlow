@@ -34,11 +34,11 @@ export function SEOHead({ title, description, keywords }: SEOHeadProps) {
 
     const pageDescription =
       description ||
-      "Streamline your meal benefits with automation. WoltFlow automatically purchases Wolt gift cards from Cibus daily, saving you time and maximizing your benefits utilization.";
+      "Streamline your meal benefits with automation. WoltFlow automatically purchases Wolt gift cards from your Wolt Benefits daily, saving you time and maximizing your benefits utilization.";
 
     const pageKeywords =
       keywords ||
-      "WoltFlow, Wolt, Cibus, meal benefits, automation, gift cards, food delivery";
+      "WoltFlow, Wolt, Wolt Benefits, meal benefits, automation, gift cards, food delivery";
 
     // Update document title
     document.title = pageTitle;
@@ -47,7 +47,7 @@ export function SEOHead({ title, description, keywords }: SEOHeadProps) {
     const updateMetaTag = (
       selector: string,
       attribute: string,
-      value: string
+      value: string,
     ) => {
       let element = document.querySelector(selector);
       if (!element) {
@@ -86,7 +86,7 @@ export function SEOHead({ title, description, keywords }: SEOHeadProps) {
     updateMetaTag(
       'meta[name="description"]',
       "name=description",
-      pageDescription
+      pageDescription,
     );
     updateMetaTag('meta[name="keywords"]', "name=keywords", pageKeywords);
 
@@ -108,34 +108,34 @@ export function SEOHead({ title, description, keywords }: SEOHeadProps) {
     updateMetaTag(
       'meta[property="og:description"]',
       "property=og:description",
-      pageDescription
+      pageDescription,
     );
     updateMetaTag(
       'meta[property="og:locale"]',
       "property=og:locale",
-      language === "he" ? "he_IL" : "en_US"
+      language === "he" ? "he_IL" : "en_US",
     );
 
     // Update Twitter tags
     updateMetaTag(
       'meta[property="twitter:card"]',
       "property=twitter:card",
-      "summary_large_image"
+      "summary_large_image",
     );
     updateMetaTag(
       'meta[property="twitter:url"]',
       "property=twitter:url",
-      canonicalURL
+      canonicalURL,
     );
     updateMetaTag(
       'meta[property="twitter:title"]',
       "property=twitter:title",
-      pageTitle
+      pageTitle,
     );
     updateMetaTag(
       'meta[property="twitter:description"]',
       "property=twitter:description",
-      pageDescription
+      pageDescription,
     );
   }, [location.pathname, language, title, description, keywords]);
 

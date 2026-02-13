@@ -1,14 +1,11 @@
 import { By, Builder, WebElement } from "selenium-webdriver";
-import { Op } from "sequelize";
 import dotenv from "dotenv";
 import {
   Settings,
   WoltSettings,
-  CibusSettings,
   RunSettings,
   Run,
   User,
-  Cibus2FA,
 } from "../../models/index.js";
 
 import {
@@ -28,7 +25,7 @@ import {
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
 import {
-  type RunWithUserWithWoltSettingsAndCibusSettingsAndRunSettings,
+  type RunWithUserWithWoltSettingsAndRunSettings,
   type ICustomAPIGatewayProxyEventStepFunction,
   type ICustomStepFunctionResult,
 } from "../../types/index.js";
@@ -39,7 +36,7 @@ dotenv.config();
 // Connect to database
 await initDB();
 export const handler = async (
-  event: ICustomAPIGatewayProxyEventStepFunction
+  event: ICustomAPIGatewayProxyEventStepFunction,
 ): Promise<ICustomStepFunctionResult> => {
   console.log("Starting woltBuyGift");
 
@@ -106,10 +103,6 @@ export const handler = async (
                   as: "woltSettings",
                 },
                 {
-                  model: CibusSettings,
-                  as: "cibusSettings",
-                },
-                {
                   model: RunSettings,
                   as: "runSettings",
                 },
@@ -118,7 +111,7 @@ export const handler = async (
           ],
         },
       ],
-    })) as RunWithUserWithWoltSettingsAndCibusSettingsAndRunSettings;
+    })) as RunWithUserWithWoltSettingsAndRunSettings;
     if (!run) {
       return {
         runId,
@@ -129,9 +122,6 @@ export const handler = async (
       };
     }
     console.log("end get run");
-    console.log("start get user id");
-    const userId = run.userId;
-    console.log("end get user id");
     console.log("start update run");
     // Update run stage
     await run.update({ stage: "buying_gift" });
@@ -140,10 +130,9 @@ export const handler = async (
     const userWithSettings = run.user;
     const settings = userWithSettings?.settings;
     const woltSettings = settings?.woltSettings;
-    const cibusSettings = settings?.cibusSettings;
     const runSettings = settings?.runSettings;
 
-    if (!settings || !woltSettings || !cibusSettings || !runSettings) {
+    if (!settings || !woltSettings || !runSettings) {
       await run.update({ status: "failed" });
       return {
         runId,
@@ -159,7 +148,7 @@ export const handler = async (
     await setupWoltCookies(
       driver,
       woltSettings.woltRefreshToken || "",
-      woltSettings.woltAccessToken || ""
+      woltSettings.woltAccessToken || "",
     );
     console.log("end setup wolt cookies");
     console.log("start step 1");
@@ -180,19 +169,19 @@ export const handler = async (
     const continueDialogs = await waitForElement(
       driver,
       By.xpath("//*[normalize-space(text())='אשמח להמשיך']"),
-      8000
+      8000,
     );
 
     if (continueDialogs != null) {
       console.log("start step 2.1");
       const noButton = await waitForElement(
         driver,
-        By.xpath("//button[normalize-space(.)='לא']")
+        By.xpath("//button[normalize-space(.)='לא']"),
       );
       await safeClick(driver, noButton as WebElement);
       const closeButtons1 = await waitForElement(
         driver,
-        By.xpath("//button[@aria-label='סגירה']")
+        By.xpath("//button[@aria-label='סגירה']"),
       );
       if (closeButtons1) {
         await safeClick(driver, closeButtons1);
@@ -201,7 +190,7 @@ export const handler = async (
       // Open the cart
       const cartButton = await waitForElement(
         driver,
-        By.xpath("//button[@aria-label='ההזמנות שלך']")
+        By.xpath("//button[@aria-label='ההזמנות שלך']"),
       );
       await safeClick(driver, cartButton as WebElement);
 
@@ -209,7 +198,7 @@ export const handler = async (
       while (true) {
         const deleteButtons = await waitForElement(
           driver,
-          By.xpath("//button[@aria-label='מחיקה']")
+          By.xpath("//button[@aria-label='מחיקה']"),
         );
         if (!deleteButtons) break;
         await safeClick(driver, deleteButtons);
@@ -217,7 +206,7 @@ export const handler = async (
 
       const closeButtons2 = await waitForElement(
         driver,
-        By.xpath("//button[@aria-label='סגירה']")
+        By.xpath("//button[@aria-label='סגירה']"),
       );
       if (closeButtons2) {
         await safeClick(driver, closeButtons2);
@@ -236,7 +225,7 @@ export const handler = async (
     const addOrderButton = await waitForElement(
       driver,
       By.xpath("//span[normalize-space(text())='להוסיף להזמנה']"),
-      13000
+      13000,
     );
     await safeClick(driver, addOrderButton as WebElement);
     console.log("end step 3");
@@ -252,7 +241,7 @@ export const handler = async (
     // using button attempt
     const cartButton = await waitForElement(
       driver,
-      By.xpath(`//button[.//div[normalize-space(text())="הצגת פריטים"]]`)
+      By.xpath(`//button[.//div[normalize-space(text())="הצגת פריטים"]]`),
     );
     await safeClick(driver, cartButton as WebElement);
     console.log("end step 4");
@@ -263,7 +252,7 @@ export const handler = async (
     console.log("start step 5");
     const checkoutButton = await waitForElement(
       driver,
-      By.xpath("//button[.//div[normalize-space(text())='מעבר לתשלום']]")
+      By.xpath("//button[.//div[normalize-space(text())='מעבר לתשלום']]"),
     );
 
     await safeClick(driver, checkoutButton as WebElement);
@@ -275,40 +264,43 @@ export const handler = async (
     }
     console.log("start step 6");
     await sleep(1000);
+    // Open delivery-item dialogue (use the selector that worked for your DOM).
     const checkoutElement = await waitForElement(
       driver,
       By.xpath(
-        "/html/body/div[2]/div[2]/main/div[1]/div[2]/div[1]/ul/li/a/div[2]/div[1]/span"
+        "/html[1]/body[1]/div[2]/div[2]/main[1]/div[1]/div[2]/div[1]/ul[1]/li[1]/div[1]/div[2]/div[1]",
       ),
-      8000
+      8000,
     );
-    await safeClick(driver, checkoutElement as WebElement);
+    if (checkoutElement) {
+      await safeClick(driver, checkoutElement as WebElement);
+    }
     console.log("end step 6");
     if (LEVEL === "6") {
       await sleep(1000);
       throw new Error("LEVEL 6");
     }
     console.log("start step 7");
-    const cibusElement = await waitForElement(
+    // Select Wolt Benefits payment method (semantic: button in payment section, avoid React id _r_e4_).
+    const woltBenefitsElement = await waitForElement(
       driver,
-      By.xpath(
-        `//button[@data-test-id="PaymentMethodsList.PaymentMethod"and @data-payment-method-id="cibus"]`
-      )
+      By.xpath("//span[normalize-space()='Wolt Benefits']"),
+      8000,
     );
-    if (cibusElement != null) {
-      await safeClick(driver, cibusElement as WebElement);
-      await sleep(1000);
+    if (woltBenefitsElement != null) {
+      await safeClick(driver, woltBenefitsElement as WebElement);
+      await sleep(2000);
     }
-    //FIX use the cibus one
-    // const modalButtons = await waitForElement(
-    //   driver,
-    //   By.xpath(
-    //     "/html/body/div[4]/div[10]/div/div[2]/div/aside/div[2]/div/div[1]/div/div[2]/div[2]/div[1]/button/div[2]"
-    //   )
-    // );
-    // if (modalButtons) {
-    //   await safeClick(driver, modalButtons);
-    // }
+    // If a dialogue stayed open (e.g. payment picker), close it with the X button.
+    const closeDialogueButton = await waitForElement(
+      driver,
+      By.xpath("//button[@aria-label='סגירה']"),
+      2000,
+    );
+    if (closeDialogueButton) {
+      await safeClick(driver, closeDialogueButton as WebElement);
+      await sleep(500);
+    }
     console.log("end step 7");
     if (LEVEL === "7") {
       await sleep(1000);
@@ -318,172 +310,19 @@ export const handler = async (
     // Proceed to checkout
     const orderButton = await waitForElement(
       driver,
-      By.xpath("//span[normalize-space(text())='לחצו להזמנה']")
+      By.xpath("//span[normalize-space(text())='לחצו להזמנה']"),
     );
     await safeClick(driver, orderButton as WebElement);
     await sleep(3000);
     console.log("end step 8");
-    // Cibus iframe
-    if (LEVEL === "8") {
-      await sleep(5000);
-      throw new Error("LEVEL 8");
-    }
-    console.log("start step 9");
-    // Step 1: Switch to Cibus iframe
-    const iframe = await waitForElement(
-      driver,
-      By.xpath("//iframe[@title='cibus-challenge']"),
-      20000
-    );
-    if (iframe) {
-      await driver.switchTo().frame(iframe);
-      //TODO: fix this part for cibus new UI
-      // Step 2: Enter Cibus credentials
-      const usernameInput = await waitForElement(
-        driver,
-        By.xpath("//input[@id='user']"),
-        10000
-      );
-      if (usernameInput) {
-        await usernameInput.clear();
-        await usernameInput.sendKeys(cibusSettings.cibusUsername || "");
-      }
-
-      // Try to click "אישור" button after username input (may appear in some flows)
-      // Try multiple xpath variations since we can't test locally
-      const approvalButton = await waitForElement(
-        driver,
-        By.xpath("//button[contains(text(),'אישור')]"),
-        5000
-      );
-      if (approvalButton) {
-        console.log("Found 'אישור' button, clicking it");
-        await safeClick(driver, approvalButton);
-        await sleep(1000);
-      } else {
-        console.log("'אישור' button not found, trying continue button");
-      }
-
-      // Try the original continue button as fallback
-      const continueButton = await waitForElement(
-        driver,
-        By.xpath(
-          "//div[@class='login-btn-container']//button[@type='button'][contains(text(),'שנמשיך?')]"
-        ),
-        10000
-      );
-      if (continueButton) {
-        console.log("Found 'שנמשיך?' button, clicking it");
-        await safeClick(driver, continueButton);
-      }
-
-      const passwordInput = await waitForElement(
-        driver,
-        By.xpath("//input[@id='password']"),
-        10000
-      );
-      if (passwordInput) {
-        await passwordInput.clear();
-        await passwordInput.sendKeys(cibusSettings.cibusPassword || "");
-      }
-
-      const companyInput = await waitForElement(
-        driver,
-        By.xpath("//input[@id='company-inp']"),
-        10000
-      );
-      if (companyInput) {
-        await companyInput.clear();
-        await companyInput.sendKeys(cibusSettings.cibusCompany || "");
-      }
-      //preSS //button[contains(text(),'כניסה')]
-      console.log("end step 9");
-      if (LEVEL === "9") {
-        await sleep(1000);
-        throw new Error("LEVEL 9");
-      }
-      console.log("start step 10");
-      // Step 3: Complete Cibus login
-      const loginButton = await waitForElement(
-        driver,
-        By.xpath("//button[contains(text(),'כניסה')]"),
-        10000
-      );
-      if (loginButton) {
-        await safeClick(driver, loginButton);
-      }
-      console.log("end step 10");
-      if (LEVEL === "10") {
-        await sleep(1000);
-        throw new Error("LEVEL 10");
-      }
-      console.log("start step 11");
-
-      // handle 2FA
-      const otpInput = await waitForElement(
-        driver,
-        By.xpath("//input[@id='otp-input-0']"),
-        10000
-      );
-      if (otpInput) {
-        await sleep(45000);
-
-        // Fetch the most recent unused Cibus 2FA code for this user
-        const cibus2FA = await Cibus2FA.findOne({
-          where: {
-            userId: userId,
-            isUsed: false,
-            expiresAt: {
-              [Op.gte]: new Date(),
-            },
-          },
-          order: [["receivedAt", "DESC"]],
-        });
-
-        if (!cibus2FA) {
-          throw new Error("No valid Cibus 2FA code found");
-        }
-
-        await otpInput.clear();
-        await otpInput.sendKeys(cibus2FA.code);
-
-        // Mark the code as used
-        await cibus2FA.update({ isUsed: true, usedAt: new Date() });
-      }
-      const loginButton2 = await waitForElement(
-        driver,
-        By.xpath("//button[@type='button']"),
-        10000
-      );
-      if (loginButton2) {
-        await safeClick(driver, loginButton2);
-      }
-
-      // Step 4: Confirm Cibus payment
-      const paymentButton = await waitForElement(
-        driver,
-        By.xpath("//button[contains(text(),'אישור התשלום באמצעות סיבוס')]"),
-        15000
-      );
-      if (paymentButton) {
-        await safeClick(driver, paymentButton);
-      }
-      console.log("end step 11");
-      if (LEVEL === "11") {
-        await sleep(1000);
-        throw new Error("LEVEL 11");
-      }
-      // Return to main content
-      await driver.switchTo().defaultContent();
-    }
     try {
       if (
         await waitForElement(
           driver,
           By.xpath(
-            "//span[@data-localization-key='order.gift-card-tracking-title']"
+            "//span[@data-localization-key='order.gift-card-tracking-title']",
           ),
-          15000
+          15000,
         )
       ) {
         success = true;
@@ -517,7 +356,7 @@ export const handler = async (
           true,
           currentUrl,
           "error",
-          "buying_gift"
+          "buying_gift",
         );
         console.log("Error screenshot uploaded to S3 and saved to database");
       } catch (screenshotError) {
@@ -570,14 +409,14 @@ export const handler = async (
         await notifyOnSuccess(
           run.userId.toString(),
           run.id,
-          "Gift purchase completed"
+          "Gift purchase completed",
         );
       }
     } else {
       await notifyOnError(
         run.userId.toString(),
         run.id,
-        "Gift purchase failed"
+        "Gift purchase failed",
       );
     }
   } catch (notificationError) {

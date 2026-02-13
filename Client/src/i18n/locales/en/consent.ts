@@ -1,0 +1,23 @@
+export default {
+  "banner": {
+    "title": "We value your privacy",
+    "description": "We use cookies to enhance your browsing experience and analyze our traffic. By clicking 'Accept All', you consent to our use of cookies.",
+    "acceptAll": "Accept All",
+    "noCookies": "No Cookies"
+  },
+  "settings": {
+    "title": "Cookie Settings",
+    "description": "Manage your cookie preferences",
+    "link": "Cookie Settings",
+    "essential": {
+      "title": "Essential Cookies",
+      "description": "Required for the website to function properly"
+    },
+    "analytics": {
+      "title": "Analytics Cookies",
+      "description": "Help us understand how visitors interact with our website"
+    },
+    "save": "Save Preferences",
+    "acceptAll": "Accept All"
+  }
+} as const;

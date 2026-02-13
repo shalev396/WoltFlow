@@ -122,7 +122,7 @@ export default function PrivacyPage() {
                   </div>
                 </div>
 
-                {/* Wolt & Cibus credentials */}
+                {/* Wolt credentials */}
                 <div>
                   <h3 className="text-xl font-semibold mb-3">
                     {t("sections.whatData.credentials.title")}
@@ -141,17 +141,6 @@ export default function PrivacyPage() {
                       </ul>
                     </div>
 
-                    <div>
-                      <h4 className="font-medium mb-2">
-                        {t("sections.whatData.credentials.cibus.title")}
-                      </h4>
-                      <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {renderTranslationArray(
-                          t,
-                          "sections.whatData.credentials.cibus.items"
-                        )}
-                      </ul>
-                    </div>
                   </div>
                 </div>
 
@@ -162,24 +151,6 @@ export default function PrivacyPage() {
                   </h3>
 
                   <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium mb-2">
-                        {t("sections.whatData.codes.cibus2fa.title")}
-                      </h4>
-                      <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {renderTranslationArray(
-                          t,
-                          "sections.whatData.codes.cibus2fa.items"
-                        )}
-                      </ul>
-                      <p className="text-muted-foreground text-sm pl-6 mt-2">
-                        {t("sections.whatData.codes.cibus2fa.source")}
-                      </p>
-                      <p className="text-muted-foreground text-sm pl-6">
-                        {t("sections.whatData.codes.cibus2fa.retention")}
-                      </p>
-                    </div>
-
                     <div>
                       <h4 className="font-medium mb-2">
                         {t("sections.whatData.codes.twoFactor.title")}

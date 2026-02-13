@@ -7,7 +7,6 @@ import {
   Globe,
   CreditCard,
   Mail,
-  MessageCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,26 +55,6 @@ export function GettingStartedContent() {
               </span>
               <Badge variant="secondary" className="ml-auto">
                 {t("setupChecklist.steps.woltCredentials.badge")}
-              </Badge>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-white dark:bg-background rounded border">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
-                {t("setupChecklist.steps.cibusCredentials.label")}
-              </span>
-              <Badge variant="secondary" className="ml-auto">
-                {t("setupChecklist.steps.cibusCredentials.badge")}
-              </Badge>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-white dark:bg-background rounded border">
-              <MessageCircle className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
-                {t("setupChecklist.steps.smsForwarding.label")}
-              </span>
-              <Badge variant="secondary" className="ml-auto">
-                {t("setupChecklist.steps.smsForwarding.badge")}
               </Badge>
             </div>
 
@@ -174,12 +153,12 @@ export function GettingStartedContent() {
                   <div>
                     <p className="text-xs font-medium text-amber-900 dark:text-amber-100">
                       {t(
-                        "accountRequirements.woltAccount.deviceConsideration.title"
+                        "accountRequirements.woltAccount.deviceConsideration.title",
                       )}
                     </p>
                     <p className="text-xs text-amber-700 dark:text-amber-300">
                       {t(
-                        "accountRequirements.woltAccount.deviceConsideration.description"
+                        "accountRequirements.woltAccount.deviceConsideration.description",
                       )}
                     </p>
                   </div>
@@ -192,77 +171,13 @@ export function GettingStartedContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-purple-600" />
-                {t("accountRequirements.cibusAccount.title")}
+                {t("accountRequirements.woltBenefits.title")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <p className="text-muted-foreground text-sm">
-                {t("accountRequirements.cibusAccount.description")}
+                {t("accountRequirements.woltBenefits.description")}
               </p>
-
-              <div className="space-y-3">
-                <h4 className="font-medium">
-                  {t("accountRequirements.cibusAccount.requiredInfoTitle")}
-                </h4>
-
-                <div className="grid gap-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                    <span className="font-medium">
-                      {t("accountRequirements.cibusAccount.fields.email.label")}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {t(
-                        "accountRequirements.cibusAccount.fields.email.description"
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                    <span className="font-medium">
-                      {t(
-                        "accountRequirements.cibusAccount.fields.password.label"
-                      )}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {t(
-                        "accountRequirements.cibusAccount.fields.password.description"
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                    <span className="font-medium">
-                      {t(
-                        "accountRequirements.cibusAccount.fields.company.label"
-                      )}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {t(
-                        "accountRequirements.cibusAccount.fields.company.description"
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
-                      {t(
-                        "accountRequirements.cibusAccount.secureStorage.title"
-                      )}
-                    </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
-                      {t(
-                        "accountRequirements.cibusAccount.secureStorage.description"
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -382,28 +297,6 @@ export function GettingStartedContent() {
               </p>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="p-3 sm:p-4 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium">
-                      {t("activationGuide.step3.sms.title")}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {t("activationGuide.step3.sms.description")}
-                  </p>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Link to={`/${language}/docs/sms-forwarding`}>
-                      {t("activationGuide.step3.sms.button")}
-                    </Link>
-                  </Button>
-                </div>
-
                 <div className="p-3 sm:p-4 border rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Mail className="h-4 w-4 text-green-600" />

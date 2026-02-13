@@ -15,7 +15,7 @@ class UserService {
 
       if (!fileResponse.ok) {
         throw new Error(
-          `Failed to fetch file: ${fileResponse.status} ${fileResponse.statusText}`
+          `Failed to fetch file: ${fileResponse.status} ${fileResponse.statusText}`,
         );
       }
 
@@ -73,7 +73,6 @@ class UserService {
         codes: number;
         emails: number;
         runs: number;
-        cibus2FAcodes: number;
         inbox: number;
         settings: number;
         user: number;
@@ -104,13 +103,13 @@ class UserService {
         }
         // If there's a response but no message, use generic error
         throw new Error(
-          "Account deletion failed. Please try again or contact support."
+          "Account deletion failed. Please try again or contact support.",
         );
       } else if (error instanceof Error) {
         throw new Error(error.message);
       } else {
         throw new Error(
-          "Account deletion failed. Please try again or contact support."
+          "Account deletion failed. Please try again or contact support.",
         );
       }
     }

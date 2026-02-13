@@ -1,5 +1,4 @@
 import {
-  type CibusSettings,
   type NotificationSettings,
   type Run,
   type RunSettings,
@@ -10,7 +9,6 @@ import {
   type Emails,
   type Screenshot,
   type Code,
-  type Cibus2FA,
   type TwoFactorAuthentication,
 } from "../models/index.js";
 // Define the nested structure type for User with Settings
@@ -29,11 +27,10 @@ export type RunWithUserWithWoltSettings = Run & {
   };
 };
 
-export type RunWithUserWithWoltSettingsAndCibusSettingsAndRunSettings = Run & {
+export type RunWithUserWithWoltSettingsAndRunSettings = Run & {
   user: User & {
     settings: Settings & {
       woltSettings: WoltSettings;
-      cibusSettings: CibusSettings;
       runSettings: RunSettings;
     };
   };
@@ -42,9 +39,6 @@ export type RunWithUserWithWoltSettingsAndCibusSettingsAndRunSettings = Run & {
 export type SettingsWithUserAndNotificationSettings = Settings & {
   user: User;
   notificationSettings: NotificationSettings;
-};
-export type SettingsWithCibusSettings = Settings & {
-  cibusSettings: CibusSettings;
 };
 export type SettingsWithNotificationSettings = Settings & {
   notificationSettings: NotificationSettings;
@@ -78,7 +72,6 @@ export interface CompleteUserExport {
   settings: Settings | null;
   notificationSettings: NotificationSettings | null;
   woltSettings: WoltSettings | null;
-  cibusSettings: CibusSettings | null;
   runSettings: RunSettings | null;
   twoFactorAuthentications: TwoFactorAuthentication[];
   inbox: Inbox | null;
@@ -86,7 +79,6 @@ export interface CompleteUserExport {
   runs: Run[];
   screenshots: Screenshot[];
   codes: Code[];
-  cibus2FAcodes: Cibus2FA[];
 }
 
 export interface ExportResponse {

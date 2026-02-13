@@ -2,10 +2,8 @@
 import User from "./User.js";
 import NotificationSettings from "./NotificationSettings.js";
 import WoltSettings from "./WoltSettings.js";
-import CibusSettings from "./CibusSettings.js";
 import Settings from "./Settings.js";
 import TwoFactorAuthentication from "./TwoFactorAuthentication.js";
-import Cibus2FA from "./Cibus2FA.js";
 import Inbox from "./Inbox.js";
 import Emails from "./Emails.js";
 import RunSettings from "./RunSettings.js";
@@ -67,16 +65,6 @@ function initializeModelRelationships() {
     as: "user",
   });
 
-  // User -> Cibus2FA (1:N) - Users can have multiple Cibus 2FA codes
-  User.hasMany(Cibus2FA, {
-    foreignKey: "userId",
-    as: "cibus2FAcodes",
-  });
-  Cibus2FA.belongsTo(User, {
-    foreignKey: "userId",
-    as: "user",
-  });
-
   // ============================================================================
   // SETTINGS RELATIONSHIPS (All 1:1 with main Settings hub)
   // ============================================================================
@@ -98,16 +86,6 @@ function initializeModelRelationships() {
   });
   WoltSettings.hasOne(Settings, {
     foreignKey: "woltSettingsId",
-    as: "settings",
-  });
-
-  // Settings -> CibusSettings (1:1)
-  Settings.belongsTo(CibusSettings, {
-    foreignKey: "cibusSettingsId",
-    as: "cibusSettings",
-  });
-  CibusSettings.hasOne(Settings, {
-    foreignKey: "cibusSettingsId",
     as: "settings",
   });
 
@@ -193,10 +171,8 @@ export {
   User,
   NotificationSettings,
   WoltSettings,
-  CibusSettings,
   Settings,
   TwoFactorAuthentication,
-  Cibus2FA,
   Inbox,
   Emails,
   RunSettings,
