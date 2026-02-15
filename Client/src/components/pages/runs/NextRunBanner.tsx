@@ -9,55 +9,69 @@ export default function NextRunBanner() {
   const [timeUntilNextRun, setTimeUntilNextRun] = useState<string>("");
 
   useEffect(() => {
-    const updateCountdown = () => {
+    // Automation runs at 08:30 UTC (10:30 Israel winter / 11:30 Israel summer)
+    // Valid days: Sun(0), Mon(1), Tue(2), Wed(3), Thu(4). Skip Fri(5), Sat(6).
+    const RUN_HOUR_UTC = 8;
+    const RUN_MINUTE_UTC = 30;
+    const VALID_DAYS = [0, 1, 2, 3, 4];
+
+    const getNextRunUtc = (): Date => {
       const now = new Date();
-      const today = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      const currentDay = now.getUTCDay();
+      const currentMinutes =
+        now.getUTCHours() * 60 + now.getUTCMinutes() + now.getUTCSeconds() / 60;
+      const runMinutes = RUN_HOUR_UTC * 60 + RUN_MINUTE_UTC;
 
-      // Skip Friday (5) and Saturday (6) - these are weekends
-      if (today === 5 || today === 6) {
-        // If it's Friday or Saturday, next run is Sunday at 12:00
-        const nextSunday = new Date(now);
-        const daysUntilSunday = today === 5 ? 2 : 1; // Friday: 2 days, Saturday: 1 day
-        nextSunday.setDate(now.getDate() + daysUntilSunday);
-        nextSunday.setHours(12, 0, 0, 0);
-
-        const timeDiff = nextSunday.getTime() - now.getTime();
-        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor(
-          (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      const buildRunDate = (d: Date) =>
+        new Date(
+          Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            RUN_HOUR_UTC,
+            RUN_MINUTE_UTC,
+            0,
+            0
+          )
         );
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
 
-        setTimeUntilNextRun(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-      } else {
-        // Regular weekday - next run is today at 12:00 or tomorrow at 12:00
-        const nextRun = new Date(now);
+      if (VALID_DAYS.includes(currentDay) && currentMinutes < runMinutes) {
+        return buildRunDate(now);
+      }
 
-        if (now.getHours() >= 12) {
-          // After 12:00, next run is tomorrow (unless tomorrow is Friday/Saturday)
-          nextRun.setDate(now.getDate() + 1);
-
-          // If tomorrow is Friday or Saturday, skip to Sunday
-          if (nextRun.getDay() === 5 || nextRun.getDay() === 6) {
-            const daysToAdd = nextRun.getDay() === 5 ? 2 : 1; // Friday: skip to Sunday (2 days), Saturday: skip to Sunday (1 day)
-            nextRun.setDate(nextRun.getDate() + daysToAdd);
-          }
-        }
-
-        nextRun.setHours(12, 0, 0, 0);
-
-        const timeDiff = nextRun.getTime() - now.getTime();
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-
-        if (hours > 0) {
-          setTimeUntilNextRun(`${hours}h ${minutes}m ${seconds}s`);
-        } else {
-          setTimeUntilNextRun(`${minutes}m ${seconds}s`);
+      for (let i = 1; i <= 7; i++) {
+        const next = new Date(now);
+        next.setUTCDate(now.getUTCDate() + i);
+        if (VALID_DAYS.includes(next.getUTCDay())) {
+          return buildRunDate(next);
         }
       }
+      return buildRunDate(now);
+    };
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const nextRun = getNextRunUtc();
+      const timeDiff = nextRun.getTime() - now.getTime();
+
+      if (timeDiff <= 0) {
+        setTimeUntilNextRun("0s");
+        return;
+      }
+
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+      const parts: string[] = [];
+      if (days > 0) parts.push(`${days}d`);
+      if (hours > 0) parts.push(`${hours}h`);
+      parts.push(`${minutes}m`);
+      parts.push(`${seconds}s`);
+      setTimeUntilNextRun(parts.join(" "));
     };
 
     updateCountdown();
@@ -116,6 +130,9 @@ export default function NextRunBanner() {
                 <div className="text-right">
                   <div className="text-sm font-semibold text-foreground">
                     {t("nextRunBanner.dailyTime")}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("nextRunBanner.dailyTimeDetail")}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {t("nextRunBanner.runDays")}

@@ -27,7 +27,7 @@ export default {
       "1": {
         title: "Daily Automation Trigger",
         description:
-          "Every day at 12:00 PM Israel time (noon), our secure automation system initiates your personalized meal benefit process.",
+          "Every weekday at 10:30 AM Israel time (30 minutes after Wolt Benefits opens at 10:00), our secure automation system initiates your personalized meal benefit process. Due to Israel's daylight saving time: in winter (UTC+2) we run at 10:30; in summer (UTC+3) we run at 11:30 Israel time—both within the allowed window.",
       },
       "2": {
         title: "Secure Account Access",
@@ -55,7 +55,7 @@ export default {
     perfectTiming: {
       title: "Perfect Timing, Every Day",
       description:
-        "We run the automation at 12:00 PM Israel time, ensuring maximum success rates for your daily claims.",
+        "We run the automation 30 minutes after Wolt Benefits opens (10:00 Israel), ensuring maximum success rates. Winter (approx. Oct–Mar): 10:30 AM Israel. Summer (approx. Mar–Oct): 11:30 AM Israel. Both are well within the 10:00–18:00 allowed window.",
     },
   },
   securityPrivacy: {

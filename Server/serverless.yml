@@ -486,8 +486,11 @@ functions:
           path: /api/automation/start-chain
           method: get
       - schedule:
-          rate: cron(0 9 ? * SUN,MON,TUE,WED,THU *) # cron(30 17 ? * SUN,MON,TUE,WED,THU *)
-          description: "Trigger user automation chain on weekdays at 10:00 UTC (12:00 Israel time)"
+          # 30 min after Wolt Benefits opens (10:00 Israel). AWS cron is UTC.
+          # Winter (Israel UTC+2): 08:30 UTC = 10:30 Israel ✓
+          # Summer (Israel UTC+3): 08:30 UTC = 11:30 Israel (1hr later, still in 10-18 window)
+          rate: cron(30 8 ? * SUN,MON,TUE,WED,THU *)
+          description: "30 min after Wolt opens: 08:30 UTC = 10:30 Israel winter / 11:30 Israel summer"
           enabled: true
 
   # Non-selenium automation function
