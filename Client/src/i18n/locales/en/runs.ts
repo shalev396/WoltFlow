@@ -8,10 +8,11 @@ export default {
     "status": "Status",
     "active": "Active",
     "schedule": "Schedule",
-    "dailyTime": "Daily at 12:00 PM",
+    "dailyTime": "Daily 30 min after Wolt opens (10:30–11:30 Israel)",
+    "dailyTimeDetail": "Winter: 10:30 AM | Summer: 11:30 AM (Israel DST)",
     "runDays": "Mon-Thu & Sun",
     "automaticExecution": "Automatic execution enabled",
-    "nextRun": "Next: weekday at noon"
+    "nextRun": "Next: weekday morning (10:30–11:30 Israel)"
   },
   "table": {
     "title": "All Runs",

@@ -107,7 +107,7 @@ export default {
       allSet: {
         title: "You're All Set!",
         description:
-          "Once activated, WoltFlow will automatically run every day at 12:00 PM Israel time. You'll receive notifications about the status of each run.",
+          "Once activated, WoltFlow runs automatically 30 minutes after Wolt Benefits opens: 10:30 AM Israel in winter, 11:30 AM in summer (due to daylight saving). You'll receive notifications about the status of each run.",
       },
     },
   },
