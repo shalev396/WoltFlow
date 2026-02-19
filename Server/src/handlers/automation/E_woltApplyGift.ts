@@ -11,6 +11,7 @@ import {
   safeClick,
   waitForElement,
   setupWoltCookies,
+  applyBrowserTimezone,
 } from "../../utils/automation.js";
 import { sleep } from "../../utils/general.js";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
@@ -24,12 +25,13 @@ import {
 } from "selenium-webdriver/chrome.js";
 
 import { initDB } from "../../config/bootstrap.js";
+import { ChromiumWebDriver } from "selenium-webdriver/chromium.js";
 // Environment variables
 dotenv.config();
 // Connect to database
 await initDB();
 export const handler = async (
-  event: ICustomAPIGatewayProxyEventStepFunction
+  event: ICustomAPIGatewayProxyEventStepFunction,
 ): Promise<ICustomStepFunctionResult> => {
   let success = false;
   let globalRun: Run | null = null;
@@ -72,6 +74,9 @@ export const handler = async (
     .setChromeOptions(options)
     .setChromeService(service)
     .build();
+
+  console.log("Applying browser timezone override...");
+  await applyBrowserTimezone(driver as ChromiumWebDriver, "Asia/Jerusalem");
 
   console.log("End chrome + driver");
   try {
@@ -130,7 +135,7 @@ export const handler = async (
     await setupWoltCookies(
       driver,
       woltSettings.woltRefreshToken || "",
-      woltSettings.woltAccessToken || ""
+      woltSettings.woltAccessToken || "",
     );
 
     // Navigate to code redemption page
@@ -143,7 +148,7 @@ export const handler = async (
     const codeInput = await waitForElement(
       driver,
       By.xpath("//input[@data-test-id='redeem-code-input']"),
-      10000
+      10000,
     );
 
     if (codeInput) {
@@ -159,7 +164,7 @@ export const handler = async (
     const applyCodeButton = await waitForElement(
       driver,
       By.xpath("//button[normalize-space(.)='למימוש הקוד']"),
-      10000
+      10000,
     );
 
     if (applyCodeButton) {
@@ -191,7 +196,7 @@ export const handler = async (
           false,
           currentUrl,
           "success",
-          "applying_gift"
+          "applying_gift",
         );
         console.log("Success screenshot uploaded to S3 and saved to database");
       } catch (screenshotError) {
@@ -214,7 +219,7 @@ export const handler = async (
           true,
           currentUrl,
           "error",
-          "applying_gift"
+          "applying_gift",
         );
         console.log("Error screenshot uploaded to S3 and saved to database");
       } catch (screenshotError) {
@@ -241,12 +246,12 @@ export const handler = async (
         await notifyOnSuccess(
           globalRun.userId.toString(),
           globalRun.id,
-          "Gift card redemption completed successfully"
+          "Gift card redemption completed successfully",
         );
       } catch (notificationError) {
         console.error(
           "Failed to send success notification:",
-          notificationError
+          notificationError,
         );
       }
     } else {
@@ -257,7 +262,7 @@ export const handler = async (
         await notifyOnError(
           globalRun.userId.toString(),
           globalRun.id,
-          "Gift card redemption failed"
+          "Gift card redemption failed",
         );
       } catch (notificationError) {
         console.error("Failed to send error notification:", notificationError);
