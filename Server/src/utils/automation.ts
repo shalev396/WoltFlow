@@ -8,7 +8,55 @@ import {
   WebDriver,
   WebElement,
 } from "selenium-webdriver";
+import type { ChromiumWebDriver } from "selenium-webdriver/chromium.js";
 import { PAGE_LOAD_TIME, sleep } from "./general.js";
+
+/**
+ * Force browser timezone via CDP Emulation.setTimezoneOverride.
+ * Use before any navigation. Requires a Chromium-based driver (Chrome/Edge).
+ *
+ * @see https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-setTimezoneOverride
+ * @see https://seleniumhq.github.io/documentation/webdriver/bidi/cdp
+ */
+async function forceBrowserTimezone(
+  driver: ChromiumWebDriver,
+  timezoneId = "Asia/Jerusalem",
+): Promise<void> {
+  await driver.sendDevToolsCommand("Emulation.setTimezoneOverride", {
+    timezoneId,
+  });
+}
+
+/**
+ * Log browser timezone and current time for verification.
+ */
+async function logBrowserTime(driver: ChromiumWebDriver): Promise<void> {
+  const tz = await driver.executeScript(
+    "return Intl.DateTimeFormat().resolvedOptions().timeZone",
+  );
+  const now = await driver.executeScript("return new Date().toString()");
+  console.log("Browser TZ:", tz);
+  console.log("Browser now:", now);
+}
+
+/**
+ * Apply timezone override, log verification, and fail fast if wrong.
+ * Call immediately after driver build, before any navigation.
+ * Requires a Chromium-based driver (Chrome/Edge).
+ */
+export async function applyBrowserTimezone(
+  driver: ChromiumWebDriver,
+  timezoneId = "Asia/Jerusalem",
+): Promise<void> {
+  await forceBrowserTimezone(driver, timezoneId);
+  await logBrowserTime(driver);
+  const tz = await driver.executeScript(
+    "return Intl.DateTimeFormat().resolvedOptions().timeZone",
+  );
+  if (tz !== timezoneId) {
+    throw new Error(`Timezone override failed. Browser TZ is ${tz}`);
+  }
+}
 
 export function getGiftCardUrl(amount: number): string | null {
   const giftCards: Array<{ amount: number; url: string }> = [

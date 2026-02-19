@@ -13,6 +13,7 @@ import {
   getGiftCardUrl,
   waitForElement,
   setupWoltCookies,
+  applyBrowserTimezone,
 } from "../../utils/automation.js";
 import { sleep } from "../../utils/general.js";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
@@ -30,6 +31,7 @@ import {
   type ICustomStepFunctionResult,
 } from "../../types/index.js";
 import { initDB } from "../../config/bootstrap.js";
+import { ChromiumWebDriver } from "selenium-webdriver/chromium.js";
 // Environment variables
 dotenv.config();
 
@@ -74,6 +76,9 @@ export const handler = async (
     .setChromeOptions(options)
     .setChromeService(service)
     .build();
+
+  console.log("Applying browser timezone override...");
+  await applyBrowserTimezone(driver as ChromiumWebDriver, "Asia/Jerusalem");
 
   console.log("End chrome + driver");
 
