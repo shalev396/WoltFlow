@@ -14,7 +14,7 @@ class InboxService {
     if (filters?.endDate) params.append("endDate", filters.endDate);
 
     const queryString = params.toString();
-    const url = queryString ? `/inbox?${queryString}` : "/inbox";
+    const url = queryString ? `/user/inbox?${queryString}` : "/user/inbox";
 
     const response = await api.get<InboxResponse>(url);
     return response.data;
@@ -25,13 +25,13 @@ class InboxService {
    */
   async downloadAttachment(
     emailId: string,
-    attachmentIndex: number
+    attachmentIndex: number,
   ): Promise<Blob> {
     const response = await api.get(
-      `/inbox/${emailId}/attachment/${attachmentIndex}`,
+      `/user/inbox/${emailId}/attachment/${attachmentIndex}`,
       {
         responseType: "blob",
-      }
+      },
     );
     return response.data;
   }
@@ -42,7 +42,7 @@ class InboxService {
   async downloadAndSaveAttachment(
     emailId: string,
     attachmentIndex: number,
-    filename: string
+    filename: string,
   ): Promise<void> {
     try {
       const blob = await this.downloadAttachment(emailId, attachmentIndex);

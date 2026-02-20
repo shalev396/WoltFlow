@@ -26,7 +26,6 @@ jobs:
       ## Global repository variables
       AWS_REGION: ${{ vars.AWS_REGION }}
       ## Per environment variables
-      DEVELOPMENT_DATE: ${{ vars.DEVELOPMENT_DATE }}
       DOMAIN_NAME_CLOUD: ${{ vars.DOMAIN_NAME_CLOUD }}
       EMAIL_SUBDOMAIN: ${{ vars.EMAIL_SUBDOMAIN }}
       ENABLED_SMS: ${{ vars.ENABLED_SMS }}

@@ -23,7 +23,7 @@ export const runsService = {
       params.append("automationMode", filters.automationMode);
 
     const response = await api.get<ApiResponse<RunsResponse>>(
-      `/runs?${params.toString()}`
+      `/user/runs?${params.toString()}`,
     );
     return response.data.data!;
   },

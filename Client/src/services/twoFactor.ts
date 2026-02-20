@@ -12,7 +12,7 @@ export const twoFactorService = {
   // ============================================================================
   async start2FA(request: Start2FARequest): Promise<TwoFactorResponse> {
     const response = await api.post<ApiResponse<TwoFactorResponse>>(
-      "/settings/notification/2fa/start",
+      "/user/settings/notification/2fa/start",
       request
     );
     return response.data.data!;
@@ -20,7 +20,7 @@ export const twoFactorService = {
 
   async verify2FA(request: Verify2FARequest): Promise<TwoFactorResponse> {
     const response = await api.post<ApiResponse<TwoFactorResponse>>(
-      "/settings/notification/2fa/verify",
+      "/user/settings/notification/2fa/verify",
       request
     );
     return response.data.data!;

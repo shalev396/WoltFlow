@@ -1,5 +1,5 @@
 import archiver from "archiver";
-import { type CompleteUserExport } from "../types/sequelize.js";
+import { type CompleteUserExport } from "../classes/index.js";
 import { downloadFileFromS3, getFilenameFromS3Url } from "./s3Util.js";
 import { Readable } from "stream";
 
@@ -90,11 +90,9 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
   // Add tables in the specified order with fallback headers
   addTableSection("User", exportData.user, false, [
     "id",
-    "googleId",
-    "googleRefreshToken",
+    "cognitoSub",
     "name",
     "email",
-    "apiKey",
     "lastLoginAt",
     "createdAt",
     "updatedAt",

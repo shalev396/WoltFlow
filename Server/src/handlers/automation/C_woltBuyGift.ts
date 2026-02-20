@@ -1,13 +1,9 @@
 import { By, Builder, WebElement } from "selenium-webdriver";
 import dotenv from "dotenv";
-import {
-  Settings,
-  WoltSettings,
-  RunSettings,
-  Run,
-  User,
-} from "../../models/index.js";
-
+import { Run } from "../../classes/index.js";
+import type {
+  AutomationRunWithAllSettings,
+} from "../../classes/index.js";
 import {
   safeClick,
   getGiftCardUrl,
@@ -26,23 +22,20 @@ import {
   ServiceBuilder as ChromeServiceBuilder,
 } from "selenium-webdriver/chrome.js";
 import {
-  type RunWithUserWithWoltSettingsAndRunSettings,
   type ICustomAPIGatewayProxyEventStepFunction,
   type ICustomStepFunctionResult,
 } from "../../types/index.js";
 import { initDB } from "../../config/bootstrap.js";
 import { ChromiumWebDriver } from "selenium-webdriver/chromium.js";
-// Environment variables
+
 dotenv.config();
 
-// Connect to database
 await initDB();
 export const handler = async (
   event: ICustomAPIGatewayProxyEventStepFunction,
 ): Promise<ICustomStepFunctionResult> => {
   console.log("Starting woltBuyGift");
 
-  // Extract runId and LEVEL from event (Step Functions or API Gateway(Debug))
   const runId = event.runId || event.queryStringParameters?.runId;
   const LEVEL = event.queryStringParameters?.LEVEL;
   console.log("Start chrome + driver");
@@ -51,7 +44,6 @@ export const handler = async (
 
   options.setChromeBinaryPath("/opt/chrome/chrome");
 
-  // Essential Chrome flags for Lambda
   options.addArguments("--headless=old");
   options.addArguments("--no-sandbox");
   options.addArguments("--disable-dev-shm-usage");
@@ -60,11 +52,9 @@ export const handler = async (
   options.addArguments("--no-zygote");
   options.addArguments("--remote-debugging-port=0");
 
-  // Set exact window size
   options.addArguments("--window-size=1920,1080");
   options.addArguments("--force-device-scale-factor=1");
 
-  // Basic optimizations
   options.addArguments("--disable-extensions");
   options.addArguments("--disable-plugins");
   options.addArguments("--no-first-run");
@@ -83,7 +73,7 @@ export const handler = async (
   console.log("End chrome + driver");
 
   let success = false;
-  let run = null;
+  let runData: AutomationRunWithAllSettings | null = null;
   try {
     console.log("user setup");
     if (!runId) {
@@ -91,35 +81,11 @@ export const handler = async (
     }
     console.log("start db");
     console.log("end db");
-    // Get the run with user and all settings in one optimized query
     console.log("start get run");
-    run = (await Run.findByPk(runId, {
-      include: [
-        {
-          model: User,
-          as: "user",
-          include: [
-            {
-              model: Settings,
-              as: "settings",
-              include: [
-                {
-                  model: WoltSettings,
-                  as: "woltSettings",
-                },
-                {
-                  model: RunSettings,
-                  as: "runSettings",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    })) as RunWithUserWithWoltSettingsAndRunSettings;
-    if (!run) {
+    runData = await Run.findWithAllSettings(runId);
+    if (!runData) {
       return {
-        runId,
+        runId: runId,
         userId: "",
         success: false,
         completed: true,
@@ -128,17 +94,12 @@ export const handler = async (
     }
     console.log("end get run");
     console.log("start update run");
-    // Update run stage
-    await run.update({ stage: "buying_gift" });
+    await Run.updateStage(runId, "buying_gift");
     console.log("end update run");
     console.log("start get settings");
-    const userWithSettings = run.user;
-    const settings = userWithSettings?.settings;
-    const woltSettings = settings?.woltSettings;
-    const runSettings = settings?.runSettings;
 
-    if (!settings || !woltSettings || !runSettings) {
-      await run.update({ status: "failed" });
+    if (!runData.hasAllSettings) {
+      await Run.markFailed(runId);
       return {
         runId,
         userId: "",
@@ -149,16 +110,14 @@ export const handler = async (
     }
     console.log("end get settings");
     console.log("start setup wolt cookies");
-    // Setup Wolt cookies using the extracted function
     await setupWoltCookies(
       driver,
-      woltSettings.woltRefreshToken || "",
-      woltSettings.woltAccessToken || "",
+      runData.woltRefreshToken || "",
+      runData.woltAccessToken || "",
     );
     console.log("end setup wolt cookies");
     console.log("start step 1");
-    // script start
-    const giftAmount = Number(runSettings.giftAmount);
+    const giftAmount = runData.giftAmount;
     const giftUrl = getGiftCardUrl(giftAmount);
     if (!giftUrl) {
       throw new Error(`Gift card amount ${giftAmount} ILS not available`);
@@ -192,14 +151,12 @@ export const handler = async (
         await safeClick(driver, closeButtons1);
       }
 
-      // Open the cart
       const cartButton = await waitForElement(
         driver,
         By.xpath("//button[@aria-label='ההזמנות שלך']"),
       );
       await safeClick(driver, cartButton as WebElement);
 
-      // Remove all items in the cart
       while (true) {
         const deleteButtons = await waitForElement(
           driver,
@@ -238,12 +195,7 @@ export const handler = async (
       await sleep(1000);
       throw new Error("LEVEL 3");
     }
-    // Proceed to checkout
     console.log("start step 4");
-    // const checkoutUrl =
-    //   "https://wolt.com/he/isr/tel-aviv/venue/woltilgiftcards/checkout";
-    // await driver.get(checkoutUrl);
-    // using button attempt
     const cartButton = await waitForElement(
       driver,
       By.xpath(`//button[.//div[normalize-space(text())="הצגת פריטים"]]`),
@@ -269,7 +221,6 @@ export const handler = async (
     }
     console.log("start step 6");
     await sleep(1000);
-    // Open delivery-item dialogue (use the selector that worked for your DOM).
     const checkoutElement = await waitForElement(
       driver,
       By.xpath(
@@ -286,7 +237,6 @@ export const handler = async (
       throw new Error("LEVEL 6");
     }
     console.log("start step 7");
-    // Select Wolt Benefits payment method (semantic: button in payment section, avoid React id _r_e4_).
     const woltBenefitsElement = await waitForElement(
       driver,
       By.xpath("//span[normalize-space()='Wolt Benefits']"),
@@ -296,7 +246,6 @@ export const handler = async (
       await safeClick(driver, woltBenefitsElement as WebElement);
       await sleep(2000);
     }
-    // If a dialogue stayed open (e.g. payment picker), close it with the X button.
     const closeDialogueButton = await waitForElement(
       driver,
       By.xpath("//button[@aria-label='סגירה']"),
@@ -312,7 +261,6 @@ export const handler = async (
       throw new Error("LEVEL 7");
     }
     console.log("start step 8");
-    // Proceed to checkout
     const orderButton = await waitForElement(
       driver,
       By.xpath("//span[normalize-space(text())='לחצו להזמנה']"),
@@ -335,7 +283,6 @@ export const handler = async (
     } catch (err) {
       console.log("confirmation element not found");
       console.error("soft error", err);
-      //add || true to debug script
       if (process.env.ENV === "dev") {
         console.log("dev mode override success");
         success = true;
@@ -349,15 +296,14 @@ export const handler = async (
     console.error("error", err);
     success = false;
 
-    // Take error screenshot and upload to S3
-    if (driver && run) {
+    if (driver && runData) {
       try {
         const screenshotBase64 = await driver.takeScreenshot();
         const base64WithPrefix = `data:image/png;base64,${screenshotBase64}`;
         const currentUrl = await driver.getCurrentUrl();
         await uploadImageToS3AndSaveToDb(
           base64WithPrefix,
-          run.id,
+          runData.runId,
           true,
           currentUrl,
           "error",
@@ -369,7 +315,6 @@ export const handler = async (
       }
     }
   } finally {
-    // Clean up driver
     if (driver) {
       console.log("url", await driver.getCurrentUrl());
       console.log("success", success);
@@ -379,48 +324,40 @@ export const handler = async (
     }
   }
 
-  // Handle case where run is not found
-  if (!run) {
+  if (!runData) {
     throw new Error("Run not found");
   }
 
-  // Determine status and stage based on success and automation mode
-  let status: string;
-  let stage: string;
+  let status: "started" | "in_progress" | "completed" | "failed";
+  let stage: "triggered" | "refreshing_tokens" | "buying_gift" | "getting_code_from_email" | "applying_gift" | "completed";
 
   if (success) {
-    if (run.automationMode === "buy-only") {
+    if (runData.automationMode === "buy-only") {
       status = "completed";
       stage = "completed";
     } else {
-      // Full-run mode: continue to next step
       status = "in_progress";
       stage = "buying_gift";
     }
   } else {
-    // Always mark as failed when success is false, regardless of automation mode
     status = "failed";
     stage = "buying_gift";
   }
-  await run.update({
-    status: status,
-    stage: stage,
-  });
+  await Run.updateStatusAndStage(runData.runId, status, stage);
 
-  // Send single notification
   try {
     if (success) {
-      if (run.automationMode === "buy-only") {
+      if (runData.automationMode === "buy-only") {
         await notifyOnSuccess(
-          run.userId.toString(),
-          run.id,
+          runData.userId,
+          runData.runId,
           "Gift purchase completed",
         );
       }
     } else {
       await notifyOnError(
-        run.userId.toString(),
-        run.id,
+        runData.userId,
+        runData.runId,
         "Gift purchase failed",
       );
     }
@@ -428,13 +365,11 @@ export const handler = async (
     console.error("Failed to send notification:", notificationError);
   }
 
-  // Return appropriate response based on success and mode
   if (success) {
-    if (run.automationMode === "buy-only") {
-      // Buy-only mode: stop the chain
+    if (runData.automationMode === "buy-only") {
       return {
-        runId: run.id,
-        userId: run.userId.toString(),
+        runId: runData.runId,
+        userId: runData.userId,
         success: true,
         completed: true,
         message:
@@ -442,17 +377,15 @@ export const handler = async (
         automationMode: "buy-only",
       };
     } else {
-      // Full-run mode: continue to next step
       return {
-        runId: run.id,
-        userId: run.userId.toString(),
+        runId: runData.runId,
+        userId: runData.userId,
         success: true,
         completed: false,
         message: "Gift purchase completed",
       };
     }
   } else {
-    // Failed: return error response for Step Functions
     throw new Error("Gift purchase failed");
   }
 };

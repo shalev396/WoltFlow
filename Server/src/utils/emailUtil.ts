@@ -8,7 +8,10 @@ import {
 const sesClient = new SESClient({ region: process.env.AWS_REGION });
 
 // Default sender email - must be verified in SES
-const AUTHENTICATOR_SENDER_EMAIL = `authenticator@${process.env.DOMAIN_NAME}`;
+const SENDER_DOMAIN = process.env.DOMAIN_NAME?.includes("localhost")
+  ? "dev.woltflow.shalev396.com"
+  : process.env.DOMAIN_NAME;
+const AUTHENTICATOR_SENDER_EMAIL = `authenticator@${SENDER_DOMAIN}`;
 const AUTHENTICATOR_SENDER_NAME = "WoltFlow Authenticator";
 
 export interface SendEmailOptions {

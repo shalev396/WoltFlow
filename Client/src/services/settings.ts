@@ -16,7 +16,7 @@ export const settingsService = {
   async getNotificationSettings(): Promise<NotificationSettings | null> {
     const response = await api.get<
       ApiResponse<{ notificationSettings: NotificationSettings | null }>
-    >("/settings/notification");
+    >("/user/settings/notification");
     return response.data.data!.notificationSettings;
   },
 
@@ -25,7 +25,7 @@ export const settingsService = {
   ): Promise<NotificationSettings> {
     const response = await api.put<
       ApiResponse<{ notificationSettings: NotificationSettings }>
-    >("/settings/notification", settings);
+    >("/user/settings/notification", settings);
     return response.data.data!.notificationSettings;
   },
 
@@ -35,7 +35,7 @@ export const settingsService = {
   async getWoltSettings(): Promise<WoltSettings | null> {
     const response =
       await api.get<ApiResponse<{ woltSettings: WoltSettings | null }>>(
-        "/settings/wolt",
+        "/user/settings/wolt",
       );
     return response.data.data!.woltSettings;
   },
@@ -44,7 +44,7 @@ export const settingsService = {
     settings: WoltSettingsUpdate,
   ): Promise<WoltSettings> {
     const response = await api.put<ApiResponse<{ woltSettings: WoltSettings }>>(
-      "/settings/wolt",
+      "/user/settings/wolt",
       settings,
     );
     return response.data.data!.woltSettings;
@@ -56,14 +56,14 @@ export const settingsService = {
   async getRunSettings(): Promise<RunSettings | null> {
     const response =
       await api.get<ApiResponse<{ runSettings: RunSettings | null }>>(
-        "/settings/run",
+        "/user/settings/run",
       );
     return response.data.data!.runSettings;
   },
 
   async updateRunSettings(settings: RunSettingsUpdate): Promise<RunSettings> {
     const response = await api.put<ApiResponse<{ runSettings: RunSettings }>>(
-      "/settings/run",
+      "/user/settings/run",
       settings,
     );
     return response.data.data!.runSettings;
@@ -74,7 +74,7 @@ export const settingsService = {
   // ============================================================================
   async generateApiKey(): Promise<{ apiKey: string }> {
     const response = await api.post<ApiResponse<{ apiKey: string }>>(
-      "/forward/api/generate",
+      "/user/forward/api/generate",
     );
     return response.data.data!;
   },

@@ -14,7 +14,7 @@ export const dashboardService = {
     timeRange: TimeRange = "30d"
   ): Promise<DashboardAnalytics> {
     const response = await api.get<ApiResponse<DashboardResponse>>(
-      `/dashboard?timeRange=${timeRange}`
+      `/user/dashboard?timeRange=${timeRange}`
     );
     return response.data.data!.analytics;
   },

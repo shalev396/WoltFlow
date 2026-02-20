@@ -7,7 +7,7 @@ export const forwardService = {
   // ============================================================================
   async generateApiKey(): Promise<string> {
     const response = await api.post<ApiResponse<ApiKeyResponse>>(
-      "/forward/api/generate"
+      "/user/forward/api/generate",
     );
     return response.data.data!.apiKey;
   },
