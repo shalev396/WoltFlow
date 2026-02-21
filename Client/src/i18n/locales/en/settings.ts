@@ -104,47 +104,6 @@ export default {
       invalidCode: "Invalid verification code",
     },
   },
-  apiKeyForm: {
-    title: "API Key Management",
-    description:
-      "Generate and manage your API key for SMS forwarding and external integrations",
-    infoAlert:
-      "Your API key allows external services to forward SMS messages to your WoltFlow inbox. Keep it secure and don't share it publicly.",
-    viewDocs: "View SMS Forwarding Documentation",
-    viewDocsShort: "View Documentation",
-    generate: {
-      title: "Generate API Key",
-      description:
-        "Click the button below to generate a new API key. This will replace any existing key.",
-      button: "Generate New API Key",
-      buttonShort: "Generate Key",
-      generating: "Generating...",
-    },
-    success: {
-      title: "API Key Generated Successfully!",
-      message: "Copy it now as you won't be able to see it again.",
-    },
-    yourKey: {
-      label: "Your New API Key",
-      description:
-        "Store this key securely. You'll need it to configure SMS forwarding services.",
-      show: "Show API key",
-      hide: "Hide API key",
-      copy: "Copy API key",
-    },
-    warning: {
-      title: "Important:",
-      message:
-        "This key won't be displayed again. Make sure to copy and store it securely before leaving this page.",
-    },
-    regenerate: {
-      title: "Need a new key?",
-      description:
-        "Generating a new key will immediately invalidate the current one.",
-      button: "Generate New Key",
-      buttonShort: "New Key",
-    },
-  },
   exportForm: {
     title: "Export Your Data",
     description:

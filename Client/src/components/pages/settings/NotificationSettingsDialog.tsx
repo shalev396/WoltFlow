@@ -417,41 +417,38 @@ export function NotificationSettingsDialog({
 
       // Save immediately
       const saveData: {
-        notificationMethod?: "sms" | "email" | null;
+        notificationMethod?: "sms" | "email";
         notificationOnSuccess?: boolean;
         notificationOnError?: boolean;
-        phoneNumber?: string | null;
+        phoneNumber?: string;
         phoneVerified?: boolean;
-        email?: string | null;
+        email?: string;
         emailVerified?: boolean;
       } = {};
 
-      // Set primary notification method
-      saveData.notificationMethod = newPrimaryMethod;
+      if (newPrimaryMethod) {
+        saveData.notificationMethod = newPrimaryMethod;
+      }
 
-      // Include notification preferences
       saveData.notificationOnSuccess = notificationOnSuccess;
       saveData.notificationOnError = notificationOnError;
 
-      // Update the specific method being removed
       if (method === "sms") {
-        saveData.phoneNumber = null;
+        saveData.phoneNumber = undefined;
         saveData.phoneVerified = false;
-        // Keep email as is
-        saveData.email = state.email.contact.trim() || null;
+        saveData.email = state.email.contact.trim() || undefined;
         saveData.emailVerified = state.email.verified;
       } else {
-        saveData.email = null;
+        saveData.email = undefined;
         saveData.emailVerified = false;
-        // Keep SMS as is
         saveData.phoneNumber = state.sms.contact.trim()
-          ? formatPhoneNumber(state.sms.contact)
-          : null;
+          ? (formatPhoneNumber(state.sms.contact) ?? undefined)
+          : undefined;
         saveData.phoneVerified = state.sms.verified;
       }
 
       await settingsService.updateNotificationSettings(saveData);
-      await refetch(); // Refresh settings
+      await refetch();
       toast.success(`${method.toUpperCase()} contact removed successfully`);
     } catch (error) {
       console.error(`Failed to remove ${method} contact:`, error);
@@ -488,34 +485,32 @@ export function NotificationSettingsDialog({
     setIsLoading(true);
     try {
       const saveData: {
-        notificationMethod?: "sms" | "email" | null;
+        notificationMethod?: "sms" | "email";
         notificationOnSuccess?: boolean;
         notificationOnError?: boolean;
-        phoneNumber?: string | null;
+        phoneNumber?: string;
         phoneVerified?: boolean;
-        email?: string | null;
+        email?: string;
         emailVerified?: boolean;
       } = {};
 
-      // Set primary notification method
-      saveData.notificationMethod = primaryMethod;
+      if (primaryMethod) {
+        saveData.notificationMethod = primaryMethod;
+      }
 
-      // Include notification preferences
       saveData.notificationOnSuccess = notificationOnSuccess;
       saveData.notificationOnError = notificationOnError;
 
-      // SMS settings - always save current state (contact info regardless of verification)
       saveData.phoneNumber = state.sms.contact.trim()
-        ? formatPhoneNumber(state.sms.contact)
-        : null;
+        ? (formatPhoneNumber(state.sms.contact) ?? undefined)
+        : undefined;
       saveData.phoneVerified = state.sms.verified;
 
-      // Email settings - always save current state (contact info regardless of verification)
-      saveData.email = state.email.contact.trim() || null;
+      saveData.email = state.email.contact.trim() || undefined;
       saveData.emailVerified = state.email.verified;
 
       await settingsService.updateNotificationSettings(saveData);
-      await refetch(); // Refresh settings
+      await refetch();
       toast.success("Notification settings saved successfully");
       handleDialogOpenChange(false);
     } catch (error) {

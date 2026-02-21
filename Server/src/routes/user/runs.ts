@@ -3,7 +3,6 @@ import { RunsController } from "../../controllers/index.js";
 
 const router = Router();
 
-// Runs response type
 export interface RunsResponseData {
   runs: Array<{
     id: string;
@@ -38,6 +37,7 @@ export interface RunsResponseData {
     automationMode: string | null;
   };
 }
+
 router.get("/", RunsController.getAllRuns);
 
 export { router as runsRouter };

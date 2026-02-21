@@ -82,7 +82,7 @@ export default function AutomationSettingsForm() {
       await updateRunSettingsMutation.mutateAsync({
         automationEnabled: data.automationEnabled,
         automationMode: data.automationMode,
-        giftAmount: data.giftAmount,
+        giftAmount: data.giftAmount ?? undefined,
       });
     } catch (error) {
       console.error("Failed to update automation settings:", error);

@@ -3,7 +3,6 @@ import { UserController } from "../../controllers/index.js";
 
 const router = Router();
 
-// Export user data response type
 export interface ExportUserDataResponseData {
   downloadUrl: string;
   filename: string;
@@ -13,7 +12,6 @@ export interface ExportUserDataResponseData {
 
 router.get("/export", UserController.exportUserData);
 
-// Delete user response type
 export interface DeleteUserResponseData {
   message: string;
 }

@@ -16,7 +16,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
-import type { DashboardAnalytics, TimeRange } from "@/types/api";
+import type { DashboardAnalytics, TimeRange } from "@/types";
 
 const chartConfig = {
   savings: {

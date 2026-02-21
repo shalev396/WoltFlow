@@ -101,45 +101,6 @@ export default {
       invalidCode: "קוד אימות לא תקין",
     },
   },
-  apiKeyForm: {
-    title: "ניהול מפתח API",
-    description: "צור ונהל את מפתח ה-API שלך להעברת SMS ואינטגרציות חיצוניות",
-    infoAlert:
-      "מפתח ה-API שלך מאפשר לשירותים חיצוניים להעביר הודעות SMS לתיבת הדואר הנכנס של WoltFlow שלך. שמור אותו מאובטח ואל תשתף אותו בפומבי.",
-    viewDocs: "צפה בתיעוד העברת SMS",
-    viewDocsShort: "צפה בתיעוד",
-    generate: {
-      title: "צור מפתח API",
-      description:
-        "לחץ על הכפתור למטה כדי ליצור מפתח API חדש. זה יחליף כל מפתח קיים.",
-      button: "צור מפתח API חדש",
-      buttonShort: "צור מפתח",
-      generating: "יוצר...",
-    },
-    success: {
-      title: "מפתח API נוצר בהצלחה!",
-      message: "העתק אותו עכשיו מכיוון שלא תוכל לראות אותו שוב.",
-    },
-    yourKey: {
-      label: "מפתח ה-API החדש שלך",
-      description:
-        "אחסן מפתח זה בצורה מאובטחת. תצטרך אותו כדי להגדיר שירותי העברת SMS.",
-      show: "הצג מפתח API",
-      hide: "הסתר מפתח API",
-      copy: "העתק מפתח API",
-    },
-    warning: {
-      title: "חשוב:",
-      message:
-        "מפתח זה לא יוצג שוב. ודא להעתיק ולאחסן אותו בצורה מאובטחת לפני שאתה עוזב דף זה.",
-    },
-    regenerate: {
-      title: "צריך מפתח חדש?",
-      description: "יצירת מפתח חדש תבטל מיידית את המפתח הנוכחי.",
-      button: "צור מפתח חדש",
-      buttonShort: "מפתח חדש",
-    },
-  },
   exportForm: {
     title: "ייצוא הנתונים שלך",
     description:

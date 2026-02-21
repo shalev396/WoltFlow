@@ -27,15 +27,9 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-// API Response envelope types (used by frontend for type-safe response unwrapping)
-export interface ApiSuccessResponse<T> {
-  success: true;
-  data: T;
-}
-
-export interface ApiErrorResponse {
-  success: false;
-  message: string;
-}
-
-export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+// API Response envelope types (enforced by responseFormatter middleware, shared with frontend)
+export type {
+  ApiSuccessResponse,
+  ApiErrorResponse,
+  ApiResponse,
+} from "./response.js";

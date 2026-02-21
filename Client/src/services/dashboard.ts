@@ -1,21 +1,17 @@
 import { api } from "@/api/api";
 import type {
-  ApiResponse,
-  DashboardResponse,
-  DashboardAnalytics,
+  ApiSuccessResponse,
+  DashboardResponseData,
   TimeRange,
-} from "@/types/api";
+} from "@/types";
 
 export const dashboardService = {
-  /**
-   * Get dashboard analytics for the authenticated user
-   */
   async getDashboardAnalytics(
-    timeRange: TimeRange = "30d"
-  ): Promise<DashboardAnalytics> {
-    const response = await api.get<ApiResponse<DashboardResponse>>(
-      `/user/dashboard?timeRange=${timeRange}`
+    timeRange: TimeRange = "30d",
+  ): Promise<DashboardResponseData["analytics"]> {
+    const response = await api.get<ApiSuccessResponse<DashboardResponseData>>(
+      `/user/dashboard?timeRange=${timeRange}`,
     );
-    return response.data.data!.analytics;
+    return response.data.data.analytics;
   },
 };

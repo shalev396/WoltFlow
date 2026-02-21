@@ -11,7 +11,7 @@ import InboxList from "@/components/pages/inbox/InboxList";
 import InboxViewer from "@/components/pages/inbox/InboxViewer";
 import InboxToolbar from "@/components/pages/inbox/InboxToolbar";
 import { useInboxQuery } from "@/queries/inbox";
-import { type InboxFilters } from "@/types/inbox";
+import type { InboxFilters } from "@/types";
 
 export default function InboxLayout() {
   const { t } = useTranslation("inbox");
@@ -43,53 +43,19 @@ export default function InboxLayout() {
     staleTime: 30000, // Data is fresh for 30 seconds
   });
 
-  // Transform backend emails to frontend format
-
-  // Filter emails by search query and label on frontend
   const filteredEmails = useMemo(() => {
-    let result = inboxData?.data?.emails || [];
+    const emails = inboxData?.emails || [];
 
-    // Transform date strings to Date objects for proper handling
-    result = result.map((email) => ({
-      ...email,
-      emailDate:
-        typeof email.emailDate === "string"
-          ? new Date(email.emailDate)
-          : email.emailDate,
-      createdAt:
-        typeof email.createdAt === "string"
-          ? new Date(email.createdAt)
-          : email.createdAt,
-      updatedAt:
-        typeof email.updatedAt === "string"
-          ? new Date(email.updatedAt)
-          : email.updatedAt,
-      dataExpiresAt: email.dataExpiresAt
-        ? typeof email.dataExpiresAt === "string"
-          ? new Date(email.dataExpiresAt)
-          : email.dataExpiresAt
-        : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // Default to 90 days from now if missing
-    }));
+    if (!searchQuery.trim()) return emails;
 
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (email) =>
-          email.subject.toLowerCase().includes(query) ||
-          email.fromName?.toLowerCase().includes(query) ||
-          email.fromEmail.toLowerCase().includes(query) ||
-          email.body?.toLowerCase().includes(query)
-      );
-    }
-
-    // // Filter by label
-    // if (selectedLabel) {
-    //   result = result.filter((email) => email.labels?.includes(selectedLabel));
-    // }
-
-    return result;
-  }, [inboxData?.data?.emails, searchQuery]);
+    const query = searchQuery.toLowerCase();
+    return emails.filter(
+      (email) =>
+        email.subject.toLowerCase().includes(query) ||
+        email.fromName?.toLowerCase().includes(query) ||
+        email.fromEmail.toLowerCase().includes(query),
+    );
+  }, [inboxData?.emails, searchQuery]);
 
   // Set initial selected email
   useMemo(() => {
@@ -177,13 +143,13 @@ export default function InboxLayout() {
               </div>
 
               {/* Email address - full width on mobile/tablet */}
-              {inboxData?.data?.inbox?.emailAddress && (
+              {inboxData?.inbox?.emailAddress && (
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <span className="text-sm text-muted-foreground font-medium">
                     {t("customEmail")}
                   </span>
                   <code className="bg-muted px-3 py-2 rounded-md text-sm font-mono text-blue-600 break-all sm:max-w-none lg:max-w-lg xl:max-w-xl">
-                    {inboxData.data.inbox.emailAddress}
+                    {inboxData.inbox.emailAddress}
                   </code>
                 </div>
               )}
@@ -201,9 +167,9 @@ export default function InboxLayout() {
                 <p className="text-muted-foreground max-w-md">
                   {searchQuery || selectedLabel
                     ? t("empty.withFilters")
-                    : inboxData?.data?.inbox?.emailAddress
+                    : inboxData?.inbox?.emailAddress
                     ? t("empty.withEmail", {
-                        email: inboxData.data.inbox.emailAddress,
+                        email: inboxData.inbox.emailAddress,
                       })
                     : t("empty.noFilters")}
                 </p>

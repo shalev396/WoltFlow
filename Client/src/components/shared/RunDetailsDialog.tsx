@@ -11,10 +11,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
-import type { RunWithScreenshots, Screenshot } from "@/types";
+import type { RunItem } from "@/types";
 
 interface RunDetailsDialogProps {
-  run: RunWithScreenshots;
+  run: RunItem;
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -239,7 +239,7 @@ export function RunDetailsDialog({
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Screenshots</h3>
                   <div className="grid gap-4">
-                    {run.screenshots.map((sc: Screenshot, idx: number) => (
+                    {run.screenshots.map((sc, idx: number) => (
                       <div key={sc.id} className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">

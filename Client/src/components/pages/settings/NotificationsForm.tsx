@@ -109,7 +109,19 @@ export default function NotificationsForm() {
 
   const onSubmit = async (data: NotificationSettingsFormData) => {
     try {
-      await updateNotificationSettings.mutateAsync(data);
+      await updateNotificationSettings.mutateAsync({
+        isEnabled: data.isEnabled,
+        notificationOnSuccess: data.notificationOnSuccess,
+        notificationOnError: data.notificationOnError,
+        notificationMethod:
+          data.notificationMethod === "sms" || data.notificationMethod === "email"
+            ? data.notificationMethod
+            : undefined,
+        phoneNumber: data.phoneNumber || undefined,
+        phoneVerified: data.phoneVerified,
+        email: data.email || undefined,
+        emailVerified: data.emailVerified,
+      });
     } catch (error) {
       console.error("Failed to update notification settings:", error);
     }

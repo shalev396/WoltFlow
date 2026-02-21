@@ -17,7 +17,7 @@ import {
 
 import { RunDetailsDialog } from "@/components/shared/RunDetailsDialog";
 import { Link } from "react-router-dom";
-import type { DashboardAnalytics } from "@/types/api";
+import type { DashboardAnalytics } from "@/types";
 
 const getStatusBadge = (status: string) => {
   const baseClasses =

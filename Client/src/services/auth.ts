@@ -1,64 +1,54 @@
 import { api } from "@/api/api";
 import type {
-  CognitoUser,
-  LoginCredentials,
-  SignupCredentials,
-  EmailVerification,
-  ApiResponse,
+  ApiSuccessResponse,
+  SignupRequestBody,
+  SignupResponseData,
+  ConfirmSignupRequestBody,
+  LoginRequestBody,
+  LoginResponseData,
+  ForgotPasswordRequestBody,
+  ResetPasswordRequestBody,
 } from "@/types";
 
 export const authService = {
-  // Logout
   async logout(): Promise<void> {
-    // No server call needed - just clear localStorage
     localStorage.removeItem("idToken");
     localStorage.removeItem("refreshToken");
   },
 
-  // Email/password signup
   async signup(
-    credentials: SignupCredentials
-  ): Promise<{ userSub: string; userConfirmed: boolean }> {
-    const response = await api.post<
-      ApiResponse<{ userSub: string; userConfirmed: boolean }>
-    >("/auth/signup", credentials);
-    return response.data.data!;
+    credentials: SignupRequestBody,
+  ): Promise<SignupResponseData> {
+    const response = await api.post<ApiSuccessResponse<SignupResponseData>>(
+      "/auth/signup",
+      credentials,
+    );
+    return response.data.data;
   },
 
-  // Email verification
-  async confirmSignup(verification: EmailVerification): Promise<void> {
-    await api.post<ApiResponse>("/auth/confirm", verification);
+  async confirmSignup(verification: ConfirmSignupRequestBody): Promise<void> {
+    await api.post("/auth/confirm", verification);
   },
 
-  // Email/password login
-  async login(credentials: LoginCredentials): Promise<{
-    user: CognitoUser;
-    tokens: { idToken: string; refreshToken: string; expiresIn: number };
-  }> {
-    const response = await api.post<
-      ApiResponse<{
-        user: CognitoUser;
-        tokens: { idToken: string; refreshToken: string; expiresIn: number };
-      }>
-    >("/auth/login", credentials);
-    return response.data.data!;
+  async login(credentials: LoginRequestBody): Promise<LoginResponseData> {
+    const response = await api.post<ApiSuccessResponse<LoginResponseData>>(
+      "/auth/login",
+      credentials,
+    );
+    return response.data.data;
   },
 
-  // Forgot password - Request password reset code
   async forgotPassword(email: string): Promise<void> {
-    await api.post<ApiResponse>("/auth/forgot-password", { email });
+    const body: ForgotPasswordRequestBody = { email };
+    await api.post("/auth/forgot-password", body);
   },
 
-  // Reset password - Confirm with code and new password
   async resetPassword(
     email: string,
     code: string,
-    password: string
+    password: string,
   ): Promise<void> {
-    await api.post<ApiResponse>("/auth/reset-password", {
-      email,
-      code,
-      password,
-    });
+    const body: ResetPasswordRequestBody = { email, code, password };
+    await api.post("/auth/reset-password", body);
   },
 };

@@ -54,7 +54,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRunsQuery } from "@/queries/runs";
-import type { RunWithScreenshots, RunFilters } from "@/types";
+import type { RunItem, RunFilters } from "@/types";
 import { RunDetailsDialog } from "@/components/shared/RunDetailsDialog";
 import { ScreenshotsDialog } from "./ScreenshotsDialog";
 
@@ -89,7 +89,7 @@ const getStatusIcon = (status: string) => {
 
 const createColumns = (
   t: (key: string) => string
-): ColumnDef<RunWithScreenshots>[] => [
+): ColumnDef<RunItem>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -182,10 +182,10 @@ const createColumns = (
     accessorKey: "amount",
     header: t("table.columns.amount"),
     cell: ({ row }) => {
-      const amount = row.getValue("amount") as number | null;
+      const amount = row.getValue("amount") as string | null;
       return (
         <span className="font-medium text-foreground">
-          {amount && amount > 0 ? `₪${Number(amount).toLocaleString()}` : "—"}
+          {amount ? `₪${Number(amount).toLocaleString()}` : "—"}
         </span>
       );
     },

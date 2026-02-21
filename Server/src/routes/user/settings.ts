@@ -3,7 +3,6 @@ import { SettingsController } from "../../controllers/index.js";
 
 const router = Router();
 
-// Notification settings types
 export interface NotificationSettingsResponseData {
   notificationSettings: {
     id: string;
@@ -19,6 +18,7 @@ export interface NotificationSettingsResponseData {
     updatedAt: Date;
   } | null;
 }
+
 router.get("/notification", SettingsController.getNotificationSettings);
 
 export interface UpdateNotificationSettingsRequestBody {
@@ -31,9 +31,9 @@ export interface UpdateNotificationSettingsRequestBody {
   email?: string;
   emailVerified?: boolean;
 }
+
 router.put("/notification", SettingsController.updateNotificationSettings);
 
-// 2FA types
 export interface Start2FARequestBody {
   method: "sms" | "email";
   contact: string;
@@ -42,6 +42,8 @@ export interface Start2FARequestBody {
 export interface Start2FAResponseData {
   sessionId: string;
 }
+
+router.post("/notification/2fa/start", SettingsController.start2FA);
 
 export interface Verify2FARequestBody {
   method: "sms" | "email";
@@ -53,7 +55,8 @@ export interface Verify2FAResponseData {
   contact: string;
 }
 
-// Run settings types
+router.post("/notification/2fa/verify", SettingsController.verify2FA);
+
 export interface RunSettingsResponseData {
   runSettings: {
     id: string;
@@ -65,13 +68,16 @@ export interface RunSettingsResponseData {
   } | null;
 }
 
+router.get("/run", SettingsController.getRunSettings);
+
 export interface UpdateRunSettingsRequestBody {
   automationEnabled?: boolean;
   automationMode?: "full-run" | "buy-only" | "cross-account";
   giftAmount?: number;
 }
 
-// Wolt settings types
+router.put("/run", SettingsController.updateRunSettings);
+
 export interface WoltSettingsResponseData {
   woltSettings: {
     id: string;
@@ -82,17 +88,13 @@ export interface WoltSettingsResponseData {
   } | null;
 }
 
+router.get("/wolt", SettingsController.getWoltSettings);
+
 export interface UpdateWoltSettingsRequestBody {
   woltRefreshToken?: string;
   woltAccessToken?: string;
 }
 
-// Routes
-router.post("/notification/2fa/start", SettingsController.start2FA);
-router.post("/notification/2fa/verify", SettingsController.verify2FA);
-router.get("/run", SettingsController.getRunSettings);
-router.put("/run", SettingsController.updateRunSettings);
-router.get("/wolt", SettingsController.getWoltSettings);
 router.put("/wolt", SettingsController.updateWoltSettings);
 
 export { router as settingsRouter };

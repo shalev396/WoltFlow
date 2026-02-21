@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { DashboardAnalytics, TimeRange } from "@/types/api";
+import type { DashboardAnalytics, TimeRange } from "@/types";
 
 interface MetricsGridProps {
   analytics?: DashboardAnalytics;

@@ -1,11 +1,14 @@
 import { api } from "@/api/api";
-import type { InboxFilters, InboxResponse } from "@/types/index";
+import type {
+  ApiSuccessResponse,
+  InboxResponseData,
+  InboxFilters,
+} from "@/types";
 
 class InboxService {
-  /**
-   * Get user's inbox and emails
-   */
-  async getInbox(filters?: InboxFilters): Promise<InboxResponse> {
+  async getInbox(
+    filters?: InboxFilters,
+  ): Promise<InboxResponseData> {
     const params = new URLSearchParams();
 
     if (filters?.page) params.append("page", filters.page.toString());
@@ -16,29 +19,22 @@ class InboxService {
     const queryString = params.toString();
     const url = queryString ? `/user/inbox?${queryString}` : "/user/inbox";
 
-    const response = await api.get<InboxResponse>(url);
-    return response.data;
+    const response =
+      await api.get<ApiSuccessResponse<InboxResponseData>>(url);
+    return response.data.data;
   }
 
-  /**
-   * Download attachment securely
-   */
   async downloadAttachment(
     emailId: string,
     attachmentIndex: number,
   ): Promise<Blob> {
     const response = await api.get(
       `/user/inbox/${emailId}/attachment/${attachmentIndex}`,
-      {
-        responseType: "blob",
-      },
+      { responseType: "blob" },
     );
     return response.data;
   }
 
-  /**
-   * Download attachment and trigger file download in browser
-   */
   async downloadAndSaveAttachment(
     emailId: string,
     attachmentIndex: number,
@@ -47,7 +43,6 @@ class InboxService {
     try {
       const blob = await this.downloadAttachment(emailId, attachmentIndex);
 
-      // Create download link and trigger download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -56,7 +51,6 @@ class InboxService {
       document.body.appendChild(link);
       link.click();
 
-      // Cleanup
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {

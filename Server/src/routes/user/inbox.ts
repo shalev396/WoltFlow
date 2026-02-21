@@ -3,7 +3,6 @@ import { InboxController } from "../../controllers/index.js";
 
 const router = Router();
 
-// Inbox response types
 export interface InboxResponseData {
   inbox: {
     id: string;
@@ -39,6 +38,7 @@ export interface InboxResponseData {
     endDate: string | null;
   };
 }
+
 router.get("/", InboxController.getInbox);
 
 export interface DownloadAttachmentResponseData {
@@ -46,6 +46,7 @@ export interface DownloadAttachmentResponseData {
   contentType: string;
   content: string;
 }
+
 router.get(
   "/:emailId/attachment/:attachmentIndex",
   InboxController.downloadAttachment,

@@ -64,7 +64,10 @@ export default function WoltForm() {
 
   const onSubmit = async (data: WoltSettingsFormData) => {
     try {
-      await updateWoltSettings.mutateAsync(data);
+      await updateWoltSettings.mutateAsync({
+        woltRefreshToken: data.woltRefreshToken || undefined,
+        woltAccessToken: data.woltAccessToken || undefined,
+      });
     } catch (error) {
       console.error("Failed to update Wolt settings:", error);
     }

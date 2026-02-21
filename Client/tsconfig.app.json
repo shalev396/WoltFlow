@@ -25,8 +25,9 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@server/*": ["../Server/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../Server/src/types/express-extensions.d.ts"]
 }

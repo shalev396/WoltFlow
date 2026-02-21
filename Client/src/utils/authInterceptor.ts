@@ -1,4 +1,6 @@
 import type { AxiosError, AxiosResponse } from "axios";
+import { toast } from "sonner";
+import type { ApiErrorResponse } from "@/types";
 
 // Define public page routes that don't require authentication
 const publicPageRoutes = ["/legal/*", "/docs/*", "/auth/*"];
@@ -41,7 +43,13 @@ export const errorInterceptor = async (
 
     // Clear all tokens and logout via Redux
     await handleAuthFailure();
+    return Promise.reject(error);
   }
+
+  const data = error.response?.data as ApiErrorResponse | undefined;
+  const message = data?.message || error.message || "An unexpected error occurred";
+  toast.error(message);
+
   return Promise.reject(error);
 };
 

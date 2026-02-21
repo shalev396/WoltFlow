@@ -3,7 +3,6 @@ import { DashboardController } from "../../controllers/index.js";
 
 const router = Router();
 
-// Dashboard response type
 export interface DashboardResponseData {
   analytics: {
     timeRange: string;

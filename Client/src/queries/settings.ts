@@ -2,13 +2,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { settingsService } from "@/services/settings";
 import type {
-  NotificationSettings,
-  NotificationSettingsUpdate,
-  WoltSettings,
-  WoltSettingsUpdate,
-  RunSettings,
-  RunSettingsUpdate,
+  UpdateNotificationSettingsRequestBody,
+  UpdateWoltSettingsRequestBody,
+  UpdateRunSettingsRequestBody,
+  NotificationSettingsResponseData,
+  WoltSettingsResponseData,
+  RunSettingsResponseData,
 } from "@/types";
+
+type NotificationSettingsData =
+  NotificationSettingsResponseData["notificationSettings"];
+type WoltSettingsData = WoltSettingsResponseData["woltSettings"];
+type RunSettingsData = RunSettingsResponseData["runSettings"];
 
 // ============================================================================
 // QUERY KEYS
@@ -24,7 +29,7 @@ export function useNotificationSettingsQuery() {
   return useQuery({
     queryKey: NOTIFICATION_SETTINGS_KEY,
     queryFn: settingsService.getNotificationSettings,
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 15 * 60 * 1000,
   });
 }
 
@@ -33,22 +38,24 @@ export function useUpdateNotificationSettingsMutation() {
 
   return useMutation({
     mutationFn: settingsService.updateNotificationSettings,
-    onMutate: async (newSettings: NotificationSettingsUpdate) => {
+    onMutate: async (
+      newSettings: UpdateNotificationSettingsRequestBody,
+    ) => {
       await queryClient.cancelQueries({ queryKey: NOTIFICATION_SETTINGS_KEY });
 
       const previousSettings =
-        queryClient.getQueryData<NotificationSettings | null>(
-          NOTIFICATION_SETTINGS_KEY
+        queryClient.getQueryData<NotificationSettingsData>(
+          NOTIFICATION_SETTINGS_KEY,
         );
 
       if (previousSettings) {
-        queryClient.setQueryData<NotificationSettings>(
+        queryClient.setQueryData<NonNullable<NotificationSettingsData>>(
           NOTIFICATION_SETTINGS_KEY,
           {
             ...previousSettings,
             ...newSettings,
             updatedAt: new Date(),
-          }
+          },
         );
       }
 
@@ -58,7 +65,7 @@ export function useUpdateNotificationSettingsMutation() {
       if (context?.previousSettings) {
         queryClient.setQueryData(
           NOTIFICATION_SETTINGS_KEY,
-          context.previousSettings
+          context.previousSettings,
         );
       }
       toast.error("Failed to update notification settings", {
@@ -81,7 +88,7 @@ export function useWoltSettingsQuery() {
   return useQuery({
     queryKey: WOLT_SETTINGS_KEY,
     queryFn: settingsService.getWoltSettings,
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 15 * 60 * 1000,
   });
 }
 
@@ -90,19 +97,21 @@ export function useUpdateWoltSettingsMutation() {
 
   return useMutation({
     mutationFn: settingsService.updateWoltSettings,
-    onMutate: async (newSettings: WoltSettingsUpdate) => {
+    onMutate: async (newSettings: UpdateWoltSettingsRequestBody) => {
       await queryClient.cancelQueries({ queryKey: WOLT_SETTINGS_KEY });
 
-      const previousSettings = queryClient.getQueryData<WoltSettings | null>(
-        WOLT_SETTINGS_KEY
-      );
+      const previousSettings =
+        queryClient.getQueryData<WoltSettingsData>(WOLT_SETTINGS_KEY);
 
       if (previousSettings) {
-        queryClient.setQueryData<WoltSettings>(WOLT_SETTINGS_KEY, {
-          ...previousSettings,
-          ...newSettings,
-          updatedAt: new Date(),
-        });
+        queryClient.setQueryData<NonNullable<WoltSettingsData>>(
+          WOLT_SETTINGS_KEY,
+          {
+            ...previousSettings,
+            ...newSettings,
+            updatedAt: new Date(),
+          },
+        );
       }
 
       return { previousSettings };
@@ -131,7 +140,7 @@ export function useRunSettingsQuery() {
   return useQuery({
     queryKey: RUN_SETTINGS_KEY,
     queryFn: settingsService.getRunSettings,
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 15 * 60 * 1000,
   });
 }
 
@@ -140,19 +149,29 @@ export function useUpdateRunSettingsMutation() {
 
   return useMutation({
     mutationFn: settingsService.updateRunSettings,
-    onMutate: async (newSettings: RunSettingsUpdate) => {
+    onMutate: async (newSettings: UpdateRunSettingsRequestBody) => {
       await queryClient.cancelQueries({ queryKey: RUN_SETTINGS_KEY });
 
-      const previousSettings = queryClient.getQueryData<RunSettings | null>(
-        RUN_SETTINGS_KEY
-      );
+      const previousSettings =
+        queryClient.getQueryData<RunSettingsData>(RUN_SETTINGS_KEY);
 
       if (previousSettings) {
-        queryClient.setQueryData<RunSettings>(RUN_SETTINGS_KEY, {
-          ...previousSettings,
-          ...newSettings,
-          updatedAt: new Date(),
-        });
+        queryClient.setQueryData<NonNullable<RunSettingsData>>(
+          RUN_SETTINGS_KEY,
+          {
+            ...previousSettings,
+            ...(newSettings.automationEnabled !== undefined && {
+              automationEnabled: newSettings.automationEnabled,
+            }),
+            ...(newSettings.automationMode !== undefined && {
+              automationMode: newSettings.automationMode,
+            }),
+            ...(newSettings.giftAmount !== undefined && {
+              giftAmount: String(newSettings.giftAmount),
+            }),
+            updatedAt: new Date(),
+          },
+        );
       }
 
       return { previousSettings };

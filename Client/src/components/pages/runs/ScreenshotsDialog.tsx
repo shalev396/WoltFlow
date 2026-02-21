@@ -10,10 +10,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { Screenshot } from "@/types";
+import type { ScreenshotItem } from "@/types";
 
 interface ScreenshotsDialogProps {
-  screenshots: Screenshot[];
+  screenshots: ScreenshotItem[];
   runId: string;
   children: React.ReactNode;
 }
@@ -69,8 +69,8 @@ export function ScreenshotsDialog({
             })}
           </DialogTitle>
           <DialogDescription>
-            {currentScreenshot?.stage
-              ? t("screenshots.stage", { stage: currentScreenshot.stage })
+            {currentScreenshot?.screenshotType
+              ? t("screenshots.stage", { stage: currentScreenshot.screenshotType })
               : t("screenshots.description")}
           </DialogDescription>
         </DialogHeader>
