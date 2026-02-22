@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2, AlertTriangle, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 
 import {
   Card,
@@ -58,8 +59,7 @@ export default function DeleteAccountForm() {
     } catch (error) {
       console.error("Failed to delete account:", error);
 
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to delete account";
+      const errorMessage = getApiErrorMessage(error, "Failed to delete account");
 
       toast.error("Account deletion failed", {
         description: errorMessage,

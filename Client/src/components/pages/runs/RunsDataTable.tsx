@@ -46,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 import {
   Card,
   CardContent,
@@ -314,7 +315,7 @@ export function RunsDataTable({
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-500 mb-4">
-              {error instanceof Error ? error.message : t("table.failedToLoad")}
+              {getApiErrorMessage(error, t("table.failedToLoad"))}
             </p>
             <Button onClick={() => refetch()}>{t("table.tryAgain")}</Button>
           </div>

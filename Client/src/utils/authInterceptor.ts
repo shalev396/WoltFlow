@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosResponse } from "axios";
 import { toast } from "sonner";
-import type { ApiErrorResponse } from "@/types";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 
 // Define public page routes that don't require authentication
 const publicPageRoutes = ["/legal/*", "/docs/*", "/auth/*"];
@@ -46,9 +46,7 @@ export const errorInterceptor = async (
     return Promise.reject(error);
   }
 
-  const data = error.response?.data as ApiErrorResponse | undefined;
-  const message = data?.message || error.message || "An unexpected error occurred";
-  toast.error(message);
+  toast.error(getApiErrorMessage(error));
 
   return Promise.reject(error);
 };

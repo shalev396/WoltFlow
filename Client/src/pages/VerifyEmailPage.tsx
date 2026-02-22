@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Check, AlertCircle } from "lucide-react";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 import Layout from "@/components/shared/Layout";
 
 export default function VerifyEmailPage() {
@@ -73,11 +74,7 @@ export default function VerifyEmailPage() {
         }, 2000);
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || t("errors.invalidCode"));
-      } else {
-        setError(t("errors.unknownError"));
-      }
+      setError(getApiErrorMessage(err, t("errors.invalidCode")));
       setIsLoading(false);
     }
   };
@@ -91,11 +88,7 @@ export default function VerifyEmailPage() {
       // For now, Cognito automatically resends on signup
       setError(t("success.signupSuccess"));
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(t("errors.unknownError"));
-      }
+      setError(getApiErrorMessage(err, t("errors.unknownError")));
     } finally {
       setIsLoading(false);
     }

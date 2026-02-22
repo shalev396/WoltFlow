@@ -11,6 +11,7 @@ import InboxList from "@/components/pages/inbox/InboxList";
 import InboxViewer from "@/components/pages/inbox/InboxViewer";
 import InboxToolbar from "@/components/pages/inbox/InboxToolbar";
 import { useInboxQuery } from "@/queries/inbox";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 import type { InboxFilters } from "@/types";
 
 export default function InboxLayout() {
@@ -105,7 +106,7 @@ export default function InboxLayout() {
             <AlertCircle className="h-8 w-8 mx-auto text-red-600" />
             <h2 className="text-xl font-semibold">{t("error.title")}</h2>
             <p className="text-muted-foreground">
-              {error?.message || t("error.message")}
+              {getApiErrorMessage(error, t("error.message"))}
             </p>
             <button
               onClick={() => refetch()}

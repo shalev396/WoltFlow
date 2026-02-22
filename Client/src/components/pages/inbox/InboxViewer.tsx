@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 import { format } from "date-fns";
 import {
   // Star,
@@ -86,7 +88,7 @@ export default function InboxViewer({
       );
     } catch (error) {
       console.error("Failed to download attachment:", error);
-      alert(`Download failed: ${error}`);
+      toast.error(getApiErrorMessage(error, "Failed to download attachment"));
     }
   };
 
