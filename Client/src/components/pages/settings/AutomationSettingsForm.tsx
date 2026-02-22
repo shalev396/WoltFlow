@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import AsyncButton from "@/components/shared/AsyncButton";
 import { AutomationToggle } from "@/components/shared/AutomationToggle";
 import { AutomationModeSelector } from "@/components/shared/AutomationModeSelector";
@@ -43,7 +44,7 @@ import {
 
 export default function AutomationSettingsForm() {
   const { t } = useTranslation("settings");
-  const { data: runSettings } = useRunSettingsQuery();
+  const { data: runSettings, isLoading: isQueryLoading } = useRunSettingsQuery();
   const updateRunSettingsMutation = useUpdateRunSettingsMutation();
 
   const form = useForm<RunSettingsFormData>({
@@ -90,6 +91,47 @@ export default function AutomationSettingsForm() {
   };
 
   const isLoading = updateRunSettingsMutation.isPending;
+
+  if (isQueryLoading) {
+    return (
+      <Card className="w-full h-full flex flex-col">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Skeleton className="h-5 w-5 rounded" />
+            <Skeleton className="h-5 w-40" />
+          </CardTitle>
+          <Skeleton className="h-4 w-60 mt-1" />
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col">
+          <div className="flex-1 space-y-6">
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-1.5">
+                <Skeleton className="h-5 w-36" />
+                <Skeleton className="h-3 w-52" />
+              </div>
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <div className="grid grid-cols-1 gap-3">
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full rounded-md" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+          </div>
+          <div className="flex justify-end pt-6 border-t mt-6">
+            <Skeleton className="h-10 w-32 rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full h-full flex flex-col">

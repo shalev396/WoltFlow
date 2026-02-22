@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import AsyncButton from "@/components/shared/AsyncButton";
 import { WoltCredentialsHelp } from "@/components/pages/settings/WoltCredentialsHelp";
 
@@ -72,6 +73,38 @@ export default function WoltForm() {
       console.error("Failed to update Wolt settings:", error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full h-full flex flex-col">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Skeleton className="h-5 w-5 rounded" />
+            <Skeleton className="h-5 w-36" />
+          </CardTitle>
+          <Skeleton className="h-4 w-64 mt-1" />
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col">
+          <div className="flex-1 space-y-6">
+            <Skeleton className="h-16 w-full rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-48" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-44" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+          </div>
+          <div className="flex justify-end pt-6 border-t mt-6">
+            <Skeleton className="h-10 w-32 rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full h-full flex flex-col">

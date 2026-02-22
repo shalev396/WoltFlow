@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Github } from "lucide-react";
 import { CookieSettings } from "../shared/consent/CookieSettings";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
@@ -34,6 +35,15 @@ export default function Footer() {
               {t("footer.terms")}
             </Link>
             <CookieSettings variant="link" />
+            <a
+              href="https://github.com/shalev396/WoltFlow"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+            >
+              <Github className="h-3.5 w-3.5" />
+              {t("footer.sourceCode")}
+            </a>
           </div>
         </div>
       </div>

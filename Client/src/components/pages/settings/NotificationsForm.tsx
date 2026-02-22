@@ -33,6 +33,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import AsyncButton from "@/components/shared/AsyncButton";
 
 import {
@@ -285,6 +286,55 @@ export default function NotificationsForm() {
   };
 
   const verificationStatus = getVerificationStatus();
+
+  if (isLoading) {
+    return (
+      <Card className="w-full h-full flex flex-col">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Skeleton className="h-5 w-5 rounded" />
+            <Skeleton className="h-5 w-44" />
+          </CardTitle>
+          <Skeleton className="h-4 w-56 mt-1" />
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col">
+          <div className="flex-1 space-y-6">
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-1.5">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-3 w-56" />
+              </div>
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-6 w-11 rounded-full" />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-5 w-28" />
+                  <Skeleton className="h-3 w-44" />
+                </div>
+                <Skeleton className="h-6 w-11 rounded-full" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 w-full rounded-md" />
+              <Skeleton className="h-3 w-52" />
+            </div>
+          </div>
+          <div className="flex justify-end pt-6 border-t mt-6">
+            <Skeleton className="h-10 w-32 rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full h-full flex flex-col">
