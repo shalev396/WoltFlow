@@ -12,6 +12,7 @@ on:
       - "qa" # QA
     paths:
       - "Client/**"
+      - "Server/src/**"
       - ".github/workflows/Frontend-CICD.yml"
 
 jobs:
@@ -46,7 +47,11 @@ jobs:
         id: stage
         run: echo "name=${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' }}" >> $GITHUB_OUTPUT
 
-      - name: Install dependencies
+      - name: Install Server dependencies (required for @server/* type imports)
+        run: npm install
+        working-directory: Server
+
+      - name: Install Client dependencies
         run: npm install --legacy-peer-deps
         working-directory: Client
 

@@ -1,7 +1,7 @@
 import { TrendingUp, DollarSign, Target } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { DashboardAnalytics } from "@/types/api";
+import type { DashboardAnalytics } from "@/types";
 
 interface SavingsOverviewCardProps {
   analytics?: DashboardAnalytics;

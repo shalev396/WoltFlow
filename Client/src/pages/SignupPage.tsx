@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle } from "lucide-react";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 
 export default function SignupPage() {
   const { t } = useTranslation("auth");
@@ -31,11 +32,7 @@ export default function SignupPage() {
       // This allows auto-login after verification
       navigate(`/${lng}/auth/verify`, { state: { email, password } });
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || t("errors.emailAlreadyExists"));
-      } else {
-        setError(t("errors.unknownError"));
-      }
+      setError(getApiErrorMessage(err, t("errors.emailAlreadyExists")));
     } finally {
       setIsLoading(false);
     }

@@ -4,11 +4,11 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
-import type { CognitoUser } from "@/types";
+import type { AppUser } from "@/types";
 import { getUserFromToken } from "@/utils/tokenUtil";
 
 interface AuthState {
-  user: CognitoUser | null;
+  user: AppUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -62,7 +62,7 @@ const userSlice = createSlice({
     loginSuccess: (
       state,
       action: PayloadAction<{
-        user: CognitoUser;
+        user: AppUser;
         tokens: { idToken: string; refreshToken: string; expiresIn: number };
       }>
     ) => {

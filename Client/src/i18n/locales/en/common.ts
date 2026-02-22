@@ -22,7 +22,8 @@ export default {
     "documentation": "Documentation",
     "apiDocs": "API Docs",
     "support": "Support",
-    "rights": "© 2025 WoltFlow. All rights reserved."
+    "rights": "© 2025 WoltFlow. All rights reserved.",
+    "sourceCode": "Source Code"
   },
   "language": {
     "select": "Select Language",

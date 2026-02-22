@@ -1,58 +1,24 @@
-import {
-  Settings,
-  NotificationSettings,
-  User,
-  Run,
-  Screenshot,
-} from "../models/index.js";
+import { User, Run } from "../classes/index.js";
+import type {
+  UserNotificationDetails,
+  RunForNotification,
+  ScreenshotForNotification,
+} from "../classes/index.js";
 import { sendEmail, type SendEmailResult } from "./emailUtil.js";
 import { sendSmsBySenderID, type SendSmsResult } from "./smsUtil.js";
 import fs from "fs/promises";
 import path from "path";
-import {
-  type RunWithScreenshots,
-  type SettingsWithUserAndNotificationSettings,
-} from "../types/index.js";
 
-const ALERT_SENDER_EMAIL = `alert@${process.env.DOMAIN_NAME}`;
+const SENDER_DOMAIN = process.env.DOMAIN_NAME?.includes("localhost")
+  ? "dev.woltflow.shalev396.com"
+  : process.env.DOMAIN_NAME;
+const ALERT_SENDER_EMAIL = `alert@${SENDER_DOMAIN}`;
 const ALERT_SENDER_NAME = "WoltFlow Alert System";
 
 export interface NotifyOnResult {
   success: boolean;
   sentMethods: "sms" | "email" | null;
   errors: string[];
-}
-
-/**
- * Get user notification settings and preferred verified methods
- * @param userId User ID to get notification settings for
- * @returns Promise with user notification settings
- */
-export async function getSettingsWithUserAndNotificationSettings(
-  userId: string
-): Promise<SettingsWithUserAndNotificationSettings> {
-  try {
-    // Get user settings with notification settings included
-    const setting = (await Settings.findOne({
-      where: { userId },
-      include: [
-        {
-          model: User,
-          attributes: ["name", "email"],
-          as: "user",
-        },
-        {
-          model: NotificationSettings,
-          as: "notificationSettings",
-        },
-      ],
-    })) as SettingsWithUserAndNotificationSettings;
-
-    return setting;
-  } catch (error) {
-    console.error("Error in getUserNotificationSettings handler:", error);
-    throw error;
-  }
 }
 
 /**
@@ -65,7 +31,7 @@ export async function getSettingsWithUserAndNotificationSettings(
 export async function notifyOnError(
   userId: string,
   runId: string,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<NotifyOnResult> {
   const result: NotifyOnResult = {
     success: false,
@@ -74,9 +40,7 @@ export async function notifyOnError(
   };
 
   try {
-    // Get user notification preferences
-    const userNotificationDetails =
-      await getSettingsWithUserAndNotificationSettings(userId);
+    const userNotificationDetails = await User.getNotificationDetails(userId);
 
     if (!userNotificationDetails) {
       console.log(`No notification settings found for user ${userId}`);
@@ -108,42 +72,37 @@ export async function notifyOnError(
       return result;
     }
 
-    // Get run details with screenshots
-    const run = (await Run.findByPk(runId, {
-      include: [
-        {
-          model: Screenshot,
-          attributes: ["screenshotUrl", "isError"],
-          as: "screenshots",
-        },
-      ],
-    })) as RunWithScreenshots;
+    const runData = await Run.findWithScreenshots(runId);
 
-    if (!run) {
+    if (!runData) {
       result.errors.push(`Run ${runId} not found`);
       return result;
     }
 
-    const screenshots = run.screenshots || [];
+    const screenshots = runData.screenshots;
 
-    // Send notifications using preferred method
     try {
       const notificationMethod =
         userNotificationDetails.notificationSettings.notificationMethod;
 
+      // After the null checks above, notificationSettings is guaranteed non-null
+      const verifiedDetails = userNotificationDetails as UserNotificationDetails & {
+        notificationSettings: NonNullable<UserNotificationDetails["notificationSettings"]>;
+      };
+
       if (notificationMethod === "sms") {
         await sendSmsErrorNotification(
-          userNotificationDetails,
-          run,
-          errorMessage
+          verifiedDetails,
+          runData,
+          errorMessage,
         );
         result.sentMethods = "sms";
       } else if (notificationMethod === "email") {
         await sendEmailErrorNotification(
-          userNotificationDetails,
-          run,
+          verifiedDetails,
+          runData,
           screenshots,
-          errorMessage
+          errorMessage,
         );
         result.sentMethods = "email";
       }
@@ -162,13 +121,13 @@ export async function notifyOnError(
 
     if (result.success) {
       console.log(
-        `Error notification sent to user ${userId} via: ${result.sentMethods}`
+        `Error notification sent to user ${userId} via: ${result.sentMethods}`,
       );
     } else {
       console.error(
         `Failed to send error notification to user ${userId}: ${result.errors.join(
-          "; "
-        )}`
+          "; ",
+        )}`,
       );
     }
 
@@ -193,7 +152,7 @@ export async function notifyOnError(
 export async function notifyOnSuccess(
   userId: string,
   runId: string,
-  successMessage?: string
+  successMessage?: string,
 ): Promise<NotifyOnResult> {
   const result: NotifyOnResult = {
     success: false,
@@ -202,9 +161,7 @@ export async function notifyOnSuccess(
   };
 
   try {
-    // Get user notification preferences
-    const userNotificationDetails =
-      await getSettingsWithUserAndNotificationSettings(userId);
+    const userNotificationDetails = await User.getNotificationDetails(userId);
 
     if (!userNotificationDetails) {
       console.log(`No notification settings found for user ${userId}`);
@@ -236,42 +193,36 @@ export async function notifyOnSuccess(
       return result;
     }
 
-    // Get run details with screenshots
-    const run = (await Run.findByPk(runId, {
-      include: [
-        {
-          model: Screenshot,
-          attributes: ["screenshotUrl", "isError"],
-          as: "screenshots",
-        },
-      ],
-    })) as RunWithScreenshots;
+    const runData = await Run.findWithScreenshots(runId);
 
-    if (!run) {
+    if (!runData) {
       result.errors.push(`Run ${runId} not found`);
       return result;
     }
 
-    const screenshots = run.screenshots || [];
+    const screenshots = runData.screenshots;
 
-    // Send notifications using preferred methods
     try {
       const notificationMethod =
         userNotificationDetails.notificationSettings.notificationMethod;
 
+      const verifiedDetails = userNotificationDetails as UserNotificationDetails & {
+        notificationSettings: NonNullable<UserNotificationDetails["notificationSettings"]>;
+      };
+
       if (notificationMethod === "sms") {
         await sendSmsSuccessNotification(
-          userNotificationDetails,
-          run,
-          successMessage
+          verifiedDetails,
+          runData,
+          successMessage,
         );
         result.sentMethods = "sms";
       } else if (notificationMethod === "email") {
         await sendEmailSuccessNotification(
-          userNotificationDetails,
-          run,
+          verifiedDetails,
+          runData,
           screenshots,
-          successMessage
+          successMessage,
         );
         result.sentMethods = "email";
       }
@@ -290,13 +241,13 @@ export async function notifyOnSuccess(
 
     if (result.success) {
       console.log(
-        `Success notification sent to user ${userId} via: ${result.sentMethods}`
+        `Success notification sent to user ${userId} via: ${result.sentMethods}`,
       );
     } else {
       console.error(
         `Failed to send success notification to user ${userId}: ${result.errors.join(
-          "; "
-        )}`
+          "; ",
+        )}`,
       );
     }
 
@@ -311,19 +262,21 @@ export async function notifyOnSuccess(
   }
 }
 
+type VerifiedNotificationDetails = UserNotificationDetails & {
+  notificationSettings: NonNullable<UserNotificationDetails["notificationSettings"]>;
+};
+
 /**
  * Send SMS notification for error
  */
 async function sendSmsErrorNotification(
-  userDetails: SettingsWithUserAndNotificationSettings,
-  run: Run,
-  errorMessage?: string
+  userDetails: VerifiedNotificationDetails,
+  run: RunForNotification,
+  errorMessage?: string,
 ): Promise<SendSmsResult> {
   if (!userDetails.notificationSettings.phoneNumber) {
     throw new Error("Phone number not available");
   }
-  // TODO: Uncomment when giftAmount is implemented
-  //Amount: ₪${run.giftAmount || 0}
   const message = `WoltFlow Alert 🚨
 
 Run #${run.id} has failed
@@ -347,26 +300,24 @@ Support: support@${process.env.DOMAIN_NAME}`;
  * Send email notification for error
  */
 async function sendEmailErrorNotification(
-  userDetails: SettingsWithUserAndNotificationSettings,
-  run: Run,
-  screenshots: Screenshot[],
-  errorMessage?: string
+  userDetails: VerifiedNotificationDetails,
+  run: RunForNotification,
+  screenshots: ScreenshotForNotification[],
+  errorMessage?: string,
 ): Promise<SendEmailResult> {
   if (!userDetails.notificationSettings.email) {
     throw new Error("Email address not available");
   }
 
   try {
-    // Load email template
     const templatePath = path.join(
       process.cwd(),
       "templates",
       "error",
-      "index.html"
+      "index.html",
     );
     let htmlTemplate = await fs.readFile(templatePath, "utf-8");
 
-    // Format dates
     const formatDate = (date: Date) => {
       return new Intl.DateTimeFormat("en-US", {
         year: "numeric",
@@ -378,7 +329,6 @@ async function sendEmailErrorNotification(
       }).format(new Date(date));
     };
 
-    // Replace template variables
     const replacements = {
       "{{USER_NAME}}": userDetails.user.name || "User",
       "{{RUN_ID}}": run.id.toString(),
@@ -391,12 +341,10 @@ async function sendEmailErrorNotification(
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };
 
-    // Replace basic template variables
     for (const [placeholder, value] of Object.entries(replacements)) {
       htmlTemplate = htmlTemplate.replace(new RegExp(placeholder, "g"), value);
     }
 
-    // Handle screenshots section
     if (screenshots && screenshots.length > 0) {
       htmlTemplate = htmlTemplate.replace("{{#if HAS_SCREENSHOTS}}", "");
       htmlTemplate = htmlTemplate.replace("{{/if}}", "");
@@ -413,8 +361,8 @@ async function sendEmailErrorNotification(
               }
             </div>
             <img src="${screenshot.screenshotUrl}" alt="${
-          screenshot.isError ? "Error Screenshot" : "Run Screenshot"
-        }" class="screenshot-image">
+              screenshot.isError ? "Error Screenshot" : "Run Screenshot"
+            }" class="screenshot-image">
           </div>`;
         screenshotsHtml += screenshotHtml;
       });
@@ -422,7 +370,6 @@ async function sendEmailErrorNotification(
       htmlTemplate = htmlTemplate.replace("{{#each SCREENSHOTS}}", "");
       htmlTemplate = htmlTemplate.replace("{{/each}}", screenshotsHtml);
     } else {
-      // Fallback: Add a message when no screenshots are available
       const noScreenshotsMessage = `
         <div class="screenshots-section">
           <div class="screenshots-title">📸 Screenshots</div>
@@ -436,18 +383,16 @@ async function sendEmailErrorNotification(
           </div>
         </div>`;
 
-      // Replace the screenshots section with the fallback message
       const screenshotsSection = htmlTemplate.match(
-        /{{#if HAS_SCREENSHOTS}}[\s\S]*?{{\/if}}/
+        /{{#if HAS_SCREENSHOTS}}[\s\S]*?{{\/if}}/,
       );
       if (screenshotsSection) {
         htmlTemplate = htmlTemplate.replace(
           screenshotsSection[0],
-          noScreenshotsMessage
+          noScreenshotsMessage,
         );
       }
     }
-    // Create text version
     const textBody = `WoltFlow Error Notification
 
 Hello ${userDetails.user.name || "User"},
@@ -495,15 +440,13 @@ Support: support@${process.env.DOMAIN_NAME}
  * Send SMS notification for success
  */
 async function sendSmsSuccessNotification(
-  userDetails: SettingsWithUserAndNotificationSettings,
-  run: Run,
-  successMessage?: string
+  userDetails: VerifiedNotificationDetails,
+  run: RunForNotification,
+  successMessage?: string,
 ): Promise<SendSmsResult> {
   if (!userDetails.notificationSettings.phoneNumber) {
     throw new Error("Phone number not available");
   }
-  //TODO: Uncomment when giftAmount is implemented
-  //Amount: ₪${run.amount}
   const message = `WoltFlow Success 🎉
 
 Run #${run.id} completed successfully!
@@ -527,26 +470,24 @@ Dashboard: ${process.env.DOMAIN_NAME}/dashboard`;
  * Send email notification for success
  */
 async function sendEmailSuccessNotification(
-  userDetails: SettingsWithUserAndNotificationSettings,
-  run: Run,
-  screenshots: Screenshot[],
-  successMessage?: string
+  userDetails: VerifiedNotificationDetails,
+  run: RunForNotification,
+  screenshots: ScreenshotForNotification[],
+  successMessage?: string,
 ): Promise<SendEmailResult> {
   if (!userDetails.notificationSettings.email) {
     throw new Error("Email address not available");
   }
 
   try {
-    // Load email template
     const templatePath = path.join(
       process.cwd(),
       "templates",
       "success",
-      "index.html"
+      "index.html",
     );
     let htmlTemplate = await fs.readFile(templatePath, "utf-8");
 
-    // Format dates
     const formatDate = (date: Date) => {
       return new Intl.DateTimeFormat("en-US", {
         year: "numeric",
@@ -558,7 +499,6 @@ async function sendEmailSuccessNotification(
       }).format(new Date(date));
     };
 
-    // Replace template variables
     const replacements = {
       "{{USER_NAME}}": userDetails.user.name || "User",
       "{{RUN_ID}}": run.id.toString(),
@@ -571,12 +511,10 @@ async function sendEmailSuccessNotification(
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
     };
 
-    // Replace basic template variables
     for (const [placeholder, value] of Object.entries(replacements)) {
       htmlTemplate = htmlTemplate.replace(new RegExp(placeholder, "g"), value);
     }
 
-    // Handle screenshots section
     if (screenshots && screenshots.length > 0) {
       htmlTemplate = htmlTemplate.replace("{{#if HAS_SCREENSHOTS}}", "");
       htmlTemplate = htmlTemplate.replace("{{/if}}", "");
@@ -595,8 +533,8 @@ async function sendEmailSuccessNotification(
               }
             </div>
             <img src="${screenshot.screenshotUrl}" alt="${
-          screenshot.isError ? "Run Screenshot" : "Success Screenshot"
-        }" class="screenshot-image">
+              screenshot.isError ? "Run Screenshot" : "Success Screenshot"
+            }" class="screenshot-image">
           </div>`;
         screenshotsHtml += screenshotHtml;
       });
@@ -604,7 +542,6 @@ async function sendEmailSuccessNotification(
       htmlTemplate = htmlTemplate.replace("{{#each SCREENSHOTS}}", "");
       htmlTemplate = htmlTemplate.replace("{{/each}}", screenshotsHtml);
     } else {
-      // Fallback: Add a message when no screenshots are available
       const noScreenshotsMessage = `
         <div class="screenshots-section">
           <div class="screenshots-title">📸 Screenshots</div>
@@ -618,18 +555,16 @@ async function sendEmailSuccessNotification(
           </div>
         </div>`;
 
-      // Replace the screenshots section with the fallback message
       const screenshotsSection = htmlTemplate.match(
-        /{{#if HAS_SCREENSHOTS}}[\s\S]*?{{\/if}}/
+        /{{#if HAS_SCREENSHOTS}}[\s\S]*?{{\/if}}/,
       );
       if (screenshotsSection) {
         htmlTemplate = htmlTemplate.replace(
           screenshotsSection[0],
-          noScreenshotsMessage
+          noScreenshotsMessage,
         );
       }
     }
-    // Create text version
     const textBody = `WoltFlow Success Notification
 
 Hello ${userDetails.user.name || "User"},

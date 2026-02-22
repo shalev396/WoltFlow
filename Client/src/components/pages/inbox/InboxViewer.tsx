@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 import { format } from "date-fns";
 import {
   // Star,
@@ -29,10 +31,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 // import { cn } from "@/lib/utils";
 import { inboxService } from "@/services/inbox";
-import type { Email } from "@/types/inbox";
+import type { EmailItem } from "@/types";
 
 interface InboxViewerProps {
-  email: Email | undefined;
+  email: EmailItem | undefined;
   onEmailAction: (action: string, emailId: string) => void;
 }
 
@@ -86,7 +88,7 @@ export default function InboxViewer({
       );
     } catch (error) {
       console.error("Failed to download attachment:", error);
-      alert(`Download failed: ${error}`);
+      toast.error(getApiErrorMessage(error, "Failed to download attachment"));
     }
   };
 
@@ -168,7 +170,7 @@ export default function InboxViewer({
                 <span className="font-medium text-foreground">
                   {t("viewer.date")}
                 </span>
-                <span>{format(new Date(email.emailDate), "PPP 'at' p")}</span>
+                <span>{format(new Date(email.createdAt), "PPP 'at' p")}</span>
               </div>
             </div>
           </div>
@@ -317,7 +319,7 @@ export default function InboxViewer({
       <div className="flex-1 overflow-y-auto p-6">
         <div
           className="prose prose-sm max-w-none dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: email.body || "" }}
+          dangerouslySetInnerHTML={{ __html: "" }}
         />
       </div>
     </div>

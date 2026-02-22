@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, CheckCircle2, Mail } from "lucide-react";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation("auth");
@@ -29,11 +30,7 @@ export default function ForgotPasswordPage() {
       await authService.forgotPassword(email);
       setCodeSent(true);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || t("errors.forgotPasswordFailed"));
-      } else {
-        setError(t("errors.unknownError"));
-      }
+      setError(getApiErrorMessage(err, t("errors.forgotPasswordFailed")));
     } finally {
       setIsLoading(false);
     }

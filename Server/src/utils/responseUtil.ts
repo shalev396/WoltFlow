@@ -36,7 +36,7 @@ export interface ErrorResponseData {
 export function createSuccessResponse(
   message: string,
   data?: unknown,
-  statusCode: number = 200
+  statusCode: number = 200,
 ): APIGatewayProxyResult {
   const responseBody: SuccessResponseData =
     data === undefined
@@ -55,7 +55,7 @@ export function createSuccessResponse(
  */
 export function createErrorResponse(
   message: string,
-  statusCode: number = 500
+  statusCode: number = 500,
 ): APIGatewayProxyResult {
   const responseBody: ErrorResponseData = {
     success: false,
@@ -74,7 +74,7 @@ export function createErrorResponse(
  */
 export function createSuccessData(
   message: string,
-  data?: unknown
+  data?: unknown,
 ): SuccessResponseData {
   return data === undefined
     ? { success: true, message }

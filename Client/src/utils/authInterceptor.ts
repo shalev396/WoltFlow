@@ -1,4 +1,6 @@
 import type { AxiosError, AxiosResponse } from "axios";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 
 // Define public page routes that don't require authentication
 const publicPageRoutes = ["/legal/*", "/docs/*", "/auth/*"];
@@ -41,7 +43,11 @@ export const errorInterceptor = async (
 
     // Clear all tokens and logout via Redux
     await handleAuthFailure();
+    return Promise.reject(error);
   }
+
+  toast.error(getApiErrorMessage(error));
+
   return Promise.reject(error);
 };
 

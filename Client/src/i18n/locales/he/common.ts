@@ -22,7 +22,8 @@ export default {
     "documentation": "תיעוד",
     "apiDocs": "תיעוד API",
     "support": "תמיכה",
-    "rights": "© 2025 WoltFlow. כל הזכויות שמורות."
+    "rights": "© 2025 WoltFlow. כל הזכויות שמורות.",
+    "sourceCode": "קוד מקור"
   },
   "language": {
     "select": "בחר שפה",

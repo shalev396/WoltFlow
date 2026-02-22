@@ -10,7 +10,7 @@ import LastRunsTable from "@/components/pages/dashboard/LastRunsTable";
 import MetricsGrid from "@/components/pages/dashboard/MetricsGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardAnalyticsQuery } from "@/queries/dashboard";
-import type { TimeRange } from "@/types/api";
+import type { TimeRange } from "@/types";
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.user);

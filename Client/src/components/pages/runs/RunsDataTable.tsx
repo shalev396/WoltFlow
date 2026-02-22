@@ -46,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 import {
   Card,
   CardContent,
@@ -54,7 +55,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRunsQuery } from "@/queries/runs";
-import type { RunWithScreenshots, RunFilters } from "@/types";
+import type { RunItem, RunFilters } from "@/types";
 import { RunDetailsDialog } from "@/components/shared/RunDetailsDialog";
 import { ScreenshotsDialog } from "./ScreenshotsDialog";
 
@@ -89,7 +90,7 @@ const getStatusIcon = (status: string) => {
 
 const createColumns = (
   t: (key: string) => string
-): ColumnDef<RunWithScreenshots>[] => [
+): ColumnDef<RunItem>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -182,10 +183,10 @@ const createColumns = (
     accessorKey: "amount",
     header: t("table.columns.amount"),
     cell: ({ row }) => {
-      const amount = row.getValue("amount") as number | null;
+      const amount = row.getValue("amount") as string | null;
       return (
         <span className="font-medium text-foreground">
-          {amount && amount > 0 ? `₪${Number(amount).toLocaleString()}` : "—"}
+          {amount ? `₪${Number(amount).toLocaleString()}` : "—"}
         </span>
       );
     },
@@ -314,7 +315,7 @@ export function RunsDataTable({
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-500 mb-4">
-              {error instanceof Error ? error.message : t("table.failedToLoad")}
+              {getApiErrorMessage(error, t("table.failedToLoad"))}
             </p>
             <Button onClick={() => refetch()}>{t("table.tryAgain")}</Button>
           </div>

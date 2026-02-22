@@ -8,7 +8,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
-import Screenshot from "../models/Screenshot.js";
+import { Run } from "../classes/index.js";
 import fs from "fs";
 import path from "path";
 
@@ -134,26 +134,21 @@ export async function uploadImageToS3AndSaveToDb(
   screenshotType: "error" | "success" | "step" | "debug" | "final" = "step",
   stage?: string,
   folder: string = "images"
-): Promise<Screenshot> {
+): Promise<void> {
   try {
-    // 1. Upload image to S3
     const imageUrl = await uploadImageToS3(base64Image, folder);
-
-    // 2. Determine screenshot type based on isError
     const actualScreenshotType = isError ? "error" : screenshotType;
 
-    // 3. Save screenshot record to database
-    const screenshot = await Screenshot.create({
-      runId: runId,
-      screenshotUrl: imageUrl, // The actual S3 URL for the screenshot
-      siteUrl: siteUrl, // The site URL where the screenshot was taken
-      screenshotType: actualScreenshotType,
-      stage: stage,
-      isError: isError,
-    });
+    const screenshot = await Run.saveScreenshot(
+      runId,
+      imageUrl,
+      isError,
+      siteUrl,
+      actualScreenshotType,
+      stage,
+    );
 
     console.log(`Screenshot saved to database with ID: ${screenshot.id}`);
-    return screenshot;
   } catch (error) {
     console.error("Error uploading image to S3 and saving to database:", error);
     throw error;
@@ -179,17 +174,15 @@ export async function uploadImageFileToS3AndSaveToDb(
   screenshotType: "error" | "success" | "step" | "debug" | "final" = "step",
   stage?: string,
   folder: string = "images"
-): Promise<Screenshot | null> {
+): Promise<void> {
   try {
-    // 1. Convert image file to base64
     const base64Image = convertImageToBase64(imagePath);
     if (!base64Image) {
       console.error("Failed to convert image to base64");
-      return null;
+      return;
     }
 
-    // 2. Upload to S3 and save to database
-    return await uploadImageToS3AndSaveToDb(
+    await uploadImageToS3AndSaveToDb(
       base64Image,
       runId,
       isError,

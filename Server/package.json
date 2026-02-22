@@ -19,8 +19,7 @@
     "serve:prod": "cross-env IS_LOCAL=true serverless offline --stage prod",
     "deploy:dev": "npm run build && cross-env DOCKER_BUILDKIT=0 IS_LOCAL=false serverless deploy --stage dev",
     "deploy:qa": "npm run build && cross-env DOCKER_BUILDKIT=0 IS_LOCAL=false serverless deploy --stage qa",
-    "deploy:prod": "npm run build && cross-env DOCKER_BUILDKIT=0 IS_LOCAL=false serverless deploy --stage prod",
-    "test:woltBuyGift": "serverless invoke -f woltBuyGift --path woltBuyGift.json"
+    "deploy:prod": "npm run build && cross-env DOCKER_BUILDKIT=0 IS_LOCAL=false serverless deploy --stage prod"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.848.0",
@@ -30,8 +29,10 @@
     "@aws-sdk/client-sfn": "^3.856.0",
     "@aws-sdk/s3-request-presigner": "^3.848.0",
     "@googleapis/oauth2": "^2.0.1",
+    "@types/express": "^5.0.6",
     "archiver": "^7.0.1",
     "dotenv": "^16.5.0",
+    "express": "^5.2.1",
     "google-auth-library": "^10.1.0",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.1.0",
@@ -42,6 +43,7 @@
     "pg-hstore": "^2.3.4",
     "selenium-webdriver": "^4.33.0",
     "sequelize": "^6.37.7",
+    "serverless-http": "^4.0.0",
     "uuid": "^10.0.0"
   },
   "engines": {

@@ -117,8 +117,6 @@ provider:
     # COGNITO - Set these manually in .env after first deployment
     COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
     COGNITO_ISSUER: ${env:COGNITO_ISSUER}
-    # DEVELOPMENT
-    DEVELOPMENT_DATE: ${env:DEVELOPMENT_DATE}
 
   ecr:
     images:
@@ -394,97 +392,88 @@ stepFunctions:
 # Lambda Functions
 functions:
   # ================================
-  # AUTH FUNCTIONS
+  # DOMAIN-BASED EXPRESS FUNCTIONS
   # ================================
-  signup:
-    handler: ./build/auth/signUp.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/signUp.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/signup
-          method: post
 
-  confirmSignup:
-    handler: ./build/auth/confirmSignUp.handler
+  # PUBLIC: Authentication & Health
+  authApi:
+    handler: build/api/auth-handler.handler
+    timeout: 30
+    memorySize: 256
     package:
       patterns:
         - "!build/**"
-        - "build/auth/confirmSignUp.mjs"
+        - "build/api/auth-handler.mjs"
         - "package.json"
+        - "templates/**"
     events:
       - httpApi:
-          path: /api/auth/confirm
-          method: post
+          path: /api/auth/{proxy+}
+          method: ANY
 
-  login:
-    handler: ./build/auth/login.handler
+  # PRIVATE: All authenticated user operations
+  userApi:
+    handler: build/api/user-handler.handler
+    timeout: 120 # Higher for export/delete operations
+    memorySize: 1024 # Higher for ZIP creation in export
     package:
       patterns:
         - "!build/**"
-        - "build/auth/login.mjs"
+        - "build/api/user-handler.mjs"
         - "package.json"
+        - "templates/**"
     events:
       - httpApi:
-          path: /api/auth/login
-          method: post
-
-  forgotPassword:
-    handler: ./build/auth/forgotPassword.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/forgotPassword.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/forgot-password
-          method: post
-
-  resetPassword:
-    handler: ./build/auth/resetPassword.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/resetPassword.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/reset-password
-          method: post
-
-  refreshToken:
-    handler: ./build/auth/refreshToken.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/auth/refreshToken.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/auth/refresh
-          method: post
-          # No authorization required - endpoint validates refresh token itself
+          path: /api/user/{proxy+}
+          method: ANY
+          authorizer:
+            name: cognitoAuthorizer
 
   # ================================
-  # AUTOMATION FUNCTIONS
+  # SEPARATE FUNCTIONS (Special Triggers)
   # ================================
-  # CRITICAL: Do not modify selenium automation functions - they are working after hours of fixing!
 
+  # Scheduled data cleanup
+  dataCleanup:
+    handler: build/cleanup/dataCleanup.handler
+    timeout: 300
+    memorySize: 512
+    package:
+      patterns:
+        - "!build/**"
+        - "build/cleanup/dataCleanup.mjs"
+        - "package.json"
+    events:
+      - schedule:
+          rate: cron(0 0 * * ? *)
+          description: "Daily data cleanup at 00:00 UTC (privacy policy compliance)"
+          enabled: true
+
+  # SES email ingestion
+  ingestEmail:
+    handler: build/inbox/ingestEmail.handler
+    timeout: 60
+    memorySize: 512
+    package:
+      patterns:
+        - "!build/**"
+        - "build/inbox/ingestEmail.mjs"
+        - "package.json"
+    # No HTTP events - only triggered by SES
+
+  # ================================
+  # AUTOMATION CHAIN (UNCHANGED)
+  # ================================
+
+  # Automation chain starter (SCHEDULED ONLY - NO HTTP ENDPOINT)
   startUserAutomationChain:
-    handler: ./build/automation/A_startUserAutomationChain.handler
+    handler: build/automation/A_startUserAutomationChain.handler
     package:
       patterns:
         - "!build/**"
         - "build/automation/A_startUserAutomationChain.mjs"
         - "package.json"
     events:
-      - httpApi:
-          path: /api/automation/start-chain
-          method: get
       - schedule:
           # 30 min after Wolt Benefits opens (10:00 Israel). AWS cron is UTC.
           # Winter (Israel UTC+2): 08:30 UTC = 10:30 Israel ✓
@@ -493,9 +482,11 @@ functions:
           description: "30 min after Wolt opens: 08:30 UTC = 10:30 Israel winter / 11:30 Israel summer"
           enabled: true
 
+  # CRITICAL: Do not modify selenium automation functions - they are working after hours of fixing!
+
   # Non-selenium automation function
   refreshTokens:
-    handler: ./build/automation/B_refreshTokens.handler
+    handler: build/automation/B_refreshTokens.handler
     package:
       patterns:
         - "!build/**"
@@ -515,7 +506,7 @@ functions:
 
   # Non-selenium function for email processing
   getDailyCode:
-    handler: ./build/automation/D_getDailyCode.handler
+    handler: build/automation/D_getDailyCode.handler
     package:
       patterns:
         - "!build/**"
@@ -532,326 +523,6 @@ functions:
     ephemeralStorageSize: 1536
     timeout: 165
     # No HTTP events - only called by Step Functions
-
-  # ================================
-  # FORWARD FUNCTIONS
-  # ================================
-  generateApiKey:
-    handler: ./build/forward/api/Create.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/forward/api/Create.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/forward/api/generate
-          method: post
-          authorizer:
-            name: cognitoAuthorizer
-
-  # ================================
-  # DASHBOARD FUNCTIONS
-  # ================================
-  getDashboard:
-    handler: ./build/dashboard/Get.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/dashboard/Get.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/dashboard
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  # ================================
-  # HEALTH FUNCTIONS
-  # ================================
-  healthCheck:
-    handler: ./build/health/get.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/health/get.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/health
-          method: get
-
-  # ================================
-  # RUNS FUNCTIONS
-  # ================================
-  getUserRuns:
-    handler: ./build/runs/GetAll.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/runs/GetAll.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/runs
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  # ================================
-  # SETTINGS FUNCTIONS
-  # ================================
-
-  # Notification Settings
-  getNotificationSettings:
-    handler: ./build/settings/notification/Get.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/notification/Get.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/notification
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  updateNotificationSettings:
-    handler: ./build/settings/notification/Update.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/notification/Update.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/notification
-          method: put
-          authorizer:
-            name: cognitoAuthorizer
-
-  # 2FA Functions
-  start2FA:
-    handler: ./build/settings/notification/TwoFactorAuthentication/Create.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/notification/TwoFactorAuthentication/Create.mjs"
-        - "package.json"
-        - "templates/**"
-    events:
-      - httpApi:
-          path: /api/settings/notification/2fa/start
-          method: post
-          authorizer:
-            name: cognitoAuthorizer
-
-  verify2FA:
-    handler: ./build/settings/notification/TwoFactorAuthentication/verify.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/notification/TwoFactorAuthentication/verify.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/notification/2fa/verify
-          method: post
-          authorizer:
-            name: cognitoAuthorizer
-
-  # Run Settings
-  getRunSettings:
-    handler: ./build/settings/run/Get.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/run/Get.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/run
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  updateRunSettings:
-    handler: ./build/settings/run/Update.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/run/Update.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/run
-          method: put
-          authorizer:
-            name: cognitoAuthorizer
-
-  # Wolt Settings
-  getWoltSettings:
-    handler: ./build/settings/wolt/Get.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/wolt/Get.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/wolt
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  updateWoltSettings:
-    handler: ./build/settings/wolt/Update.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/settings/wolt/Update.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/settings/wolt
-          method: put
-          authorizer:
-            name: cognitoAuthorizer
-
-  # ================================
-  # USER FUNCTIONS
-  # ================================
-  exportUserData:
-    handler: ./build/user/export.handler
-    timeout: 120 # 2 minutes for processing large exports with many files (REQUIRED!)
-    memorySize: 1024 # Increased memory for ZIP creation and file processing
-    package:
-      patterns:
-        - "!build/**"
-        - "build/user/export.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/user/export
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-    # Export all user data - GET request returns complete ZIP archive with files
-
-  deleteUserAccount:
-    handler: ./build/user/delete.handler
-    timeout: 120 # 5 minutes for processing complete user deletion including S3 files
-    memorySize: 512 # Sufficient memory for deletion operations
-    package:
-      patterns:
-        - "!build/**"
-        - "build/user/delete.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/user/delete
-          method: delete
-          authorizer:
-            name: cognitoAuthorizer
-    # Delete complete user account - DELETE request permanently removes all user data
-
-  # ================================
-  # TEST FUNCTIONS
-  # ================================
-  testEmail:
-    handler: ./build/test/testEmail.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/test/testEmail.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/test/email
-          method: post
-    # Test Email function - send POST request with { "email": "test@example.com" }
-
-  testSms:
-    handler: ./build/test/testSms.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/test/testSms.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/test/sms
-          method: post
-    # Test SMS function - send POST request with { "phoneNumber": "+972XXXXXXXXX" }
-
-  # ================================
-  # DATA CLEANUP FUNCTIONS
-  # ================================
-  dataCleanup:
-    handler: ./build/dataCleanup.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/cleanup/dataCleanup.mjs"
-        - "package.json"
-    timeout: 300
-    memorySize: 512
-    events:
-      - schedule:
-          rate: cron(0 0 * * ? *)
-          description: "Daily data cleanup at 00:00 UTC (privacy policy compliance)"
-          enabled: true
-    # Automated data cleanup function - runs daily at 00:00 UTC (02:00 Israel time) to clean expired data per privacy policy
-
-    # ================================
-  # INBOX FUNCTIONS
-  # ================================
-
-  # Email ingestion function - triggered by SES
-  ingestEmail:
-    handler: ./build/inbox/ingestEmail.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/inbox/ingestEmail.mjs"
-        - "package.json"
-    timeout: 60
-    memorySize: 512
-    # No HTTP events - only triggered by SES
-
-  # Get user's inbox and emails
-  getInbox:
-    handler: ./build/inbox/Get.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/inbox/Get.mjs"
-        - "package.json"
-    events:
-      - httpApi:
-          path: /api/inbox
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
-
-  # Download email attachment securely
-  downloadAttachment:
-    handler: ./build/inbox/DownloadAttachment.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/inbox/DownloadAttachment.mjs"
-        - "package.json"
-    timeout: 30
-    memorySize: 512
-    events:
-      - httpApi:
-          path: /api/inbox/{emailId}/attachment/{attachmentIndex}
-          method: get
-          authorizer:
-            name: cognitoAuthorizer
 
 # AWS Resources Configuration
 resources:

@@ -42,13 +42,13 @@ export interface SendSmsResult {
  * @returns Promise with result of SMS sending
  */
 export async function sendSmsBySenderID(
-  options: SendSmsBySenderIDOptions
+  options: SendSmsBySenderIDOptions,
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
     if (!process.env.ENABLED_SMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`,
       );
       return {
         success: false,
@@ -96,7 +96,7 @@ export async function sendSmsBySenderID(
 
     console.log(
       `SMS sent successfully via Sender ID "${senderID}" to ${formattedPhoneNumber}:`,
-      result.MessageId
+      result.MessageId,
     );
 
     return {
@@ -126,13 +126,13 @@ export async function sendSmsBySenderID(
  * @returns Promise with result of SMS sending
  */
 export async function sendSmsByLongCode(
-  options: SendSmsByLongCodeOptions
+  options: SendSmsByLongCodeOptions,
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
     if (!process.env.ENABLED_SMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`,
       );
       return {
         success: false,
@@ -191,7 +191,7 @@ export async function sendSmsByLongCode(
 
     console.log(
       `SMS sent successfully via Long Code "${formattedOriginationNumber}" to ${formattedPhoneNumber}:`,
-      result.MessageId
+      result.MessageId,
     );
 
     return {
@@ -221,14 +221,14 @@ export async function sendSmsByLongCode(
  * @returns Promise with result of SMS sending
  */
 export async function sendSmsBySharedNumber(
-  options: SendSmsBySharedNumberOptions
+  options: SendSmsBySharedNumberOptions,
 ): Promise<SendSmsResult> {
   try {
     // Check if SMS is enabled via environment variable
     const enabledSMS = process.env.ENABLED_SMS;
     if (!enabledSMS) {
       console.log(
-        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`
+        `SMS was not sent because SMS is disabled via environment variable (enabledSMS=${process.env.ENABLED_SMS})`,
       );
       return {
         success: false,
@@ -272,7 +272,7 @@ export async function sendSmsBySharedNumber(
 
     console.log(
       `SMS sent successfully via Shared Number to ${formattedPhoneNumber}:`,
-      result.MessageId
+      result.MessageId,
     );
 
     return {
@@ -314,7 +314,7 @@ export function isValidPhoneNumber(phoneNumber: string): boolean {
  */
 export function formatPhoneNumber(
   phoneNumber: string,
-  defaultCountryCode: string = "972"
+  defaultCountryCode: string = "972",
 ): string | null {
   // Remove all non-digit characters
   const cleaned = phoneNumber.replace(/\D/g, "");

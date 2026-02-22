@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle } from "lucide-react";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 
 export default function LoginPage() {
   const { t } = useTranslation("auth");
@@ -32,11 +33,7 @@ export default function LoginPage() {
       dispatch(loginSuccess(response));
       navigate(`/${lng}/dashboard`);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || t("errors.invalidCredentials"));
-      } else {
-        setError(t("errors.unknownError"));
-      }
+      setError(getApiErrorMessage(err, t("errors.invalidCredentials")));
     } finally {
       setIsLoading(false);
     }

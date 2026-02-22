@@ -8,10 +8,10 @@ import {
 import { cn } from "@/lib/utils";
 // import { Badge } from "@/components/ui/badge";
 import { AvatarSimple } from "@/components/ui/avatar-simple";
-import type { Email } from "@/types/inbox";
+import type { EmailItem } from "@/types";
 
 interface InboxListProps {
-  emails: Email[];
+  emails: EmailItem[];
   selectedEmailId: string | null;
   onEmailSelect: (emailId: string) => void;
   searchQuery: string;
@@ -143,7 +143,7 @@ export default function InboxList({
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground flex-shrink-0">
-                    {formatDistanceToNow(new Date(email.emailDate), {
+                    {formatDistanceToNow(new Date(email.createdAt), {
                       addSuffix: true,
                     })}
                   </div>
@@ -181,9 +181,9 @@ export default function InboxList({
                   </div>
                 )} */}
 
-                {/* Preview text */}
+                {/* Preview - subject line */}
                 <div className="text-xs text-muted-foreground line-clamp-2">
-                  {email.body?.replace(/<[^>]*>/g, "").substring(0, 120)}...
+                  {email.subject}
                 </div>
               </div>
             </div>

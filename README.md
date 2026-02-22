@@ -1,91 +1,67 @@
 # WoltFlow
 
-WoltFlow is a full-stack solution for automating Wolt gift card purchases and managing user workflows. It comprises:
+WoltFlow is a full-stack solution for automating Wolt gift card purchases using WoltBenefits as a payment provider. The entire service runs as automation on AWS — it purchases Wolt gift cards through your Benefit account and applies them automatically.
 
-- **Client**: React + TypeScript frontend with Vite, Tailwind CSS, and shadcn/ui components.
-- **Server**: Serverless Node.js backend powered by AWS Lambda, PostgreSQL, and Google OAuth2.
-- **Script**: Python-based local runner for on-prem workflows and scheduled tasks.
-
-## Tech Stack
-
-- Frontend: React, TypeScript, Vite, Redux Toolkit, React Query, Axios, Shadcn/UI, Tailwind CSS
-- Backend: Node.js, TypeScript, Serverless Framework, AWS Lambda, AWS S3, CloudFront, PostgreSQL (Sequelize), Google OAuth2
-- Local Runner: Python 3, Selenium, Chrome, JSON local DB
+> Previously, WoltFlow used **Cibus** as the payment provider. That integration has been deprecated in favor of WoltBenefit.
 
 ## Repository Structure
 
 ```
 .
-├── Client/    # Frontend application (React + TS)
-├── Server/    # Serverless backend (Node.js + AWS Lambda)
-└── Script/    # Local Python automation runner
+├── Client/      # Frontend (React + TypeScript)
+├── Server/      # Backend (Serverless Framework + Express)
+├── Extension/   # Chrome extension for Wolt token extraction
+└── Script/      # [DEPRECATED] Local Python automation runner
 ```
 
-## Client (Frontend)
+## Client
 
-The Client is a Vite-powered React application with TypeScript. It uses Redux Toolkit for authentication state, React Query for data fetching, and shadcn/ui for reusable UI components.
+A React single-page application built with TypeScript, Vite, Tailwind CSS, and shadcn/ui. Uses Redux Toolkit for state management, React Query for server-state, and React Hook Form with Zod for form validation.
 
-- **Key Features**:
-  - Google OAuth2 authentication
-  - Protected routes and loading states
-  - Dashboard, Runs, and Settings pages
-  - Theme toggling (dark/light)
-  - Responsive design
+- AWS Cognito authentication
+- Dashboard, Runs, and Settings pages
+- Dark/light theme support
+- i18n (English and Hebrew)
 
-Link to detailed docs: [Client README](Client/README.md)
+## Server
 
-## Server (Backend)
+A Serverless Framework application deployed to AWS Lambda. Provides REST API endpoints and automation handlers.
 
-The Server hosts AWS Lambda functions orchestrated by the Serverless Framework. It provides REST API endpoints for authentication, run management, settings, and automation tasks.
+- AWS Cognito authentication with JWT
+- PostgreSQL database via Sequelize ORM
+- Automation Lambdas: token refresh, gift card purchase, gift card application
+- AWS Step Functions for orchestrating automation chains
 
-- **Key Features**:
-  - OAuth2 flow (start & callback) and session cookies
-  - JWT cookie-based authentication middleware
-  - Sequelize models: User, Setting, Run, Code, Screenshot
-  - Automation Lambdas: refreshTokens, woltBuyGift, woltApplyGift, startAllRuns
-  - Gmail integration for daily code retrieval
+## Extension
 
-Link to detailed docs: [Server README](Server/README.md)
+A Chrome extension ("WoltFlow Token Reviewer") that extracts Wolt access and refresh tokens from your browser cookies. Users install it, visit wolt.com, and copy their tokens — which are then used by the server-side automation to interact with the Wolt API.
 
-## Script (Local Runner)
+- Reads `__wtoken` and `__wrtoken` cookies from wolt.com
+- All processing happens locally, no data is transmitted
 
-The Script folder contains a Python-based runner for local execution, suitable for development or on-premise automation. It uses Selenium and stealth utilities to automate Wolt interactions.
+## Script (Deprecated)
 
-- **Key Features**:
-  - JSON-based user configuration
-  - Selenium-based Chrome automation with stealth utilities
-  - Screenshots and logging
-  - Windows Task Scheduler integration via provided XML
+> **This component is deprecated.** It was built for the original Cibus-based flow and is no longer actively maintained. The current automation runs entirely on AWS through the Server.
 
-Link to detailed docs: [Script README](Script/README.md)
+The Script folder contains a Python-based local runner that used Selenium to automate Wolt gift card purchases via Cibus. It is kept in the repository for reference.
+
+If you want to explore it: [Script README](Script/README.md)
 
 ## Getting Started
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/WoltFlow.git
+   git clone https://github.com/shalev396/WoltFlow.git
    ```
-2. **Client Setup**:
+2. **Client**:
    ```bash
    cd Client
    npm install
    npm run dev
    ```
-3. **Server Setup**:
+3. **Server**:
    ```bash
    cd Server
    npm install
    npm run dev
    ```
-4. **Script Setup**:
-   ```bash
-   cd Script
-   python -m venv .env
-   .env\Scripts\Activate.ps1   # PowerShell
-   pip install -r requirements.txt
-   python index.py --help
-   ```
-
-## Contributing
-
-Please follow contribution guidelines in each subproject. Fork, branch, and submit pull requests for review.

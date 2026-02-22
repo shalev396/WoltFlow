@@ -4,7 +4,7 @@ import pg from "pg";
 
 // Environment variables
 dotenv.config();
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = new Sequelize(process.env.DATABASE_URL!, {
   dialect: "postgres",
   dialectModule: pg,
   dialectOptions: {

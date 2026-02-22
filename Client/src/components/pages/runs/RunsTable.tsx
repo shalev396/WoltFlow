@@ -17,6 +17,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/utils/errorUtils";
 import {
   Table,
   TableBody,
@@ -123,7 +124,7 @@ export default function RunsTable() {
           {error ? (
             <div className="text-center py-8">
               <p className="text-red-500">
-                {error instanceof Error ? error.message : "Failed to load runs"}
+                {getApiErrorMessage(error, "Failed to load runs")}
               </p>
               <Button onClick={() => refetch()} className="mt-4">
                 Try Again
