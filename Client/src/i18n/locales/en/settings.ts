@@ -109,15 +109,12 @@ export default {
     description:
       "Download a complete copy of all your WoltFlow data including files in a ZIP archive",
     infoAlert:
-      "This export includes all your account data: settings, automation runs, emails, codes, screenshots, and more. The data will be downloaded as a ZIP file containing a CSV with database records plus all your files organized in folders.",
+      "This export includes all your account data: settings, automation runs, screenshots, and more. The data will be downloaded as a ZIP file containing a CSV with database records plus all your files organized in folders.",
     whatsIncluded: {
       title: "What's included:",
       accountInfo: "Account information and settings (CSV format)",
       runHistory: "All automation run history (CSV format)",
-      emails: "Email inbox and message files (original formats)",
-      attachments: "Email attachments (original formats)",
       screenshots: "Screenshots from automation runs (PNG/JPG)",
-      codes: "Generated gift codes (CSV format)",
       twoFactor: "Two-factor authentication records (CSV format)",
     },
     export: {
@@ -153,8 +150,6 @@ export default {
       account: "Your account and profile information",
       settings: "All automation settings and credentials",
       runs: "Complete run history and screenshots",
-      inbox: "Email inbox and all received messages",
-      codes: "Generated gift codes and 2FA records",
       apiKeys: "API keys and integration settings",
       personalData: "All personal data and usage history",
     },

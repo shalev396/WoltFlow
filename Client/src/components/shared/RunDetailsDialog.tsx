@@ -68,17 +68,7 @@ export function RunDetailsDialog({
     {
       id: "buying_gift",
       name: "Buying Gift Card",
-      description: "Purchasing gift card from Wolt",
-    },
-    {
-      id: "getting_code_from_email",
-      name: "Getting Code",
-      description: "Retrieving gift code from email",
-    },
-    {
-      id: "applying_gift",
-      name: "Applying Gift",
-      description: "Adding gift code to account",
+      description: "Purchasing gift card from Wolt and auto-redeeming",
     },
     {
       id: "completed",
@@ -88,14 +78,9 @@ export function RunDetailsDialog({
   ];
 
   const getStageOrder = (stage: string) =>
-    [
-      "triggered",
-      "refreshing_tokens",
-      "buying_gift",
-      "getting_code_from_email",
-      "applying_gift",
-      "completed",
-    ].indexOf(stage);
+    ["triggered", "refreshing_tokens", "buying_gift", "completed"].indexOf(
+      stage
+    );
 
   const getStageIcon = (stage: string, current: string, status: string) => {
     const idx = getStageOrder(stage);

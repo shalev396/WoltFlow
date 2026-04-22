@@ -75,5 +75,4 @@ export interface ICustomStepFunctionResult {
   success: boolean;
   completed: boolean;
   message: string;
-  codeValue?: string;
 }

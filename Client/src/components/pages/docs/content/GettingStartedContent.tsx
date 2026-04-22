@@ -6,7 +6,6 @@ import {
   Settings,
   Globe,
   CreditCard,
-  Mail,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,16 +54,6 @@ export function GettingStartedContent() {
               </span>
               <Badge variant="secondary" className="ml-auto">
                 {t("setupChecklist.steps.woltCredentials.badge")}
-              </Badge>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-white dark:bg-background rounded border">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
-                {t("setupChecklist.steps.emailForwarding.label")}
-              </span>
-              <Badge variant="secondary" className="ml-auto">
-                {t("setupChecklist.steps.emailForwarding.badge")}
               </Badge>
             </div>
 
@@ -296,59 +285,18 @@ export function GettingStartedContent() {
                 {t("activationGuide.step3.description")}
               </p>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="p-3 sm:p-4 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Mail className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">
-                      {t("activationGuide.step3.email.title")}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {t("activationGuide.step3.email.description")}
-                  </p>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Link to={`/${language}/docs/email-forwarding`}>
-                      {t("activationGuide.step3.email.button")}
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border rounded-lg p-3 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold flex-shrink-0">
-                4
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold break-words">
-                {t("activationGuide.step4.title")}
-              </h3>
-            </div>
-
-            <div className="ml-0 sm:ml-11 space-y-4">
-              <p className="text-muted-foreground">
-                {t("activationGuide.step4.description")}
-              </p>
-
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    {t("activationGuide.step4.settings.giftCardAmount")}
+                    {t("activationGuide.step3.settings.giftCardAmount")}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="text-sm">
-                    {t("activationGuide.step4.settings.enableToggle")}
+                    {t("activationGuide.step3.settings.enableToggle")}
                   </span>
                 </div>
               </div>
@@ -358,10 +306,10 @@ export function GettingStartedContent() {
                   <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                      {t("activationGuide.step4.allSet.title")}
+                      {t("activationGuide.step3.allSet.title")}
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      {t("activationGuide.step4.allSet.description")}
+                      {t("activationGuide.step3.allSet.description")}
                     </p>
                   </div>
                 </div>

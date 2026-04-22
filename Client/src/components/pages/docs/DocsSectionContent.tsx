@@ -4,8 +4,6 @@ import { IntroductionContent } from "./content/IntroductionContent";
 import { GettingStartedContent } from "./content/GettingStartedContent";
 import { WoltFlowExtensionContent } from "./content/WoltFlowExtensionContent";
 import { ManualSetupContent } from "./content/ManualSetupContent";
-import { EmailForwardingContent } from "./content/EmailForwardingContent";
-import { InboxContent } from "./content/InboxContent";
 
 interface DocsSectionContentProps {
   currentSection: string;
@@ -53,10 +51,6 @@ export function DocsSectionContent({
         return <WoltFlowExtensionContent />;
       case "manual-setup":
         return <ManualSetupContent />;
-      case "email-forwarding":
-        return <EmailForwardingContent />;
-      case "inbox":
-        return <InboxContent />;
       default:
         return <IntroductionContent />;
     }

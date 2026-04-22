@@ -36,21 +36,5 @@ export default {
         "token-security": "Token Security",
       },
     },
-    "email-forwarding": {
-      title: "Email Forwarding",
-      subsections: {
-        "gmail-forwarding": "Gmail Setup",
-        "email-filters": "Email Filters",
-        "other-providers": "Other Providers",
-      },
-    },
-    inbox: {
-      title: "Your Inbox",
-      subsections: {
-        "inbox-overview": "How It Works",
-        "managing-emails": "Managing Emails",
-        "inbox-privacy": "Privacy & Security",
-      },
-    },
   },
 } as const;

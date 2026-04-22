@@ -11,11 +11,8 @@ import {
   RunSettings,
   WoltSettings,
   TwoFactorAuthentication,
-  Inbox,
-  Emails,
   Run as RunModel,
   Screenshot,
-  Code as CodeModel,
 } from "../models/index.js";
 // Local Sequelize composite types (encapsulated from external consumers)
 type SettingsWithNotificationSettings = Settings & {
@@ -728,15 +725,6 @@ export class User {
       }
     }
 
-    const inbox = await Inbox.findOne({
-      where: { userId },
-      attributes: ["id", "userId", "emailAddress", "createdAt", "updatedAt"],
-    });
-
-    const emails = inbox
-      ? await Emails.findAll({ where: { inboxId: inbox.id } })
-      : [];
-
     const runs = await RunModel.findAll({ where: { userId } });
 
     const runIds = runs.map((run) => run.id);
@@ -744,8 +732,6 @@ export class User {
       runIds.length > 0
         ? await Screenshot.findAll({ where: { runId: runIds } })
         : [];
-
-    const codes = await CodeModel.findAll({ where: { userId } });
 
     const exportData: CompleteUserExport = {
       user: user.toJSON(),
@@ -758,11 +744,8 @@ export class User {
       twoFactorAuthentications: twoFactorAuthentications.map((tfa) =>
         tfa.toJSON(),
       ),
-      inbox: inbox ? inbox.toJSON() : null,
-      emails: emails.map((email) => email.toJSON()),
       runs: runs.map((run) => run.toJSON()),
       screenshots: screenshots.map((screenshot) => screenshot.toJSON()),
-      codes: codes.map((code) => code.toJSON()),
     };
 
     console.log("Creating ZIP export for user:", userId);
@@ -1008,9 +991,6 @@ export interface CompleteUserExport {
   woltSettings: WoltSettings | null;
   runSettings: RunSettings | null;
   twoFactorAuthentications: TwoFactorAuthentication[];
-  inbox: Inbox | null;
-  emails: Emails[];
   runs: RunModel[];
   screenshots: Screenshot[];
-  codes: CodeModel[];
 }

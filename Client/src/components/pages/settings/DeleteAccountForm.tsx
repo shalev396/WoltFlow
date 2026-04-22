@@ -98,8 +98,6 @@ export default function DeleteAccountForm() {
                 <li>• {t("deleteForm.whatWillBeDeleted.account")}</li>
                 <li>• {t("deleteForm.whatWillBeDeleted.settings")}</li>
                 <li>• {t("deleteForm.whatWillBeDeleted.runs")}</li>
-                <li>• {t("deleteForm.whatWillBeDeleted.inbox")}</li>
-                <li>• {t("deleteForm.whatWillBeDeleted.codes")}</li>
                 <li>• {t("deleteForm.whatWillBeDeleted.apiKeys")}</li>
                 <li>• {t("deleteForm.whatWillBeDeleted.personalData")}</li>
               </ul>

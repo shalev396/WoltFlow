@@ -61,18 +61,6 @@ export function IntroductionContent() {
           </Card>
         </div>
 
-        <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg border">
-          <h3 className="text-xl font-semibold mb-3 text-blue-800 dark:text-blue-200">
-            {t("whatIsWoltflow.transformWorkflow.title")}
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            {t("whatIsWoltflow.transformWorkflow.description")}
-          </p>
-          <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
-            <Clock className="h-4 w-4" />
-            <span>{t("whatIsWoltflow.transformWorkflow.timeSaver")}</span>
-          </div>
-        </div>
       </div>
 
       <div id="how-it-works" className="space-y-6 scroll-mt-32">
@@ -130,28 +118,7 @@ export function IntroductionContent() {
                 {t("howItWorks.steps.4.title")}
               </h3>
               <p className="text-muted-foreground">
-                {t("howItWorks.steps.4.descriptionPart1")}{" "}
-                <Link
-                  to={`/${language}/docs/inbox`}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                >
-                  {t("howItWorks.steps.4.inboxLink")}
-                </Link>
-                {t("howItWorks.steps.4.descriptionPart2")}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
-              5
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2">
-                {t("howItWorks.steps.5.title")}
-              </h3>
-              <p className="text-muted-foreground">
-                {t("howItWorks.steps.5.description")}
+                {t("howItWorks.steps.4.description")}
               </p>
             </div>
           </div>

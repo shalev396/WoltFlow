@@ -6,7 +6,6 @@ import {
   Settings,
   WoltSettings,
   RunSettings,
-  Inbox as InboxModel,
 } from "../models/index.js";
 import type { DashboardResponseData } from "../routes/user/dashboard.js";
 import type { RunsResponseData } from "../routes/user/runs.js";
@@ -675,41 +674,6 @@ export class Run {
     };
   }
 
-  static async findWithUserInbox(
-    runId: string,
-  ): Promise<AutomationRunWithInbox | null> {
-    const result = await RunModel.findByPk(runId, {
-      include: [
-        {
-          model: UserModel,
-          as: "user",
-          include: [
-            {
-              model: InboxModel,
-              as: "inbox",
-            },
-          ],
-        },
-      ],
-    });
-
-    if (!result) return null;
-
-    type Nested = RunModel & {
-      user?: UserModel & {
-        inbox?: InboxModel;
-      };
-    };
-    const nested = result as Nested;
-
-    return {
-      runId: result.id,
-      userId: result.userId,
-      hasInbox: !!nested.user?.inbox,
-      inboxId: nested.user?.inbox?.id ?? null,
-    };
-  }
-
   // ==================== Static Methods - Notification ====================
 
   static async findWithScreenshots(
@@ -783,13 +747,6 @@ export interface AutomationRunWithAllSettings {
   woltRefreshToken: string | null;
   woltAccessToken: string | null;
   giftAmount: number;
-}
-
-export interface AutomationRunWithInbox {
-  runId: string;
-  userId: string;
-  hasInbox: boolean;
-  inboxId: string | null;
 }
 
 // ==================== Notification Interfaces ====================

@@ -25,16 +25,16 @@ export default {
           "WoltFlow purchases Wolt gift cards using your available Wolt Benefits.",
         detail: "Runs daily at optimal times to maximize savings",
       },
-      email: {
-        title: "Email Forwarding Setup",
+      autoredeem: {
+        title: "Auto-Redeemed Instantly",
         description:
-          "Set up email forwarding from your email to WoltFlow so we can automatically retrieve gift card codes.",
-        detail: "Simple Gmail forwarding configuration required",
+          "Your gift card balance is applied to your Wolt account the moment the purchase completes — no codes, no email forwarding, no waiting.",
+        detail: "Instant credit, zero manual steps",
       },
       apply: {
-        title: "Apply to Wolt",
+        title: "Ready in Your Wallet",
         description:
-          "Gift card credits are automatically applied to your Wolt account balance.",
+          "The credit lands in your Wolt account and is ready to use for your next order.",
         detail: "Ready to use for your next food order",
       },
     },

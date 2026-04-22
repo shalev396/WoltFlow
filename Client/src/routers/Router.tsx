@@ -11,7 +11,6 @@ import LandingPage from "../pages/LandingPage";
 import DashboardPage from "../pages/DashboardPage";
 import RunsPage from "../pages/RunsPage";
 import SettingsPage from "../pages/SettingsPage";
-import InboxPage from "../pages/InboxPage";
 import NotFound from "../pages/NotFoundPage";
 
 export const router = createBrowserRouter([
@@ -52,14 +51,6 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <SettingsPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "inbox",
-        element: (
-          <ProtectedRoute>
-            <InboxPage />
           </ProtectedRoute>
         ),
       },

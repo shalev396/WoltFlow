@@ -128,12 +128,6 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
                 <SelectItem value="buying_gift">
                   {t("table.stages.buyingGift")}
                 </SelectItem>
-                <SelectItem value="getting_code_from_email">
-                  {t("table.stages.gettingCode")}
-                </SelectItem>
-                <SelectItem value="applying_gift">
-                  {t("table.stages.applyingGift")}
-                </SelectItem>
                 <SelectItem value="completed">
                   {t("table.stages.completed")}
                 </SelectItem>

@@ -142,31 +142,6 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
     "updatedAt",
   ]);
 
-  addTableSection("Inbox", exportData.inbox, false, [
-    "id",
-    "userId",
-    "emailAddress",
-    "createdAt",
-    "updatedAt",
-  ]);
-
-  addTableSection("Emails", exportData.emails, true, [
-    "id",
-    "inboxId",
-    "s3EmailUrl",
-    "attachmentUrls",
-    "fromEmail",
-    "fromName",
-    "toEmail",
-    "toName",
-    "subject",
-    "body",
-    "emailDate",
-    "dataExpiresAt",
-    "createdAt",
-    "updatedAt",
-  ]);
-
   addTableSection(
     "Two Factor Authentication",
     exportData.twoFactorAuthentications,
@@ -211,18 +186,6 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
     "updatedAt",
   ]);
 
-  addTableSection("Codes", exportData.codes, true, [
-    "id",
-    "userId",
-    "runId",
-    "emailId",
-    "code",
-    "isUsed",
-    "dataExpiresAt",
-    "createdAt",
-    "updatedAt",
-  ]);
-
   // Add UTF-8 BOM for proper Hebrew and other Unicode character support
   const BOM = "\uFEFF";
   return BOM + csvLines.join("\n");
@@ -240,7 +203,7 @@ interface ExportFile {
  * Interface for download task
  */
 interface DownloadTask {
-  type: "screenshot" | "email" | "attachment";
+  type: "screenshot";
   url: string;
   filename: string;
   id: string;
@@ -254,12 +217,8 @@ async function processBatchDownloads(
   batchSize: number = 15
 ): Promise<{
   screenshots: ExportFile[];
-  emails: ExportFile[];
-  attachments: ExportFile[];
 }> {
   const screenshots: ExportFile[] = [];
-  const emails: ExportFile[] = [];
-  const attachments: ExportFile[] = [];
 
   console.log(
     `Processing ${tasks.length} downloads in batches of ${batchSize}`
@@ -313,45 +272,31 @@ async function processBatchDownloads(
           buffer: file.buffer,
         };
 
-        switch (file.type) {
-          case "screenshot":
-            screenshots.push(exportFile);
-            break;
-          case "email":
-            emails.push(exportFile);
-            break;
-          case "attachment":
-            attachments.push(exportFile);
-            break;
+        if (file.type === "screenshot") {
+          screenshots.push(exportFile);
         }
       }
     });
 
     const batchDuration = Date.now() - batchStartTime;
     console.log(
-      `Batch ${batchNum} completed in ${batchDuration}ms. Total downloaded: ${
-        screenshots.length + emails.length + attachments.length
-      } files`
+      `Batch ${batchNum} completed in ${batchDuration}ms. Total downloaded: ${screenshots.length} files`
     );
   }
 
   const totalDuration = Date.now() - startTime;
   console.log(
-    `All batches completed in ${totalDuration}ms. Downloaded: ${
-      screenshots.length + emails.length + attachments.length
-    }/${tasks.length} files`
+    `All batches completed in ${totalDuration}ms. Downloaded: ${screenshots.length}/${tasks.length} files`
   );
 
-  return { screenshots, emails, attachments };
+  return { screenshots };
 }
 
 /**
- * Collect all files (screenshots, emails, attachments) for export using parallel processing
+ * Collect all files (screenshots) for export using parallel processing
  */
 async function collectExportFiles(exportData: CompleteUserExport): Promise<{
   screenshots: ExportFile[];
-  emails: ExportFile[];
-  attachments: ExportFile[];
 }> {
   console.log(
     "Starting to collect files for export with parallel processing..."
@@ -372,48 +317,15 @@ async function collectExportFiles(exportData: CompleteUserExport): Promise<{
     }
   });
 
-  // Prepare email download tasks
-  exportData.emails.forEach((email) => {
-    if (email.s3EmailUrl) {
-      const filename = getFilenameFromS3Url(email.s3EmailUrl);
-      const extension = filename.includes(".") ? "" : ".eml";
-      downloadTasks.push({
-        type: "email",
-        url: email.s3EmailUrl,
-        filename: `${email.id}_${filename}${extension}`,
-        id: email.id,
-      });
-    }
-
-    // Prepare attachment download tasks
-    if (email.attachmentUrls && Array.isArray(email.attachmentUrls)) {
-      email.attachmentUrls.forEach((attachmentUrl, index) => {
-        if (attachmentUrl) {
-          const filename = getFilenameFromS3Url(attachmentUrl);
-          downloadTasks.push({
-            type: "attachment",
-            url: attachmentUrl,
-            filename: `${email.id}_attachment_${index + 1}_${filename}`,
-            id: `${email.id}_${index}`,
-          });
-        }
-      });
-    }
-  });
-
   console.log(
-    `Prepared ${downloadTasks.length} download tasks (${
-      exportData.screenshots.length
-    } screenshots, ${exportData.emails.length} emails, ${
-      downloadTasks.filter((t) => t.type === "attachment").length
-    } attachments)`
+    `Prepared ${downloadTasks.length} download tasks (${exportData.screenshots.length} screenshots)`
   );
 
   // Process all downloads in parallel batches
   const result = await processBatchDownloads(downloadTasks);
 
   console.log(
-    `Parallel collection completed: ${result.screenshots.length} screenshots, ${result.emails.length} emails, ${result.attachments.length} attachments`
+    `Parallel collection completed: ${result.screenshots.length} screenshots`
   );
 
   return result;
@@ -464,26 +376,12 @@ export async function createUserExportZip(
         console.log("Added CSV to archive");
 
         // Collect all files
-        const { screenshots, emails, attachments } = await collectExportFiles(
-          exportData
-        );
+        const { screenshots } = await collectExportFiles(exportData);
 
         // Add screenshots to archive
         for (const screenshot of screenshots) {
           archive.append(screenshot.buffer, {
             name: `screenshots/${screenshot.filename}`,
-          });
-        }
-
-        // Add emails to archive
-        for (const email of emails) {
-          archive.append(email.buffer, { name: `emails/${email.filename}` });
-        }
-
-        // Add attachments to archive
-        for (const attachment of attachments) {
-          archive.append(attachment.buffer, {
-            name: `attachments/${attachment.filename}`,
           });
         }
 

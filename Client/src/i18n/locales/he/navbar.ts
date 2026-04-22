@@ -3,7 +3,6 @@ export default {
     "documentation": "תיעוד",
     "dashboard": "לוח בקרה",
     "runs": "ריצות",
-    "inbox": "תיבת דואר",
     "settings": "הגדרות"
   },
   "auth": {

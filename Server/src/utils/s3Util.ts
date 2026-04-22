@@ -226,19 +226,11 @@ export async function downloadFileFromS3(
         bucket = url.hostname.split(".")[0] || "";
         key = url.pathname.substring(1); // Remove leading slash
       } else {
-        // CloudFront URL - determine bucket from path and environment
+        // CloudFront URL — only the assets bucket remains after the
+        // email-forwarding subsystem was retired.
         const url = new URL(s3Url);
-        const pathParts = url.pathname.substring(1).split("/"); // Remove leading slash and split
-
-        // Determine bucket based on path prefix
-        if (pathParts[0] === "images" || pathParts[0] === "screenshots") {
-          bucket = process.env.S3_ASSETS_BUCKET_NAME || "";
-          key = url.pathname.substring(1); // Keep the full path including 'images/' prefix
-        } else {
-          // Assume email bucket for other files
-          bucket = process.env.S3_EMAIL_BUCKET_NAME || "";
-          key = url.pathname.substring(1);
-        }
+        bucket = process.env.S3_ASSETS_BUCKET_NAME || "";
+        key = url.pathname.substring(1);
       }
 
       if (!bucket) {

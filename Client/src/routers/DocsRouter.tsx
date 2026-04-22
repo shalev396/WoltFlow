@@ -25,11 +25,6 @@ export function DocsRouter() {
         path="manual-setup"
         element={<DocsLayout currentSection="manual-setup" />}
       />
-      <Route
-        path="email-forwarding"
-        element={<DocsLayout currentSection="email-forwarding" />}
-      />
-      <Route path="inbox" element={<DocsLayout currentSection="inbox" />} />
 
       {/* Fallback - redirect any unknown docs path to introduction */}
       <Route path="*" element={<NotFound />} />

@@ -7,16 +7,12 @@ export default {
     overview: {
       title: "Quick Setup Overview",
       description:
-        "Complete these 3 main steps to activate your WoltFlow automation. Each step has detailed guides linked below.",
+        "Complete these 2 main steps to activate your WoltFlow automation. Each step has detailed guides linked below.",
     },
     steps: {
       woltCredentials: {
         label: "Get Wolt credentials",
         badge: "2 options",
-      },
-      emailForwarding: {
-        label: "Set up email forwarding",
-        badge: "For codes",
       },
       configureAutomation: {
         label: "Configure automation",
@@ -74,27 +70,16 @@ export default {
       },
     },
     step2: {
-      title: "Set Up Email Forwarding",
+      title: "Save Your Wolt Credentials",
       description:
-        "Forward gift card confirmation emails to your WoltFlow inbox so we can extract codes and apply them to your Wolt account.",
+        "Open the Settings page and paste your Wolt access + refresh tokens so the automation can sign in on your behalf.",
       quickTip: {
         title: "💡 Quick Tip:",
         description:
-          "Gmail forwarding is the most common setup. See the Email Forwarding guide below.",
+          "Tokens stay encrypted at rest and never leave your account.",
       },
     },
     step3: {
-      title: "Configure Forwarding",
-      description:
-        "Set up email forwarding so gift card codes reach your WoltFlow inbox:",
-      email: {
-        title: "Email Forwarding",
-        description:
-          "Forward gift card emails to your WoltFlow inbox for automatic code extraction.",
-        button: "Setup Email Forwarding",
-      },
-    },
-    step4: {
       title: "Activate Automation",
       description:
         "Configure your automation preferences and activate the daily process:",
@@ -106,7 +91,7 @@ export default {
       allSet: {
         title: "You're All Set!",
         description:
-          "Once activated, WoltFlow runs automatically 30 minutes after Wolt Benefits opens: 10:30 AM Israel in winter, 11:30 AM in summer (due to daylight saving). You'll receive notifications about the status of each run.",
+          "Once activated, WoltFlow runs automatically 30 minutes after Wolt Benefits opens: 10:30 AM Israel in winter, 11:30 AM in summer (due to daylight saving). The gift card is purchased and auto-redeemed straight to your account — no email forwarding or codes needed.",
       },
     },
   },

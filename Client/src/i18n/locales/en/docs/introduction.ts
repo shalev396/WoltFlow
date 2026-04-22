@@ -14,12 +14,6 @@ export default {
       description:
         "Automatically claims your daily Wolt Benefits (meal allowance) and converts it to Wolt credits, ensuring you never miss out on your benefits.",
     },
-    transformWorkflow: {
-      title: "Transform Your Meal Benefits Workflow",
-      description:
-        "Instead of manually using your meal benefits daily, purchasing gift cards, waiting for emails, and then redeeming codes on Wolt, WoltFlow handles this entire process automatically.",
-      timeSaver: "Save 5-10 minutes daily with automated processing",
-    },
   },
   howItWorks: {
     title: "How It Works",
@@ -40,16 +34,9 @@ export default {
           "The automation purchases a Wolt gift card using your available Wolt Benefits balance, with the amount you've configured in your settings.",
       },
       "4": {
-        title: "Email Processing",
-        descriptionPart1: "The gift card code is forwarded to",
-        descriptionPart2:
-          ", where our system automatically extracts the redemption code.",
-        inboxLink: "your personalized WoltFlow email address",
-      },
-      "5": {
-        title: "Automatic Redemption",
+        title: "Instant Auto-Redemption",
         description:
-          "The extracted gift card code is automatically applied to your Wolt account, instantly adding the credit balance for your next order.",
+          "Wolt's new gift-card shop applies the purchase straight to your account on checkout — no codes, no email forwarding, no manual redemption.",
       },
     },
     perfectTiming: {
@@ -71,15 +58,15 @@ export default {
     individualPrivacy: {
       title: "Individual Privacy",
       features: [
-        "Unique email address per user",
         "Complete data isolation",
         "No cross-user data mixing",
+        "Single-purpose Wolt automation only",
       ],
     },
     yourDataYourControl: {
       title: "Your Data, Your Control",
       description:
-        "Each user receives a completely isolated email address and data environment. We only access the minimum information required for the automation to function, and all data is encrypted both in transit and at rest. You can delete your account and all associated data at any time.",
+        "Each user gets a completely isolated data environment. We only access the minimum information required for the automation to function, and all data is encrypted both in transit and at rest. You can delete your account and all associated data at any time.",
     },
   },
   cta: {

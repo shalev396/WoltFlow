@@ -45,8 +45,6 @@ export default {
       "triggered": "הופעל",
       "refreshingTokens": "מרענן אסימונים",
       "buyingGift": "רוכש מתנה",
-      "gettingCode": "מקבל קוד מאימייל",
-      "applyingGift": "מחיל מתנה",
       "completed": "הושלם"
     },
     "actions": {

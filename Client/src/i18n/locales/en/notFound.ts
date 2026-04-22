@@ -12,7 +12,6 @@ export default {
     "links": {
       "dashboard": "Dashboard",
       "runs": "Automation Runs",
-      "inbox": "Inbox",
       "settings": "Settings",
       "privacy": "Privacy Policy"
     }

@@ -45,8 +45,6 @@ export default {
       "triggered": "Triggered",
       "refreshingTokens": "Refreshing Tokens",
       "buyingGift": "Buying Gift",
-      "gettingCode": "Getting Code from Email",
-      "applyingGift": "Applying Gift",
       "completed": "Completed"
     },
     "actions": {

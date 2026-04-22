@@ -1,12 +1,12 @@
-import { LogIn, CreditCard, Mail, Gift, ArrowRight } from "lucide-react";
+import { LogIn, CreditCard, Zap, Gift, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const stepKeys = ["connect", "purchase", "email", "apply"] as const;
+const stepKeys = ["connect", "purchase", "autoredeem", "apply"] as const;
 const stepIcons = {
   connect: LogIn,
   purchase: CreditCard,
-  email: Mail,
+  autoredeem: Zap,
   apply: Gift,
 };
 

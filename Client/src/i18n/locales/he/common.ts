@@ -3,7 +3,6 @@ export default {
     "documentation": "תיעוד",
     "dashboard": "לוח בקרה",
     "runs": "הפעלות",
-    "inbox": "תיבת דואר",
     "settings": "הגדרות",
     "logout": "התנתק",
     "login": "התחבר"

@@ -6,7 +6,6 @@ import {
   Home,
   Activity,
   Settings,
-  Mail,
   LogOut,
   BookOpen,
 } from "lucide-react";
@@ -68,11 +67,6 @@ export default function Navbar() {
       href: `/${language}/runs`,
       label: t("routes.runs"),
       icon: Activity,
-    },
-    {
-      href: `/${language}/inbox`,
-      label: t("routes.inbox"),
-      icon: Mail,
     },
     {
       href: `/${language}/settings`,

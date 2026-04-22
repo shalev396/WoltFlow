@@ -3,7 +3,6 @@ export default {
     "documentation": "Documentation",
     "dashboard": "Dashboard",
     "runs": "Runs",
-    "inbox": "Inbox",
     "settings": "Settings",
     "logout": "Log out",
     "login": "Sign In"

@@ -1,7 +1,7 @@
 import { User } from "../classes/index.js";
 
 /**
- * Ensure user has Settings and Inbox
+ * Ensure user has Settings.
  *
  * Can be called with either userId or cognitoSub.
  * Checks if Settings already exist - if yes, does nothing. If no, creates them.

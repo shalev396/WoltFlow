@@ -9,8 +9,6 @@ export default class Run extends Model {
     | "triggered"
     | "refreshing_tokens"
     | "buying_gift"
-    | "getting_code_from_email"
-    | "applying_gift"
     | "completed";
 
   declare amount: number | null; // Gift card amount for this run (copied from user settings at creation)
@@ -48,8 +46,6 @@ Run.init(
         "triggered",
         "refreshing_tokens",
         "buying_gift",
-        "getting_code_from_email",
-        "applying_gift",
         "completed"
       ),
       allowNull: false,

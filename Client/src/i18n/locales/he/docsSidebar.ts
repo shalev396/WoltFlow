@@ -36,21 +36,5 @@ export default {
         "token-security": "אבטחת אסימונים",
       },
     },
-    "email-forwarding": {
-      title: "העברת אימייל",
-      subsections: {
-        "gmail-forwarding": "הגדרת Gmail",
-        "email-filters": "מסנני אימייל",
-        "other-providers": "ספקים אחרים",
-      },
-    },
-    inbox: {
-      title: "תיבת הדואר שלך",
-      subsections: {
-        "inbox-overview": "איך זה עובד",
-        "managing-emails": "ניהול אימיילים",
-        "inbox-privacy": "פרטיות ואבטחה",
-      },
-    },
   },
 } as const;
