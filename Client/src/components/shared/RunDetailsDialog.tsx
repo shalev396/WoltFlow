@@ -136,7 +136,7 @@ export function RunDetailsDialog({
         </DialogHeader>
         <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg bg-muted/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-muted/50">
               <div className="text-center">
                 <p className="text-sm font-medium text-muted-foreground">
                   Status
@@ -154,14 +154,6 @@ export function RunDetailsDialog({
                 </p>
                 <p className="mt-1 text-sm font-medium capitalize">
                   {run.stage.replace(/_/g, " ")}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Mode
-                </p>
-                <p className="mt-1 text-lg font-bold text-blue-600">
-                  {run.automationMode}
                 </p>
               </div>
             </div>

@@ -537,7 +537,6 @@ export class User {
         ? {
             id: settings.runSettings.id,
             automationEnabled: settings.runSettings.automationEnabled,
-            automationMode: settings.runSettings.automationMode,
             giftAmount:
               settings.runSettings.giftAmount !== null
                 ? String(settings.runSettings.giftAmount)
@@ -572,7 +571,6 @@ export class User {
     } else {
       runSettings = await RunSettings.create({
         automationEnabled: false,
-        automationMode: "full-run",
         giftAmount: null,
       });
 
@@ -586,9 +584,6 @@ export class User {
     if (requestData.automationEnabled !== undefined) {
       updates.automationEnabled = requestData.automationEnabled;
     }
-    if (requestData.automationMode !== undefined) {
-      updates.automationMode = requestData.automationMode;
-    }
     if (requestData.giftAmount !== undefined) {
       updates.giftAmount = requestData.giftAmount;
     }
@@ -600,7 +595,6 @@ export class User {
       runSettings: {
         id: runSettings.id,
         automationEnabled: runSettings.automationEnabled,
-        automationMode: runSettings.automationMode,
         giftAmount:
           runSettings.giftAmount !== null
             ? String(runSettings.giftAmount)
@@ -904,7 +898,6 @@ export class User {
       })
       .map((user) => ({
         userId: user.id,
-        automationMode: user.settings?.runSettings?.automationMode || "full-run",
         giftAmount: user.settings?.runSettings?.giftAmount ?? null,
         isNotificationEnabled: user.settings?.notificationSettings?.isEnabled || false,
       }));
@@ -989,7 +982,6 @@ export class User {
 
 export interface AutomationUserData {
   userId: string;
-  automationMode: string;
   giftAmount: number | null;
   isNotificationEnabled: boolean;
 }

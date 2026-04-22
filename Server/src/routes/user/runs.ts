@@ -8,7 +8,6 @@ export interface RunsResponseData {
     id: string;
     status: string;
     stage: string;
-    automationMode: string;
     amount: string | null;
     errorMessage: string | null;
     createdAt: Date;
@@ -34,7 +33,6 @@ export interface RunsResponseData {
   filters: {
     status: string | null;
     stage: string | null;
-    automationMode: string | null;
   };
 }
 

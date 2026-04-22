@@ -281,7 +281,6 @@ async function sendSmsErrorNotification(
 
 Run #${run.id} has failed
 Stage: ${run.stage}
-Mode: ${run.automationMode}
 
 ${errorMessage ? `Error: ${errorMessage}` : ""}
 
@@ -335,7 +334,6 @@ async function sendEmailErrorNotification(
       "{{RUN_STATUS}}": run.status,
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
       "{{RUN_STAGE}}": run.stage,
-      "{{RUN_MODE}}": run.automationMode,
       "{{RUN_AMOUNT}}": run.amount ? Number(run.amount).toLocaleString() : "0",
       "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
@@ -403,7 +401,6 @@ Run Details:
 - Run ID: #${run.id}
 - Status: ${run.status}
 - Current Stage: ${run.stage}
-- Mode: ${run.automationMode}
 - Amount: ₪${run.amount ? Number(run.amount).toLocaleString() : "0"}
 - Started: ${formatDate(run.createdAt)}
 - Last Updated: ${formatDate(run.updatedAt)}
@@ -451,7 +448,6 @@ async function sendSmsSuccessNotification(
 
 Run #${run.id} completed successfully!
 Stage: ${run.stage}
-Mode: ${run.automationMode}
 
 ${successMessage ? `Message: ${successMessage}` : ""}
 
@@ -505,7 +501,6 @@ async function sendEmailSuccessNotification(
       "{{RUN_STATUS}}": run.status,
       "{{RUN_STATUS_CLASS}}": run.status.replace(" ", "-"),
       "{{RUN_STAGE}}": run.stage,
-      "{{RUN_MODE}}": run.automationMode,
       "{{RUN_AMOUNT}}": run.amount ? Number(run.amount).toLocaleString() : "0",
       "{{RUN_CREATED_AT}}": formatDate(run.createdAt),
       "{{RUN_UPDATED_AT}}": formatDate(run.updatedAt),
@@ -575,7 +570,6 @@ Run Details:
 - Run ID: #${run.id}
 - Status: ${run.status}
 - Final Stage: ${run.stage}
-- Mode: ${run.automationMode}
 - Amount: ₪${run.amount ? Number(run.amount).toLocaleString() : "0"}
 - Started: ${formatDate(run.createdAt)}
 - Completed: ${formatDate(run.updatedAt)}

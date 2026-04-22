@@ -339,13 +339,6 @@ export function GettingStartedContent() {
 
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    {t("activationGuide.step4.settings.automationMode")}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
                     {t("activationGuide.step4.settings.giftCardAmount")}

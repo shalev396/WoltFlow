@@ -99,7 +99,6 @@ export default {
       description:
         "Configure your automation preferences and activate the daily process:",
       settings: {
-        automationMode: "Choose automation mode (Full Run recommended)",
         giftCardAmount:
           "Set gift card amount within your Wolt Benefits allowance",
         enableToggle: "Enable automation toggle",

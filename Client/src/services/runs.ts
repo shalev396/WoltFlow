@@ -18,8 +18,6 @@ export const runsService = {
 
     if (filters?.status) params.append("status", filters.status);
     if (filters?.stage) params.append("stage", filters.stage);
-    if (filters?.automationMode)
-      params.append("automationMode", filters.automationMode);
 
     const response = await api.get<ApiSuccessResponse<RunsResponseData>>(
       `/user/runs?${params.toString()}`,

@@ -78,5 +78,4 @@ export interface InboxFilters {
 export interface RunFilters {
   status?: string;
   stage?: string;
-  automationMode?: string;
 }

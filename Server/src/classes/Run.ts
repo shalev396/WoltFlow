@@ -32,7 +32,6 @@ export class Run {
   private _userId: RunAttributes["userId"];
   private _status: RunAttributes["status"];
   private _stage: RunAttributes["stage"];
-  private _automationMode: RunAttributes["automationMode"];
   private _amount: RunAttributes["amount"];
   private _errorMessage: RunAttributes["errorMessage"];
   private _createdAt: RunAttributes["createdAt"];
@@ -44,7 +43,6 @@ export class Run {
     this._userId = data.userId;
     this._status = data.status;
     this._stage = data.stage;
-    this._automationMode = data.automationMode;
     this._amount = data.amount;
     this._errorMessage = data.errorMessage;
     this._createdAt = data.createdAt;
@@ -67,10 +65,6 @@ export class Run {
 
   get stage(): RunAttributes["stage"] {
     return this._stage;
-  }
-
-  get automationMode(): RunAttributes["automationMode"] {
-    return this._automationMode;
   }
 
   get amount(): number | null {
@@ -105,7 +99,6 @@ export class Run {
       userId: this._userId,
       status: this._status,
       stage: this._stage,
-      automationMode: this._automationMode,
       amount: this._amount,
       errorMessage: this._errorMessage,
       createdAt: this._createdAt,
@@ -222,19 +215,15 @@ export class Run {
       limit: number;
       status?: string;
       stage?: string;
-      automationMode?: string;
     },
   ): Promise<RunsResponseData> {
-    const { page, limit, status, stage, automationMode } = options;
+    const { page, limit, status, stage } = options;
     const offset = (page - 1) * limit;
 
     const whereClause: WhereOptions<Attributes<RunModel>> = {
       userId,
       ...(status ? { status: status as RunModel["status"] } : {}),
       ...(stage ? { stage: stage as RunModel["stage"] } : {}),
-      ...(automationMode
-        ? { automationMode: automationMode as RunModel["automationMode"] }
-        : {}),
     };
 
     const totalCount = await RunModel.count({ where: whereClause });
@@ -280,7 +269,6 @@ export class Run {
           id: r.id,
           status: r.status,
           stage: r.stage,
-          automationMode: r.automationMode,
           amount: r.amount !== null ? String(r.amount) : null,
           errorMessage: r.errorMessage,
           createdAt: r.createdAt,
@@ -307,7 +295,6 @@ export class Run {
       filters: {
         status: status || null,
         stage: stage || null,
-        automationMode: automationMode || null,
       },
     };
   }
@@ -431,7 +418,6 @@ export class Run {
           id: run.id,
           status: run.status,
           stage: run.stage,
-          automationMode: run.automationMode,
           amount: run.amount !== null ? String(run.amount) : null,
           errorMessage: run.errorMessage,
           createdAt: run.createdAt,
@@ -522,14 +508,12 @@ export class Run {
 
   static async createForAutomation(
     userId: string,
-    automationMode: string,
     amount: number | null,
   ): Promise<Run> {
     const record = await RunModel.create({
       userId,
       status: "started",
       stage: "triggered",
-      automationMode,
       amount,
       errorMessage: null,
     });
@@ -544,7 +528,6 @@ export class Run {
       userId,
       status: "failed",
       stage: "triggered",
-      automationMode: "full-run",
       amount: null,
       errorMessage,
     });
@@ -634,7 +617,6 @@ export class Run {
     return {
       runId: result.id,
       userId: result.userId,
-      automationMode: result.automationMode,
       hasWoltSettings: !!woltSettings,
       woltRefreshToken: woltSettings?.woltRefreshToken ?? null,
       woltAccessToken: woltSettings?.woltAccessToken ?? null,
@@ -686,7 +668,6 @@ export class Run {
     return {
       runId: result.id,
       userId: result.userId,
-      automationMode: result.automationMode,
       hasAllSettings: !!(woltSettings && runSettings),
       woltRefreshToken: woltSettings?.woltRefreshToken ?? null,
       woltAccessToken: woltSettings?.woltAccessToken ?? null,
@@ -759,7 +740,6 @@ export class Run {
       id: result.id,
       status: result.status,
       stage: result.stage,
-      automationMode: result.automationMode,
       amount: result.amount,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
@@ -791,7 +771,6 @@ export class Run {
 export interface AutomationRunWithWoltSettings {
   runId: string;
   userId: string;
-  automationMode: string;
   hasWoltSettings: boolean;
   woltRefreshToken: string | null;
   woltAccessToken: string | null;
@@ -800,7 +779,6 @@ export interface AutomationRunWithWoltSettings {
 export interface AutomationRunWithAllSettings {
   runId: string;
   userId: string;
-  automationMode: string;
   hasAllSettings: boolean;
   woltRefreshToken: string | null;
   woltAccessToken: string | null;
@@ -820,7 +798,6 @@ export interface RunForNotification {
   id: string;
   status: string;
   stage: string;
-  automationMode: string;
   amount: number | null;
   createdAt: Date;
   updatedAt: Date;

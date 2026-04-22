@@ -137,7 +137,6 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
 
   addTableSection("Run Settings", exportData.runSettings, false, [
     "id",
-    "automationMode",
     "giftAmount",
     "createdAt",
     "updatedAt",
@@ -192,7 +191,6 @@ export function convertUserExportToCSV(exportData: CompleteUserExport): string {
     "userId",
     "status",
     "stage",
-    "automationMode",
     "amount",
     "errorMessage",
     "dataExpiresAt",

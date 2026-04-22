@@ -96,7 +96,6 @@ export default {
       title: "הפעל אוטומציה",
       description: "הגדר את העדפות האוטומציה שלך והפעל את התהליך היומי:",
       settings: {
-        automationMode: "בחר מצב אוטומציה (ריצה מלאה מומלצת)",
         giftCardAmount: "הגדר סכום כרטיס מתנה בתוך הקצבה של Wolt Benefits שלך",
         enableToggle: "הפעל מתג אוטומציה",
       },

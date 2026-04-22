@@ -24,7 +24,6 @@ export interface DashboardResponseData {
       id: string;
       status: string;
       stage: string;
-      automationMode: string;
       amount: string | null;
       errorMessage: string | null;
       createdAt: Date;

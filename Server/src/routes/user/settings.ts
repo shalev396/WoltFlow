@@ -61,7 +61,6 @@ export interface RunSettingsResponseData {
   runSettings: {
     id: string;
     automationEnabled: boolean;
-    automationMode: "full-run" | "buy-only" | "cross-account";
     giftAmount: string | null;
     createdAt: Date;
     updatedAt: Date;
@@ -72,7 +71,6 @@ router.get("/run", SettingsController.getRunSettings);
 
 export interface UpdateRunSettingsRequestBody {
   automationEnabled?: boolean;
-  automationMode?: "full-run" | "buy-only" | "cross-account";
   giftAmount?: number;
 }
 

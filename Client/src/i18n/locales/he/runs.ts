@@ -32,7 +32,6 @@ export default {
     },
     "filters": {
       "filterByStatus": "סנן לפי סטטוס",
-      "filterByMode": "סנן לפי מצב",
       "columns": "עמודות"
     },
     "status": {
@@ -41,11 +40,6 @@ export default {
       "failed": "נכשל",
       "inProgress": "בתהליך",
       "started": "התחיל"
-    },
-    "mode": {
-      "allModes": "כל המצבים",
-      "fullRun": "ריצה מלאה",
-      "buyOnly": "רכישה בלבד"
     },
     "stages": {
       "triggered": "הופעל",
@@ -85,14 +79,10 @@ export default {
     "clear": "נקה",
     "status": "סטטוס",
     "stage": "שלב",
-    "mode": "מצב",
     "allStatuses": "כל הסטטוסים",
     "allStages": "כל השלבים",
-    "allModes": "כל המצבים",
     "activeFilters": "מסננים פעילים:",
     "statusLabel": "סטטוס: {{status}}",
-    "stageLabel": "שלב: {{stage}}",
-    "modeLabel": "מצב: {{mode}}",
-    "completeAutomation": "אוטומציה מלאה"
+    "stageLabel": "שלב: {{stage}}"
   }
 } as const;

@@ -1,4 +1,4 @@
-import { By, Builder, WebElement } from "selenium-webdriver";
+import { By, Builder } from "selenium-webdriver";
 import dotenv from "dotenv";
 import { Run } from "../../classes/index.js";
 import type {
@@ -6,7 +6,6 @@ import type {
 } from "../../classes/index.js";
 import {
   safeClick,
-  getGiftCardUrl,
   waitForElement,
   setupWoltCookies,
   applyBrowserTimezone,
@@ -116,20 +115,24 @@ export const handler = async (
       runData.woltAccessToken || "",
     );
     console.log("end setup wolt cookies");
-    console.log("start step 1");
+    console.log("start step 1: navigate to gift-card-shop");
     const giftAmount = runData.giftAmount;
-    const giftUrl = getGiftCardUrl(giftAmount);
-    if (!giftUrl) {
-      throw new Error(`Gift card amount ${giftAmount} ILS not available`);
+    if (!giftAmount || giftAmount < 1 || giftAmount > 1500) {
+      throw new Error(
+        `Gift card amount ${giftAmount} ILS is out of range (1-1500)`,
+      );
     }
-
-    await driver.get(giftUrl);
+    const GIFT_SHOP_URL = "https://wolt.com/he/gift-card-shop/isr";
+    await driver.get(GIFT_SHOP_URL);
     console.log("end step 1");
     if (LEVEL === "1") {
       await sleep(1000);
       throw new Error("LEVEL 1");
     }
-    console.log("start step 2");
+
+    // Safety net: dismiss leftover-cart "אשמח להמשיך" dialog if it appears.
+    // The new shop normally won't show it, but old carts can still trigger it.
+    console.log("start step 2: dismiss leftover-cart dialog if present");
     const continueDialogs = await waitForElement(
       driver,
       By.xpath("//*[normalize-space(text())='אשמח להמשיך']"),
@@ -137,25 +140,23 @@ export const handler = async (
     );
 
     if (continueDialogs != null) {
-      console.log("start step 2.1");
+      console.log("leftover cart detected — clearing");
       const noButton = await waitForElement(
         driver,
         By.xpath("//button[normalize-space(.)='לא']"),
       );
-      await safeClick(driver, noButton as WebElement);
+      if (noButton) await safeClick(driver, noButton);
       const closeButtons1 = await waitForElement(
         driver,
         By.xpath("//button[@aria-label='סגירה']"),
       );
-      if (closeButtons1) {
-        await safeClick(driver, closeButtons1);
-      }
+      if (closeButtons1) await safeClick(driver, closeButtons1);
 
       const cartButton = await waitForElement(
         driver,
         By.xpath("//button[@aria-label='ההזמנות שלך']"),
       );
-      await safeClick(driver, cartButton as WebElement);
+      if (cartButton) await safeClick(driver, cartButton);
 
       while (true) {
         const deleteButtons = await waitForElement(
@@ -170,81 +171,139 @@ export const handler = async (
         driver,
         By.xpath("//button[@aria-label='סגירה']"),
       );
-      if (closeButtons2) {
-        await safeClick(driver, closeButtons2);
-      }
-      await sleep(5000);
-      console.log("end step 2.1");
+      if (closeButtons2) await safeClick(driver, closeButtons2);
+      await sleep(3000);
+      // Re-navigate to ensure clean state
+      await driver.get(GIFT_SHOP_URL);
     }
-
     console.log("end step 2");
     if (LEVEL === "2") {
       await sleep(1000);
       throw new Error("LEVEL 2");
     }
-    console.log("start step 3");
-    await driver.get(giftUrl);
-    const addOrderButton = await waitForElement(
+
+    // Step 3: click "אחר" to reveal the custom amount input.
+    console.log("start step 3: click 'אחר' (custom amount)");
+    const otherAmountButton = await waitForElement(
       driver,
-      By.xpath("//span[normalize-space(text())='להוסיף להזמנה']"),
+      By.xpath("//button[normalize-space(.)='אחר']"),
       13000,
     );
-    await safeClick(driver, addOrderButton as WebElement);
+    if (!otherAmountButton) {
+      throw new Error("Could not find the 'אחר' (other amount) button");
+    }
+    await safeClick(driver, otherAmountButton);
+    await sleep(800);
     console.log("end step 3");
     if (LEVEL === "3") {
       await sleep(1000);
       throw new Error("LEVEL 3");
     }
-    console.log("start step 4");
-    const cartButton = await waitForElement(
+
+    // Step 4: enter the custom amount.
+    console.log(`start step 4: enter custom amount (${giftAmount})`);
+    const amountInput = await waitForElement(
       driver,
-      By.xpath(`//button[.//div[normalize-space(text())="הצגת פריטים"]]`),
+      By.xpath(
+        "//input[@type='number' or @inputmode='numeric' or @inputmode='decimal']",
+      ),
+      8000,
     );
-    await safeClick(driver, cartButton as WebElement);
+    if (!amountInput) {
+      throw new Error("Could not find the custom amount input field");
+    }
+    await amountInput.clear();
+    await amountInput.sendKeys(String(giftAmount));
+    await sleep(500);
     console.log("end step 4");
     if (LEVEL === "4") {
       await sleep(1000);
       throw new Error("LEVEL 4");
     }
-    console.log("start step 5");
-    const checkoutButton = await waitForElement(
-      driver,
-      By.xpath("//button[.//div[normalize-space(text())='מעבר לתשלום']]"),
-    );
 
-    await safeClick(driver, checkoutButton as WebElement);
-    await sleep(8000);
+    // Step 5: ensure "אני קונה לעצמי" toggle is ON.
+    console.log("start step 5: toggle 'אני קונה לעצמי' ON");
+    const selfRedeemSwitch = await waitForElement(
+      driver,
+      By.xpath(
+        "//*[normalize-space(text())='אני קונה לעצמי']/ancestor::*[self::label or self::div][1]//*[@role='switch' or self::input[@type='checkbox']]",
+      ),
+      8000,
+    );
+    if (!selfRedeemSwitch) {
+      throw new Error(
+        "Could not find the 'אני קונה לעצמי' (buying for myself) toggle",
+      );
+    }
+    const switchChecked =
+      (await selfRedeemSwitch.getAttribute("aria-checked")) === "true" ||
+      (await selfRedeemSwitch.getAttribute("checked")) === "true";
+    if (!switchChecked) {
+      await safeClick(driver, selfRedeemSwitch);
+      await sleep(500);
+    } else {
+      console.log("self-redeem toggle already ON, skipping");
+    }
     console.log("end step 5");
     if (LEVEL === "5") {
       await sleep(1000);
       throw new Error("LEVEL 5");
     }
-    console.log("start step 6");
-    await sleep(1000);
-    const checkoutElement = await waitForElement(
+
+    // Step 6: click "להמשיך" (continue) to proceed to payment.
+    console.log("start step 6: click 'להמשיך'");
+    const continueButton = await waitForElement(
       driver,
       By.xpath(
-        "/html[1]/body[1]/div[2]/div[2]/main[1]/div[1]/div[2]/div[1]/ul[1]/li[1]/div[1]/div[2]/div[1]",
+        "//button[.//*[normalize-space(text())='להמשיך'] or normalize-space(.)='להמשיך']",
       ),
       8000,
     );
-    if (checkoutElement) {
-      await safeClick(driver, checkoutElement as WebElement);
+    if (!continueButton) {
+      throw new Error("Could not find the 'להמשיך' (continue) button");
     }
+    await safeClick(driver, continueButton);
+    await sleep(8000);
     console.log("end step 6");
     if (LEVEL === "6") {
       await sleep(1000);
       throw new Error("LEVEL 6");
     }
-    console.log("start step 7");
+
+    // Step 7: ensure Wolt Benefits is the selected payment method.
+    console.log("start step 7: select Wolt Benefits payment");
+    // Try opening the payment-method picker if the current method isn't Wolt Benefits.
+    const paymentOpener = await waitForElement(
+      driver,
+      By.xpath(
+        "//*[normalize-space(text())='אמצעי תשלום']/ancestor::button[1]" +
+          " | //button[.//div[normalize-space(text())='אמצעי תשלום']]" +
+          " | //div[normalize-space(text())='אמצעי תשלום']/ancestor::button[1]",
+      ),
+      4000,
+    );
+    if (paymentOpener) {
+      await safeClick(driver, paymentOpener);
+      await sleep(1500);
+    }
     const woltBenefitsElement = await waitForElement(
       driver,
       By.xpath("//span[normalize-space()='Wolt Benefits']"),
-      8000,
+      6000,
     );
     if (woltBenefitsElement != null) {
-      await safeClick(driver, woltBenefitsElement as WebElement);
-      await sleep(2000);
+      await safeClick(driver, woltBenefitsElement);
+      await sleep(1500);
+      // Some flows show a 'בחירה' (select) confirm button beside the row
+      const selectBtn = await waitForElement(
+        driver,
+        By.xpath("//button[normalize-space(.)='בחירה']"),
+        2000,
+      );
+      if (selectBtn) {
+        await safeClick(driver, selectBtn);
+        await sleep(1000);
+      }
     }
     const closeDialogueButton = await waitForElement(
       driver,
@@ -252,7 +311,7 @@ export const handler = async (
       2000,
     );
     if (closeDialogueButton) {
-      await safeClick(driver, closeDialogueButton as WebElement);
+      await safeClick(driver, closeDialogueButton);
       await sleep(500);
     }
     console.log("end step 7");
@@ -260,25 +319,51 @@ export const handler = async (
       await sleep(1000);
       throw new Error("LEVEL 7");
     }
-    console.log("start step 8");
-    const orderButton = await waitForElement(
+
+    // Step 8: click pay/order button. Try the Wolt-Benefits-specific label first,
+    // then fall back to the legacy generic "לחצו להזמנה" label.
+    console.log("start step 8: click pay/order button");
+    let orderButton = await waitForElement(
       driver,
-      By.xpath("//span[normalize-space(text())='לחצו להזמנה']"),
+      By.xpath(
+        "//span[contains(normalize-space(.), 'Wolt Benefits') and (starts-with(normalize-space(.), 'שלם') or starts-with(normalize-space(.), 'שלמ'))]" +
+          " | //button[.//span[contains(normalize-space(.), 'Wolt Benefits')]]",
+      ),
+      4000,
     );
-    await safeClick(driver, orderButton as WebElement);
+    if (!orderButton) {
+      orderButton = await waitForElement(
+        driver,
+        By.xpath("//span[normalize-space(text())='לחצו להזמנה']"),
+        8000,
+      );
+    }
+    if (!orderButton) {
+      throw new Error("Could not find the final pay/order button");
+    }
+    await safeClick(driver, orderButton);
     await sleep(3000);
     console.log("end step 8");
+
+    // Step 9: verify success.
     try {
-      if (
-        await waitForElement(
-          driver,
-          By.xpath(
-            "//span[@data-localization-key='order.gift-card-tracking-title']",
-          ),
-          15000,
-        )
-      ) {
+      const trackingTitle = await waitForElement(
+        driver,
+        By.xpath(
+          "//span[@data-localization-key='order.gift-card-tracking-title']" +
+            " | //*[contains(normalize-space(.), 'תודה') and (self::h1 or self::h2 or self::h3)]" +
+            " | //*[contains(normalize-space(.), 'אישור הזמנה')]",
+        ),
+        15000,
+      );
+      if (trackingTitle) {
         success = true;
+      } else {
+        // The new self-redeem flow lands on /me/orders/... after success.
+        const currentUrl = await driver.getCurrentUrl();
+        if (currentUrl.includes("/me/orders/")) {
+          success = true;
+        }
       }
     } catch (err) {
       console.log("confirmation element not found");
@@ -328,32 +413,17 @@ export const handler = async (
     throw new Error("Run not found");
   }
 
-  let status: "started" | "in_progress" | "completed" | "failed";
-  let stage: "triggered" | "refreshing_tokens" | "buying_gift" | "getting_code_from_email" | "applying_gift" | "completed";
-
-  if (success) {
-    if (runData.automationMode === "buy-only") {
-      status = "completed";
-      stage = "completed";
-    } else {
-      status = "in_progress";
-      stage = "buying_gift";
-    }
-  } else {
-    status = "failed";
-    stage = "buying_gift";
-  }
+  const status: "completed" | "failed" = success ? "completed" : "failed";
+  const stage: "buying_gift" | "completed" = success ? "completed" : "buying_gift";
   await Run.updateStatusAndStage(runData.runId, status, stage);
 
   try {
     if (success) {
-      if (runData.automationMode === "buy-only") {
-        await notifyOnSuccess(
-          runData.userId,
-          runData.runId,
-          "Gift purchase completed",
-        );
-      }
+      await notifyOnSuccess(
+        runData.userId,
+        runData.runId,
+        "Gift purchase + redemption completed",
+      );
     } else {
       await notifyOnError(
         runData.userId,
@@ -366,25 +436,13 @@ export const handler = async (
   }
 
   if (success) {
-    if (runData.automationMode === "buy-only") {
-      return {
-        runId: runData.runId,
-        userId: runData.userId,
-        success: true,
-        completed: true,
-        message:
-          "Buy-only mode: Gift purchase completed, stopping automation chain",
-        automationMode: "buy-only",
-      };
-    } else {
-      return {
-        runId: runData.runId,
-        userId: runData.userId,
-        success: true,
-        completed: false,
-        message: "Gift purchase completed",
-      };
-    }
+    return {
+      runId: runData.runId,
+      userId: runData.userId,
+      success: true,
+      completed: true,
+      message: "Gift purchase + redemption completed",
+    };
   } else {
     throw new Error("Gift purchase failed");
   }

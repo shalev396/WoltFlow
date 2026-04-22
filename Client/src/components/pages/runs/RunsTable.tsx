@@ -215,7 +215,9 @@ export default function RunsTable() {
                           </TableCell>
                           <TableCell className="text-center">
                             <span className="font-medium text-foreground">
-                              {run.automationMode === "full-run" ? "₪40" : "—"}
+                              {run.amount
+                                ? `₪${Number(run.amount).toLocaleString()}`
+                                : "—"}
                             </span>
                           </TableCell>
                           <TableCell className="text-center">

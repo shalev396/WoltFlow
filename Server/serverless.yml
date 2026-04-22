@@ -333,44 +333,6 @@ stepFunctions:
                     Payload:
                       runId.$: $.runId
                   OutputPath: $.Payload
-                  Next: CheckBuyOnlyMode
-                  Catch:
-                    - ErrorEquals:
-                        - States.ALL
-                      Next: MarkRunFailed
-                      ResultPath: $.error
-
-                CheckBuyOnlyMode:
-                  Type: Choice
-                  Choices:
-                    - Variable: $.completed
-                      BooleanEquals: true
-                      Next: MarkRunSuccess
-                  Default: GetDailyCode
-
-                GetDailyCode:
-                  Type: Task
-                  Resource: arn:aws:states:::lambda:invoke
-                  Parameters:
-                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-getDailyCode
-                    Payload:
-                      runId.$: $.runId
-                  OutputPath: $.Payload
-                  Next: WoltApplyGift
-                  Catch:
-                    - ErrorEquals:
-                        - States.ALL
-                      Next: MarkRunFailed
-                      ResultPath: $.error
-
-                WoltApplyGift:
-                  Type: Task
-                  Resource: arn:aws:states:::lambda:invoke
-                  Parameters:
-                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-woltApplyGift
-                    Payload:
-                      runId.$: $.runId
-                  OutputPath: $.Payload
                   Next: MarkRunSuccess
                   Catch:
                     - ErrorEquals:

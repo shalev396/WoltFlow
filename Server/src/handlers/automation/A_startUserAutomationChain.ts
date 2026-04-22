@@ -60,7 +60,6 @@ export const handler = async (event?: {
       try {
         const newRun = await Run.createForAutomation(
           userData.userId,
-          userData.automationMode,
           userData.giftAmount,
         );
 
@@ -69,7 +68,6 @@ export const handler = async (event?: {
         userRunData.push({
           userId: userData.userId,
           runId: newRun.id,
-          automationMode: userData.automationMode,
           giftAmount: Number(userData.giftAmount) || 0,
           isNotification: userData.isNotificationEnabled,
         });

@@ -29,12 +29,12 @@ export default {
   },
   automationForm: {
     title: "Automation Settings",
-    description: "Configure your automation preferences and gift card amounts",
+    description: "Configure your automation preferences and gift card amount",
     giftAmount: {
       label: "Gift Card Amount (₪)",
       description:
-        "Choose the amount for each automated gift card purchase. Higher amounts may require more Wolt Benefits balance.",
-      placeholder: "Select amount",
+        "Enter any amount between 1 ₪ and 1500 ₪. Wolt Benefits caps may apply.",
+      placeholder: "1-1500 ₪",
     },
     highAmountWarning:
       "Higher gift card amounts require sufficient Wolt Benefits balance. Make sure your account can cover ₪{{amount}} per purchase.",
@@ -227,90 +227,6 @@ export default {
     label: "Automation",
     enabledDescription: "Automation is enabled and ready to run",
     disabledDescription: "Enable automation to start scheduled runs",
-  },
-  automationModeSelector: {
-    label: "Automation Mode",
-    description: "Choose automation behavior",
-    placeholder: "Select automation mode",
-    options: {
-      fullRun: {
-        label: "Full Auto",
-        description: "Buy & apply auto",
-      },
-      buyOnly: {
-        label: "Buy Only",
-        description: "Purchase only",
-      },
-    },
-  },
-  automationModesHelp: {
-    accessibilityLabel: "Help with automation modes",
-    title: "Automation Modes Explained",
-    description:
-      "Choose between complete automation or purchase-only mode based on your preferences",
-    quickGuide: {
-      title: "Quick Guide:",
-      message:
-        "Complete Automation handles everything automatically including gift code redemption, while Purchase Only stops after buying the gift card and lets you manually apply codes.",
-    },
-    modes: {
-      fullRun: {
-        name: "Complete Automation",
-        description:
-          "Fully automated process from purchase to redemption - no manual steps required",
-        flow: {
-          step1: "🔐 Securely log into your Wolt account",
-          step2: "💳 Purchase gift card using your Wolt Benefits",
-          step3: "📧 Extract gift code from your WoltFlow inbox",
-          step4: "🎁 Automatically apply the code to your Wolt account",
-        },
-        pros: {
-          pro1: "Completely hands-off daily automation",
-          pro2: "Maximum time savings",
-          pro3: "No manual intervention needed",
-        },
-        cons: {
-          con1: "Requires email forwarding setup",
-        },
-        requirements: {
-          req1: "Wolt account credentials",
-          req3: "Email forwarding to WoltFlow inbox",
-        },
-        bestFor:
-          "Users who want complete automation and don't mind setting up email forwarding",
-      },
-      buyOnly: {
-        name: "Purchase Only",
-        description:
-          "Automate the purchase but manually apply gift codes yourself",
-        flow: {
-          step1: "🔐 Securely log into your Wolt account",
-          step2: "💳 Purchase gift card using your Wolt Benefits",
-          step3: "✋ Automation stops - you receive email with gift code",
-          step4: "👤 You manually apply the code to your Wolt account",
-        },
-        pros: {
-          pro1: "No email forwarding setup required",
-          pro2: "Still saves time on daily purchases",
-          pro3: "You maintain control over gift code application",
-        },
-        cons: {
-          con1: "Requires daily manual step to apply codes",
-        },
-        requirements: {
-          req1: "Wolt account credentials",
-        },
-        bestFor:
-          "Users who prefer not to set up email forwarding or want to manually control gift code redemption",
-      },
-    },
-    card: {
-      howItWorks: "How it works:",
-      pros: "Pros",
-      cons: "Cons",
-      requirements: "Requirements:",
-      bestFor: "Best for:",
-    },
   },
   notificationDialog: {
     title: "Notification Settings",
