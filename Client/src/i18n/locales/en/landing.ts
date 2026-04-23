@@ -11,7 +11,7 @@ export default {
   howItWorks: {
     title: "How It Works",
     subtitle:
-      "Four simple steps to automate your meal benefits and never lose money again",
+      "Three simple steps to automate your meal benefits and never lose money again",
     steps: {
       connect: {
         title: "Connect Your Accounts",
@@ -25,17 +25,11 @@ export default {
           "WoltFlow purchases Wolt gift cards using your available Wolt Benefits.",
         detail: "Runs daily at optimal times to maximize savings",
       },
-      autoredeem: {
-        title: "Auto-Redeemed Instantly",
-        description:
-          "Your gift card balance is applied to your Wolt account the moment the purchase completes — no codes, no email forwarding, no waiting.",
-        detail: "Instant credit, zero manual steps",
-      },
       apply: {
         title: "Ready in Your Wallet",
         description:
-          "The credit lands in your Wolt account and is ready to use for your next order.",
-        detail: "Ready to use for your next food order",
+          "The credit is auto-redeemed and lands in your Wolt account the moment the purchase completes — ready for your next order.",
+        detail: "Instant credit, zero manual steps",
       },
     },
     footer: "Fully automated • Secure • Works 24/7",

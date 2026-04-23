@@ -6,12 +6,39 @@ import "../models/index.js";
 
 dotenv.config();
 
+// =====================================================================
+// ⚠️ TEMPORARY ONE-SHOT MIGRATION — DELETE AFTER FIRST SUCCESSFUL RUN ⚠️
+// ---------------------------------------------------------------------
+// Everything between the BEGIN / END markers below exists ONLY to clean
+// up legacy schema left over from the email-forwarding / daily-code
+// pipeline and the old `automationMode` selector. It must run once
+// against each environment's database (dev → staging → prod) so the
+// next `sequelize.sync({ alter: true })` does not crash on FK / enum
+// shrink errors.
+//
+// HOW TO REMOVE (do this AFTER cleanup has succeeded everywhere):
+//   1. Delete the entire `cleanupObsoleteSchema()` function below
+//      (start at the "BEGIN: TEMPORARY CLEANUP" marker, stop at the
+//       "END: TEMPORARY CLEANUP" marker — both markers included).
+//   2. Inside `syncDatabase()` further down, delete the line
+//      `await cleanupObsoleteSchema();` (and this paragraph's pointer
+//       comment right above it).
+//   3. Leave `initializeModelRelationships()` and the
+//      `sequelize.sync({ alter: true })` block untouched.
+//
+// Safe to re-run while it still exists (every statement is idempotent).
+// =====================================================================
+
+// BEGIN: TEMPORARY CLEANUP — remove from here ↓
 /**
  * Idempotent destructive cleanup that runs before sync({ alter: true }).
  *
  * Removes legacy schema artifacts left over from the email-forwarding /
  * daily-code pipeline and the old `automationMode` selector, so the next
  * sync can succeed without FK / enum-shrink errors. Safe to re-run.
+ *
+ * ⚠️ TEMPORARY — delete this whole function once every environment has
+ * synced at least once. See the banner above for full removal steps.
  */
 async function cleanupObsoleteSchema(): Promise<void> {
   const statements: { label: string; sql: string }[] = [
@@ -86,6 +113,7 @@ async function cleanupObsoleteSchema(): Promise<void> {
     }
   }
 }
+// END: TEMPORARY CLEANUP — stop removing here ↑
 
 // Export a function to sync database instead of doing it at module load time
 export async function syncDatabase() {
@@ -93,6 +121,8 @@ export async function syncDatabase() {
     // Initialize model relationships before syncing
     initializeModelRelationships();
 
+    // ⚠️ TEMPORARY — delete this call along with `cleanupObsoleteSchema`
+    // once every environment has been migrated. See banner above.
     await cleanupObsoleteSchema();
 
     await sequelize
