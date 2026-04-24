@@ -45,11 +45,6 @@ export default {
           "לכל התקן יש טוקנים ייחודיים. חלץ אישורים מהתקן שלא תתחבר אליו/תתנתק ממנו לעתים קרובות ב-Wolt, מכיוון שזה עלול לבטל את הטוקנים.",
       },
     },
-    woltBenefits: {
-      title: "Wolt Benefits",
-      description:
-        "אין צורך באישורים. WoltFlow משתמש בחשבון Wolt שלך לרכישת כרטיסי מתנה עם Wolt Benefits (הטבות ארוחות). ודא שהמעסיק או ספק ההטבות שלך חיבר את Wolt Benefits לחשבון Wolt שלך.",
-    },
   },
   activationGuide: {
     title: "הפעלה צעד אחר צעד",

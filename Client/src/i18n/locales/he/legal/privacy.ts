@@ -24,7 +24,6 @@ export default {
           title: "משתמש",
           items: [
             "cognitoSub (מזהה ייחודי של AWS Cognito), name, email",
-            "apiKey (אופציונלי; עבור אינטגרציות העברת SMS שהמשתמש יזם)",
             "ביקורת: lastLoginAt, createdAt, updatedAt",
           ],
         },
@@ -151,7 +150,7 @@ export default {
       oneTime: {
         title: "קודים חד-פעמיים",
         description:
-          "TwoFactorAuthentication (קודי אימות) ו-Code (קודי מתנה) – נמחקים בניקוי יומי (עשויים להימחק מוקדם יותר על ידי ניקוי מתגלגל).",
+          'TwoFactorAuthentication (קודי אימות עבור אימות ערוץ ה-SMS/דוא"ל שלנו) – נמחקים בניקוי יומי (עשויים להימחק מוקדם יותר על ידי ניקוי מתגלגל).',
       },
       operational: {
         title: "היסטוריה תפעולית",

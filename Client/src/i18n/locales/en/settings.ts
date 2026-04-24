@@ -150,7 +150,6 @@ export default {
       account: "Your account and profile information",
       settings: "All automation settings and credentials",
       runs: "Complete run history and screenshots",
-      apiKeys: "API keys and integration settings",
       personalData: "All personal data and usage history",
     },
     timeline: {

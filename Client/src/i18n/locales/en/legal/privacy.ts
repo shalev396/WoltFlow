@@ -24,7 +24,6 @@ export default {
           title: "User",
           items: [
             "cognitoSub (AWS Cognito unique identifier), name, email",
-            "apiKey (optional; for user-initiated SMS forwarding integrations)",
             "Audit: lastLoginAt, createdAt, updatedAt",
           ],
         },
@@ -153,7 +152,7 @@ export default {
       oneTime: {
         title: "One-time codes",
         description:
-          "TwoFactorAuthentication (verification codes) and Code (gift codes) – deleted in a daily purge (may be deleted earlier by rolling cleanup).",
+          "TwoFactorAuthentication (verification codes for our own SMS/email channel verification) – deleted in a daily purge (may be deleted earlier by rolling cleanup).",
       },
       operational: {
         title: "Operational history",

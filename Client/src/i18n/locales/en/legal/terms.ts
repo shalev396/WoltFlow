@@ -18,33 +18,28 @@ export default {
     },
     whatService: {
       title: "What the Service Does (Summary)",
-      p1: "The Service is an automation tool that, after you configure it, runs up to once per day to (a) access your Wolt Benefits (meal benefits) and (b) purchase Wolt credit/gift card on your behalf using those benefits (when possible). The Service can also receive forwarded emails that you direct to the Service to complete verification steps. An API is available and documented for sending required messages to complete flows.",
+      p1: "The Service is an automation tool that, after you configure it, runs up to once per day to (a) access your Wolt Benefits (meal benefits) and (b) purchase a Wolt gift card on your behalf using those benefits (when possible). The gift card is auto-redeemed straight to your Wolt account during the same checkout — no email forwarding, no codes, no manual steps.",
       p2: "The Service is provided as-is, may change or stop at any time, and is currently offered as a side project with limited availability and support.",
     },
     account: {
       title: "Your Account; Eligibility",
       a: "You must be 18+ and legally capable of contracting.",
       b: "You must only use the Service for your own accounts (Wolt Benefits, Wolt, email, phone). You represent and warrant you have all rights and permissions to use automation on those accounts, and that your use complies with their terms.",
-      c: "You are responsible for maintaining the confidentiality of your login methods (including API key) and for all activity under your account.",
+      c: "You are responsible for maintaining the confidentiality of your login methods and for all activity under your account.",
     },
     setup: {
       title: "Initial Setup & Your Inputs",
       a: {
         title: "Configuration required.",
         description:
-          "The automation runs only after you provide and save required inputs (e.g., Wolt tokens, phone/email forwarding, preferences).",
+          "The automation runs only after you provide and save required inputs (e.g., Wolt tokens, gift-card amount, optional notification preferences).",
       },
       b: {
         title: "Credentials & secrets.",
         description:
-          "Sensitive fields (e.g., usernames, passwords, tokens, codes) are encrypted with AES-256 in our database at rest and are transmitted encrypted in transit to the server. Decryption occurs only on the server/function at the time of use. Secrets are never sent to clients.",
+          "Sensitive fields (e.g., Wolt tokens) are encrypted with AES-256 in our database at rest and are transmitted encrypted in transit to the server. Decryption occurs only on the server/function at the time of use. Secrets are never sent to clients.",
       },
       c: {
-        title: "Forwarded SMS & emails.",
-        description:
-          "You may forward your own messages to the Service or use a mobile automation/SMS-forwarder to send the one-time codes needed to complete login steps. Do not forward messages that are not yours.",
-      },
-      d: {
         title: "Accuracy.",
         description:
           "You are responsible for providing accurate, up-to-date information. The Service will act based on what you configure.",
@@ -111,7 +106,6 @@ export default {
           "A third party bans/suspends your account(s);",
           "Funds/credits become unusable, expire, or are restricted;",
           "A payment method other than Wolt Benefits is used by the third party during checkout (including a credit card on file)",
-          "Forwarded SMS/email codes fail, are delayed, or are intercepted on your device or network.",
         ],
       },
       d: {
@@ -128,7 +122,7 @@ export default {
     indemnification: {
       title: "Indemnification",
       description:
-        "You will defend, indemnify, and hold harmless us and our developers from and against any claims, damages, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from: (a) your use of the Service; (b) your violation of these Terms; (c) your violation of any third-party terms (including Wolt Benefits/Wolt); or (d) your misuse of the API, forwarded SMS/emails, or credentials.",
+        "You will defend, indemnify, and hold harmless us and our developers from and against any claims, damages, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from: (a) your use of the Service; (b) your violation of these Terms; (c) your violation of any third-party terms (including Wolt Benefits/Wolt); or (d) your misuse of credentials.",
     },
     privacy: {
       title: "Privacy",

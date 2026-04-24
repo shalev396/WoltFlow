@@ -46,11 +46,6 @@ export default {
           "Each device has unique tokens. Extract credentials from a device you won't frequently log in/out of Wolt, as this may invalidate tokens.",
       },
     },
-    woltBenefits: {
-      title: "Wolt Benefits",
-      description:
-        "No credentials needed. WoltFlow uses your Wolt account to purchase gift cards with your Wolt Benefits (meal benefits). Ensure your employer or benefits provider has linked Wolt Benefits to your Wolt account.",
-    },
   },
   activationGuide: {
     title: "Step-by-Step Activation",

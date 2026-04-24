@@ -75,101 +75,85 @@ export function GettingStartedContent() {
           {t("accountRequirements.title")}
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-blue-600" />
-                {t("accountRequirements.woltAccount.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">
-                {t("accountRequirements.woltAccount.description")}
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-blue-600" />
+              {t("accountRequirements.woltAccount.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground text-sm">
+              {t("accountRequirements.woltAccount.description")}
+            </p>
 
-              <div className="space-y-3">
-                <h4 className="font-medium">
-                  {t("accountRequirements.woltAccount.optionsTitle")}
-                </h4>
+            <div className="space-y-3">
+              <h4 className="font-medium">
+                {t("accountRequirements.woltAccount.optionsTitle")}
+              </h4>
 
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe className="h-4 w-4" />
-                    <span className="font-medium text-sm">
-                      {t("accountRequirements.woltAccount.extension.title")}
-                    </span>
-                    <Badge className="bg-green-100 text-green-800">
-                      {t("accountRequirements.woltAccount.extension.badge")}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {t("accountRequirements.woltAccount.extension.description")}
-                  </p>
-                  <Button asChild size="sm" variant="outline">
-                    <Link to={`/${language}/docs/woltflow-extension`}>
-                      {t("accountRequirements.woltAccount.extension.button")}
-                      <ArrowRight className="ml-1 h-3 w-3" />
-                    </Link>
-                  </Button>
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Globe className="h-4 w-4" />
+                  <span className="font-medium text-sm">
+                    {t("accountRequirements.woltAccount.extension.title")}
+                  </span>
+                  <Badge className="bg-green-100 text-green-800">
+                    {t("accountRequirements.woltAccount.extension.badge")}
+                  </Badge>
                 </div>
-
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Settings className="h-4 w-4" />
-                    <span className="font-medium text-sm">
-                      {t("accountRequirements.woltAccount.manual.title")}
-                    </span>
-                    <Badge variant="secondary">
-                      {t("accountRequirements.woltAccount.manual.badge")}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {t("accountRequirements.woltAccount.manual.description")}
-                  </p>
-                  <Button asChild size="sm" variant="outline">
-                    <Link to={`/${language}/docs/manual-setup`}>
-                      {t("accountRequirements.woltAccount.manual.button")}
-                      <ArrowRight className="ml-1 h-3 w-3" />
-                    </Link>
-                  </Button>
-                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {t("accountRequirements.woltAccount.extension.description")}
+                </p>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/${language}/docs/woltflow-extension`}>
+                    {t("accountRequirements.woltAccount.extension.button")}
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </Link>
+                </Button>
               </div>
 
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-amber-900 dark:text-amber-100">
-                      {t(
-                        "accountRequirements.woltAccount.deviceConsideration.title",
-                      )}
-                    </p>
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      {t(
-                        "accountRequirements.woltAccount.deviceConsideration.description",
-                      )}
-                    </p>
-                  </div>
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Settings className="h-4 w-4" />
+                  <span className="font-medium text-sm">
+                    {t("accountRequirements.woltAccount.manual.title")}
+                  </span>
+                  <Badge variant="secondary">
+                    {t("accountRequirements.woltAccount.manual.badge")}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {t("accountRequirements.woltAccount.manual.description")}
+                </p>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/${language}/docs/manual-setup`}>
+                    {t("accountRequirements.woltAccount.manual.button")}
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-amber-900 dark:text-amber-100">
+                    {t(
+                      "accountRequirements.woltAccount.deviceConsideration.title",
+                    )}
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    {t(
+                      "accountRequirements.woltAccount.deviceConsideration.description",
+                    )}
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-purple-600" />
-                {t("accountRequirements.woltBenefits.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">
-                {t("accountRequirements.woltBenefits.description")}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div id="activation-guide" className="space-y-6 scroll-mt-32">
