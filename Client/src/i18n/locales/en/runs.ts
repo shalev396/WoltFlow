@@ -32,7 +32,6 @@ export default {
     },
     "filters": {
       "filterByStatus": "Filter by status",
-      "filterByMode": "Filter by mode",
       "columns": "Columns"
     },
     "status": {
@@ -42,17 +41,10 @@ export default {
       "inProgress": "In Progress",
       "started": "Started"
     },
-    "mode": {
-      "allModes": "All Modes",
-      "fullRun": "Full Run",
-      "buyOnly": "Buy Only"
-    },
     "stages": {
       "triggered": "Triggered",
       "refreshingTokens": "Refreshing Tokens",
       "buyingGift": "Buying Gift",
-      "gettingCode": "Getting Code from Email",
-      "applyingGift": "Applying Gift",
       "completed": "Completed"
     },
     "actions": {
@@ -85,14 +77,10 @@ export default {
     "clear": "Clear",
     "status": "Status",
     "stage": "Stage",
-    "mode": "Mode",
     "allStatuses": "All statuses",
     "allStages": "All stages",
-    "allModes": "All modes",
     "activeFilters": "Active filters:",
     "statusLabel": "Status: {{status}}",
-    "stageLabel": "Stage: {{stage}}",
-    "modeLabel": "Mode: {{mode}}",
-    "completeAutomation": "Complete Automation"
+    "stageLabel": "Stage: {{stage}}"
   }
 } as const;

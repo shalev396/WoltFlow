@@ -24,7 +24,6 @@ export default {
           title: "User",
           items: [
             "cognitoSub (AWS Cognito unique identifier), name, email",
-            "apiKey (optional; for user-initiated SMS forwarding integrations)",
             "Audit: lastLoginAt, createdAt, updatedAt",
           ],
         },
@@ -54,43 +53,17 @@ export default {
           retention:
             "Retention: deleted in daily purge (verification codes only).",
         },
-        code: {
-          title: "Code (Wolt gift code purchased during a run)",
-          items: [
-            "userId, runId (if generated in run), emailId (if extracted from email), code, isUsed",
-          ],
-          retention:
-            "Retention: deleted in daily purge after use or expiry window.",
-        },
-      },
-      email: {
-        title: "Email ingestion (for gift code extraction)",
-        inbox: {
-          title: "Inbox",
-          description:
-            "userId, emailAddress (unique SES-style recipient assigned per user)",
-        },
-        emails: {
-          title: "Emails",
-          items: [
-            "inboxId, s3EmailUrl, attachmentUrls[], fromEmail, fromName, toEmail, toName, subject, body, emailDate",
-          ],
-          flow: "Flow: messages sent to your assigned recipient address are received by AWS SES → delivered to S3 → processed; we create an Emails record linked to your Inbox.",
-          retention:
-            "Retention: default 90 days (see §5); S3 objects follow the same retention unless required shorter.",
-        },
       },
       runs: {
         title: "Automation runs & artifacts",
         runSettings: {
           title: "RunSettings",
-          description:
-            'automationMode ("full-run" | "buy-only" | "cross-account"), giftAmount',
+          description: "giftAmount",
         },
         run: {
           title: "Run",
           items: [
-            "userId, status, stage (e.g., buying_gift, applying_gift), automationMode, errorMessage?",
+            "userId, status, stage (e.g., buying_gift, completed), errorMessage?",
           ],
           purpose: "Purpose: operational trace for your automations.",
         },
@@ -117,7 +90,7 @@ export default {
       service: {
         title: "Provide the service",
         description:
-          "Authenticate you (AWS Cognito with email/password), run the buy/apply automation for Wolt using Wolt Benefits, ingest gift emails to extract codes, and apply them to your Wolt account.",
+          "Authenticate you (AWS Cognito with email/password) and run the buy automation for Wolt using Wolt Benefits — gift cards are now auto-redeemed straight to your Wolt account at checkout, so we no longer ingest emails or extract codes.",
       },
       operate: {
         title: "Operate the product",
@@ -141,7 +114,7 @@ export default {
       primary: {
         title: "Primary region",
         description:
-          "AWS {{region}} ({{city}}) for Aurora PostgreSQL, Lambda, API Gateway, VPC, CloudWatch logs, EventBridge, Step Functions, CloudFormation, IAM, S3, SES, Certificate Manager, Route 53, CloudFront.",
+          "AWS {{region}} ({{city}}) for Aurora PostgreSQL, Lambda, API Gateway, VPC, CloudWatch logs, EventBridge, Step Functions, CloudFormation, IAM, S3, SES (outbound notifications only), Certificate Manager, Route 53, CloudFront.",
       },
       global: {
         title: "Global delivery",
@@ -179,15 +152,11 @@ export default {
       oneTime: {
         title: "One-time codes",
         description:
-          "TwoFactorAuthentication (verification codes) and Code (gift codes) – deleted in a daily purge (may be deleted earlier by rolling cleanup).",
+          "TwoFactorAuthentication (verification codes for our own SMS/email channel verification) – deleted in a daily purge (may be deleted earlier by rolling cleanup).",
       },
       operational: {
         title: "Operational history",
         description: "Run and Screenshot – 90 days.",
-      },
-      emails: {
-        title: "Emails & attachments",
-        description: "Up to 90 days.",
       },
       logs: {
         title: "Logs",
@@ -196,10 +165,10 @@ export default {
       account: {
         title: "Account & settings",
         description:
-          "User account, Settings, WoltSettings, RunSettings, NotificationSettings, Inbox – kept until you delete your account.",
+          "User account, Settings, WoltSettings, RunSettings, NotificationSettings – kept until you delete your account.",
       },
       deletion:
-        "Account deletion: triggers deletion of all the above user-linked data, including runs, screenshots, emails, and stored credentials/tokens, subject only to technical delay for safe purge. (We do not keep database backups for this project.)",
+        "Account deletion: triggers deletion of all the above user-linked data, including runs, screenshots, and stored credentials/tokens, subject only to technical delay for safe purge. (We do not keep database backups for this project.)",
     },
     controls: {
       title: "Your Controls",
@@ -242,7 +211,7 @@ export default {
           "AWS Cognito (authentication: email/password-based user accounts, secure token management)",
           "Compute & API: Lambda, API Gateway, EC2 (as needed)",
           "Storage/Data: Aurora PostgreSQL (RDS), S3",
-          "Messaging/Email: Amazon SES (receive email into S3; send outbound emails), AWS End User Messaging (for SMS/notifications, if configured)",
+          "Messaging/Email: Amazon SES (send outbound notification emails only), AWS End User Messaging (for SMS/notifications, if configured)",
           "Orchestration/Monitoring: EventBridge, Step Functions, CloudWatch",
           "Network & Delivery: VPC, Route 53, CloudFront (global CDN & API edge), Certificate Manager (TLS)",
           "Platform: IAM (access control), CloudFormation (infrastructure as code)",

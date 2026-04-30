@@ -165,57 +165,6 @@ export default function PrivacyPage() {
                         {t("sections.whatData.codes.twoFactor.retention")}
                       </p>
                     </div>
-
-                    <div>
-                      <h4 className="font-medium mb-2">
-                        {t("sections.whatData.codes.code.title")}
-                      </h4>
-                      <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {renderTranslationArray(
-                          t,
-                          "sections.whatData.codes.code.items"
-                        )}
-                      </ul>
-                      <p className="text-muted-foreground text-sm pl-6 mt-2">
-                        {t("sections.whatData.codes.code.retention")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Email ingestion */}
-                <div>
-                  <h3 className="text-xl font-semibold mb-3">
-                    {t("sections.whatData.email.title")}
-                  </h3>
-
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium mb-2">
-                        {t("sections.whatData.email.inbox.title")}
-                      </h4>
-                      <p className="text-muted-foreground text-sm pl-6">
-                        {t("sections.whatData.email.inbox.description")}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-medium mb-2">
-                        {t("sections.whatData.email.emails.title")}
-                      </h4>
-                      <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                        {renderTranslationArray(
-                          t,
-                          "sections.whatData.email.emails.items"
-                        )}
-                      </ul>
-                      <p className="text-muted-foreground text-sm pl-6 mt-2">
-                        {t("sections.whatData.email.emails.flow")}
-                      </p>
-                      <p className="text-muted-foreground text-sm pl-6">
-                        {t("sections.whatData.email.emails.retention")}
-                      </p>
-                    </div>
                   </div>
                 </div>
 
@@ -446,15 +395,6 @@ export default function PrivacyPage() {
                   </h3>
                   <p className="text-muted-foreground text-sm">
                     {t("sections.retention.operational.description")}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-2">
-                    {t("sections.retention.emails.title")}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {t("sections.retention.emails.description")}
                   </p>
                 </div>
 

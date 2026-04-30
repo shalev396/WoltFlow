@@ -163,7 +163,7 @@ export default {
   extractionComplete: {
     title: "Extraction Complete!",
     description:
-      "Once you've successfully copied your tokens to WoltFlow settings, you can continue with configuring email forwarding and automation preferences to complete your setup.",
+      "Once you've successfully copied your tokens to WoltFlow settings, you can continue with configuring your gift-card amount and automation preferences to complete your setup.",
     button: "Continue Setup Guide",
   },
 } as const;

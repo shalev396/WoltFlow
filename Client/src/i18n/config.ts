@@ -73,7 +73,6 @@ i18n
       "landing",
       "dashboard",
       "runs",
-      "inbox",
       "settings",
       "notFound",
       "consent",
@@ -89,8 +88,6 @@ i18n
       "docs/gettingStarted",
       "docs/woltflowExtension",
       "docs/manualSetup",
-      "docs/emailForwarding",
-      "docs/inbox",
     ],
     defaultNS: "common",
 

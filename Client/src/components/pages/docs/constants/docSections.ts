@@ -1,11 +1,4 @@
-import {
-  BookOpen,
-  Play,
-  Globe,
-  Settings,
-  Mail,
-  Inbox,
-} from "lucide-react";
+import { BookOpen, Play, Globe, Settings } from "lucide-react";
 import type { DocSection } from "../types";
 
 export const docSections: DocSection[] = [
@@ -47,26 +40,6 @@ export const docSections: DocSection[] = [
       { id: "understanding-tokens", title: "Understanding Tokens" },
       { id: "manual-extraction", title: "Manual Extraction" },
       { id: "token-security", title: "Token Security" },
-    ],
-  },
-  {
-    id: "email-forwarding",
-    title: "Email Forwarding",
-    icon: Mail,
-    subsections: [
-      { id: "gmail-forwarding", title: "Gmail Setup" },
-      { id: "email-filters", title: "Email Filters" },
-      { id: "other-providers", title: "Other Providers" },
-    ],
-  },
-  {
-    id: "inbox",
-    title: "Your Inbox",
-    icon: Inbox,
-    subsections: [
-      { id: "inbox-overview", title: "How It Works" },
-      { id: "managing-emails", title: "Managing Emails" },
-      { id: "inbox-privacy", title: "Privacy & Security" },
     ],
   },
 ];

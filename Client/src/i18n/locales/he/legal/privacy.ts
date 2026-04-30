@@ -24,7 +24,6 @@ export default {
           title: "משתמש",
           items: [
             "cognitoSub (מזהה ייחודי של AWS Cognito), name, email",
-            "apiKey (אופציונלי; עבור אינטגרציות העברת SMS שהמשתמש יזם)",
             "ביקורת: lastLoginAt, createdAt, updatedAt",
           ],
         },
@@ -53,42 +52,17 @@ export default {
           ],
           retention: "שמירה: נמחק בניקוי יומי (קודי אימות בלבד).",
         },
-        code: {
-          title: "Code (קוד מתנה של Wolt שנרכש במהלך ריצה)",
-          items: [
-            'userId, runId (אם נוצר בריצה), emailId (אם חולץ מדוא"ל), code, isUsed',
-          ],
-          retention: "שמירה: נמחק בניקוי יומי לאחר שימוש או חלון תפוגה.",
-        },
-      },
-      email: {
-        title: 'קליטת דוא"ל (לחילוץ קוד מתנה)',
-        inbox: {
-          title: "Inbox",
-          description:
-            "userId, emailAddress (נמען ייחודי בסגנון SES המוקצה לכל משתמש)",
-        },
-        emails: {
-          title: "Emails",
-          items: [
-            "inboxId, s3EmailUrl, attachmentUrls[], fromEmail, fromName, toEmail, toName, subject, body, emailDate",
-          ],
-          flow: "זרימה: הודעות שנשלחו לכתובת הנמען המוקצית שלך מתקבלות על ידי AWS SES → מועברות ל-S3 → מעובדות; אנו יוצרים רשומת Emails המקושרת ל-Inbox שלך.",
-          retention:
-            "שמירה: ברירת מחדל 90 יום (ראה §5); אובייקטי S3 עוקבים אחר אותה שמירה אלא אם נדרש קצר יותר.",
-        },
       },
       runs: {
         title: "ריצות אוטומציה ופריטים",
         runSettings: {
           title: "RunSettings",
-          description:
-            'automationMode ("full-run" | "buy-only" | "cross-account"), giftAmount',
+          description: "giftAmount",
         },
         run: {
           title: "Run",
           items: [
-            "userId, status, stage (למשל buying_gift, applying_gift), automationMode, errorMessage?",
+            "userId, status, stage (למשל buying_gift, completed), errorMessage?",
           ],
           purpose: "מטרה: מעקב תפעולי לאוטומציות שלך.",
         },
@@ -115,7 +89,7 @@ export default {
       service: {
         title: "לספק את השירות",
         description:
-          'לאמת אותך (AWS Cognito עם דוא"ל/סיסמה), להפעיל את אוטומציית הקנייה/החלה עבור Wolt באמצעות Wolt Benefits, לקלוט מיילי מתנה כדי לחלץ קודים, ולהחיל אותם על חשבון Wolt שלך.',
+          'לאמת אותך (AWS Cognito עם דוא"ל/סיסמה) ולהפעיל את אוטומציית הקנייה עבור Wolt באמצעות Wolt Benefits — כרטיסי המתנה נפדים אוטומטית ישירות לחשבון ה-Wolt שלך בעת התשלום, כך שאין צורך לקלוט אימיילים או לחלץ קודים.',
       },
       operate: {
         title: "להפעיל את המוצר",
@@ -139,7 +113,7 @@ export default {
       primary: {
         title: "אזור ראשי",
         description:
-          "AWS {{region}} ({{city}}) עבור Aurora PostgreSQL, Lambda, API Gateway, VPC, CloudWatch logs, EventBridge, Step Functions, CloudFormation, IAM, S3, SES, Certificate Manager, Route 53, CloudFront.",
+          "AWS {{region}} ({{city}}) עבור Aurora PostgreSQL, Lambda, API Gateway, VPC, CloudWatch logs, EventBridge, Step Functions, CloudFormation, IAM, S3, SES (התראות יוצאות בלבד), Certificate Manager, Route 53, CloudFront.",
       },
       global: {
         title: "אספקה גלובלית",
@@ -176,15 +150,11 @@ export default {
       oneTime: {
         title: "קודים חד-פעמיים",
         description:
-          "TwoFactorAuthentication (קודי אימות) ו-Code (קודי מתנה) – נמחקים בניקוי יומי (עשויים להימחק מוקדם יותר על ידי ניקוי מתגלגל).",
+          'TwoFactorAuthentication (קודי אימות עבור אימות ערוץ ה-SMS/דוא"ל שלנו) – נמחקים בניקוי יומי (עשויים להימחק מוקדם יותר על ידי ניקוי מתגלגל).',
       },
       operational: {
         title: "היסטוריה תפעולית",
         description: "Run ו-Screenshot – 90 יום.",
-      },
-      emails: {
-        title: "מיילים וקבצים מצורפים",
-        description: "עד 90 יום.",
       },
       logs: {
         title: "לוגים",
@@ -193,10 +163,10 @@ export default {
       account: {
         title: "חשבון והגדרות",
         description:
-          "חשבון משתמש, הגדרות, WoltSettings, RunSettings, NotificationSettings, Inbox – נשמרים עד שתמחק את חשבונך.",
+          "חשבון משתמש, הגדרות, WoltSettings, RunSettings, NotificationSettings – נשמרים עד שתמחק את חשבונך.",
       },
       deletion:
-        "מחיקת חשבון: מפעילה מחיקה של כל הנתונים הקשורים למשתמש לעיל, כולל ריצות, צילומי מסך, מיילים ואישורים/אסימונים מאוחסנים, בכפוף רק לעיכוב טכני לניקוי בטוח. (אנחנו לא שומרים גיבויי מסד נתונים עבור פרויקט זה.)",
+        "מחיקת חשבון: מפעילה מחיקה של כל הנתונים הקשורים למשתמש לעיל, כולל ריצות, צילומי מסך ואישורים/אסימונים מאוחסנים, בכפוף רק לעיכוב טכני לניקוי בטוח. (אנחנו לא שומרים גיבויי מסד נתונים עבור פרויקט זה.)",
     },
     controls: {
       title: "הבקרות שלך",
@@ -239,7 +209,7 @@ export default {
           'AWS Cognito (אימות: חשבונות משתמש מבוססי דוא"ל/סיסמה, ניהול אסימונים מאובטח)',
           "חישוב ו-API: Lambda, API Gateway, EC2 (לפי הצורך)",
           "אחסון/נתונים: Aurora PostgreSQL (RDS), S3",
-          'הודעות/דוא"ל: Amazon SES (קבל דוא"ל ל-S3; שלח דוא"ל יוצא), AWS End User Messaging (עבור SMS/התראות, אם מוגדר)',
+          'הודעות/דוא"ל: Amazon SES (לשליחת התראות יוצאות בלבד), AWS End User Messaging (עבור SMS/התראות, אם מוגדר)',
           "תזמור/ניטור: EventBridge, Step Functions, CloudWatch",
           "רשת ואספקה: VPC, Route 53, CloudFront (CDN גלובלי וקצה API), Certificate Manager (TLS)",
           "פלטפורמה: IAM (בקרת גישה), CloudFormation (תשתית כקוד)",

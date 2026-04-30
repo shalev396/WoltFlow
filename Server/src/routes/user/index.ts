@@ -2,7 +2,6 @@ import { Router } from "express";
 import { dashboardRouter } from "./dashboard.js";
 import { runsRouter } from "./runs.js";
 import { settingsRouter } from "./settings.js";
-import { inboxRouter } from "./inbox.js";
 import { accountRouter } from "./account.js";
 
 const router = Router();
@@ -11,7 +10,6 @@ const router = Router();
 router.use("/dashboard", dashboardRouter);
 router.use("/runs", runsRouter);
 router.use("/settings", settingsRouter);
-router.use("/inbox", inboxRouter);
 router.use("/", accountRouter); // /user/export and /user/delete
 
 export { router as userRouter };

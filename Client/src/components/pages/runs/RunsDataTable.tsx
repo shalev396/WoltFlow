@@ -300,15 +300,6 @@ export function RunsDataTable({
     onFiltersChange(newFilters);
   };
 
-  // Handle automation mode filter
-  const handleModeFilter = (mode: string) => {
-    const newFilters =
-      mode === "all"
-        ? { ...filters, automationMode: undefined }
-        : { ...filters, automationMode: mode as RunFilters["automationMode"] };
-    onFiltersChange(newFilters);
-  };
-
   if (error) {
     return (
       <Card>
@@ -364,27 +355,6 @@ export function RunsDataTable({
                   </SelectItem>
                   <SelectItem value="started">
                     {t("table.status.started")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Automation Mode Filter */}
-              <Select
-                value={filters.automationMode || "all"}
-                onValueChange={handleModeFilter}
-              >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder={t("table.filters.filterByMode")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t("table.mode.allModes")}
-                  </SelectItem>
-                  <SelectItem value="full-run">
-                    {t("table.mode.fullRun")}
-                  </SelectItem>
-                  <SelectItem value="buy-only">
-                    {t("table.mode.buyOnly")}
                   </SelectItem>
                 </SelectContent>
               </Select>

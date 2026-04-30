@@ -12,7 +12,6 @@ export default {
     "links": {
       "dashboard": "לוח בקרה",
       "runs": "ריצות אוטומציה",
-      "inbox": "תיבת דואר",
       "settings": "הגדרות",
       "privacy": "מדיניות פרטיות"
     }

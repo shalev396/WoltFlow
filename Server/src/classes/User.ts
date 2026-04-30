@@ -11,11 +11,8 @@ import {
   RunSettings,
   WoltSettings,
   TwoFactorAuthentication,
-  Inbox,
-  Emails,
   Run as RunModel,
   Screenshot,
-  Code as CodeModel,
 } from "../models/index.js";
 // Local Sequelize composite types (encapsulated from external consumers)
 type SettingsWithNotificationSettings = Settings & {
@@ -138,6 +135,27 @@ export class User {
     const result = await UserModel.findOne({ where: { cognitoSub } });
     if (!result) return null;
     return new User(result);
+  }
+
+  /**
+   * Resolves either an internal `User.id` or a `cognitoSub` to the internal
+   * `User.id`. Returns `null` if no user matches either column.
+   *
+   * Both identifiers are UUID-shaped, so we can't distinguish them by format —
+   * we try `id` first (cheap PK lookup) and fall back to `cognitoSub`.
+   */
+  static async resolveToInternalId(idOrSub: string): Promise<string | null> {
+    const byId = await UserModel.findOne({
+      where: { id: idOrSub },
+      attributes: ["id"],
+    });
+    if (byId) return byId.id;
+
+    const bySub = await UserModel.findOne({
+      where: { cognitoSub: idOrSub },
+      attributes: ["id"],
+    });
+    return bySub?.id ?? null;
   }
 
   // ==================== Static Methods - Auth ====================
@@ -537,7 +555,6 @@ export class User {
         ? {
             id: settings.runSettings.id,
             automationEnabled: settings.runSettings.automationEnabled,
-            automationMode: settings.runSettings.automationMode,
             giftAmount:
               settings.runSettings.giftAmount !== null
                 ? String(settings.runSettings.giftAmount)
@@ -572,7 +589,6 @@ export class User {
     } else {
       runSettings = await RunSettings.create({
         automationEnabled: false,
-        automationMode: "full-run",
         giftAmount: null,
       });
 
@@ -586,9 +602,6 @@ export class User {
     if (requestData.automationEnabled !== undefined) {
       updates.automationEnabled = requestData.automationEnabled;
     }
-    if (requestData.automationMode !== undefined) {
-      updates.automationMode = requestData.automationMode;
-    }
     if (requestData.giftAmount !== undefined) {
       updates.giftAmount = requestData.giftAmount;
     }
@@ -600,7 +613,6 @@ export class User {
       runSettings: {
         id: runSettings.id,
         automationEnabled: runSettings.automationEnabled,
-        automationMode: runSettings.automationMode,
         giftAmount:
           runSettings.giftAmount !== null
             ? String(runSettings.giftAmount)
@@ -734,15 +746,6 @@ export class User {
       }
     }
 
-    const inbox = await Inbox.findOne({
-      where: { userId },
-      attributes: ["id", "userId", "emailAddress", "createdAt", "updatedAt"],
-    });
-
-    const emails = inbox
-      ? await Emails.findAll({ where: { inboxId: inbox.id } })
-      : [];
-
     const runs = await RunModel.findAll({ where: { userId } });
 
     const runIds = runs.map((run) => run.id);
@@ -750,8 +753,6 @@ export class User {
       runIds.length > 0
         ? await Screenshot.findAll({ where: { runId: runIds } })
         : [];
-
-    const codes = await CodeModel.findAll({ where: { userId } });
 
     const exportData: CompleteUserExport = {
       user: user.toJSON(),
@@ -764,11 +765,8 @@ export class User {
       twoFactorAuthentications: twoFactorAuthentications.map((tfa) =>
         tfa.toJSON(),
       ),
-      inbox: inbox ? inbox.toJSON() : null,
-      emails: emails.map((email) => email.toJSON()),
       runs: runs.map((run) => run.toJSON()),
       screenshots: screenshots.map((screenshot) => screenshot.toJSON()),
-      codes: codes.map((code) => code.toJSON()),
     };
 
     console.log("Creating ZIP export for user:", userId);
@@ -904,7 +902,6 @@ export class User {
       })
       .map((user) => ({
         userId: user.id,
-        automationMode: user.settings?.runSettings?.automationMode || "full-run",
         giftAmount: user.settings?.runSettings?.giftAmount ?? null,
         isNotificationEnabled: user.settings?.notificationSettings?.isEnabled || false,
       }));
@@ -989,7 +986,6 @@ export class User {
 
 export interface AutomationUserData {
   userId: string;
-  automationMode: string;
   giftAmount: number | null;
   isNotificationEnabled: boolean;
 }
@@ -1016,9 +1012,6 @@ export interface CompleteUserExport {
   woltSettings: WoltSettings | null;
   runSettings: RunSettings | null;
   twoFactorAuthentications: TwoFactorAuthentication[];
-  inbox: Inbox | null;
-  emails: Emails[];
   runs: RunModel[];
   screenshots: Screenshot[];
-  codes: CodeModel[];
 }

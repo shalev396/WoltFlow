@@ -69,12 +69,6 @@ export default function NotFound() {
               {t("help.links.runs")}
             </Link>
             <Link
-              to={`/${language}/inbox`}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              {t("help.links.inbox")}
-            </Link>
-            <Link
               to={`/${language}/settings`}
               className="text-blue-600 hover:text-blue-700 underline"
             >

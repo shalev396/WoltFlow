@@ -9,11 +9,8 @@ export default class Run extends Model {
     | "triggered"
     | "refreshing_tokens"
     | "buying_gift"
-    | "getting_code_from_email"
-    | "applying_gift"
     | "completed";
 
-  declare automationMode: "full-run" | "buy-only" | "cross-account"; // Copied from user settings at creation
   declare amount: number | null; // Gift card amount for this run (copied from user settings at creation)
   declare errorMessage: string | null; // Error message if failed
   declare dataExpiresAt: Date; // Data retention expiry (90 days)
@@ -49,17 +46,10 @@ Run.init(
         "triggered",
         "refreshing_tokens",
         "buying_gift",
-        "getting_code_from_email",
-        "applying_gift",
         "completed"
       ),
       allowNull: false,
       defaultValue: "triggered",
-    },
-    automationMode: {
-      type: DataTypes.ENUM("full-run", "buy-only", "cross-account"),
-      allowNull: false,
-      defaultValue: "full-run",
     },
     amount: {
       type: DataTypes.DECIMAL(10, 2),
@@ -98,9 +88,6 @@ Run.init(
       },
       {
         fields: ["stage"],
-      },
-      {
-        fields: ["automationMode"],
       },
       {
         fields: ["createdAt"],

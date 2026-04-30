@@ -96,12 +96,10 @@ provider:
     DOMAIN_NAME: ${self:custom.domainName.${env:IS_LOCAL}}
     HOSTED_ZONE_ID: ${env:HOSTED_ZONE_ID}
     CERTIFICATE_ARN: ${env:CERTIFICATE_ARN}
-    EMAIL_SUBDOMAIN: ${env:EMAIL_SUBDOMAIN}
     # STEP FUNCTIONS
     USER_AUTOMATION_STATE_MACHINE_ARN:
       Fn::Sub: "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}-userAutomationChain"
     # S3
-    S3_EMAIL_BUCKET_NAME: ${env:S3_EMAIL_BUCKET_NAME}
     S3_ASSETS_BUCKET_NAME: ${env:S3_ASSETS_BUCKET_NAME}
     S3_CLIENT_BUCKET_NAME: ${env:S3_CLIENT_BUCKET_NAME}
     # SERVERLESS
@@ -164,17 +162,7 @@ provider:
           Resource:
             - "arn:aws:s3:::${env:S3_ASSETS_BUCKET_NAME}/*"
 
-        # S3 Permissions - Email bucket (email files and attachments)
-        - Effect: Allow
-          Action:
-            - s3:PutObject # SES saves emails, Lambda saves attachments
-            - s3:GetObject # Read emails, download attachments, parse PDFs
-            - s3:DeleteObject # Delete expired emails, user data
-            - s3:CopyObject # ingestEmail moves emails from raw/ to user folders
-          Resource:
-            - "arn:aws:s3:::${env:S3_EMAIL_BUCKET_NAME}/*"
-
-        # ECR Permissions (Docker-based Lambda functions: woltBuyGift, woltApplyGift)
+        # ECR Permissions (Docker-based Lambda functions: woltBuyGift)
         - Effect: Allow
           Action: ecr:GetAuthorizationToken
           Resource: "*"
@@ -333,44 +321,6 @@ stepFunctions:
                     Payload:
                       runId.$: $.runId
                   OutputPath: $.Payload
-                  Next: CheckBuyOnlyMode
-                  Catch:
-                    - ErrorEquals:
-                        - States.ALL
-                      Next: MarkRunFailed
-                      ResultPath: $.error
-
-                CheckBuyOnlyMode:
-                  Type: Choice
-                  Choices:
-                    - Variable: $.completed
-                      BooleanEquals: true
-                      Next: MarkRunSuccess
-                  Default: GetDailyCode
-
-                GetDailyCode:
-                  Type: Task
-                  Resource: arn:aws:states:::lambda:invoke
-                  Parameters:
-                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-getDailyCode
-                    Payload:
-                      runId.$: $.runId
-                  OutputPath: $.Payload
-                  Next: WoltApplyGift
-                  Catch:
-                    - ErrorEquals:
-                        - States.ALL
-                      Next: MarkRunFailed
-                      ResultPath: $.error
-
-                WoltApplyGift:
-                  Type: Task
-                  Resource: arn:aws:states:::lambda:invoke
-                  Parameters:
-                    FunctionName: ${self:service}-${self:provider.stage, 'local'}-woltApplyGift
-                    Payload:
-                      runId.$: $.runId
-                  OutputPath: $.Payload
                   Next: MarkRunSuccess
                   Catch:
                     - ErrorEquals:
@@ -430,38 +380,6 @@ functions:
             name: cognitoAuthorizer
 
   # ================================
-  # SEPARATE FUNCTIONS (Special Triggers)
-  # ================================
-
-  # Scheduled data cleanup
-  dataCleanup:
-    handler: build/cleanup/dataCleanup.handler
-    timeout: 300
-    memorySize: 512
-    package:
-      patterns:
-        - "!build/**"
-        - "build/cleanup/dataCleanup.mjs"
-        - "package.json"
-    events:
-      - schedule:
-          rate: cron(0 0 * * ? *)
-          description: "Daily data cleanup at 00:00 UTC (privacy policy compliance)"
-          enabled: true
-
-  # SES email ingestion
-  ingestEmail:
-    handler: build/inbox/ingestEmail.handler
-    timeout: 60
-    memorySize: 512
-    package:
-      patterns:
-        - "!build/**"
-        - "build/inbox/ingestEmail.mjs"
-        - "package.json"
-    # No HTTP events - only triggered by SES
-
-  # ================================
   # AUTOMATION CHAIN (UNCHANGED)
   # ================================
 
@@ -502,26 +420,6 @@ functions:
     memorySize: 1536
     ephemeralStorageSize: 1536
     timeout: 300
-    # No HTTP events - only called by Step Functions
-
-  # Non-selenium function for email processing
-  getDailyCode:
-    handler: build/automation/D_getDailyCode.handler
-    package:
-      patterns:
-        - "!build/**"
-        - "build/automation/D_getDailyCode.mjs"
-        - "package.json"
-    # No HTTP events - only called by Step Functions
-
-  # SELENIUM AUTOMATION FUNCTIONS - DO NOT MODIFY CONFIGURATION!
-  woltApplyGift:
-    image:
-      name: woltflow-selenium-image
-      command: ["build/automation/E_woltApplyGift.handler"]
-    memorySize: 1536
-    ephemeralStorageSize: 1536
-    timeout: 165
     # No HTTP events - only called by Step Functions
 
 # AWS Resources Configuration
@@ -643,171 +541,6 @@ resources:
                     - - "arn:aws:s3:::"
                       - Ref: AssetsBucket
                       - "/*"
-
-    # S3 Bucket for Emails
-    # This bucket will store email content and attachments from SES
-    # Stage-specific:
-    EmailBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${env:S3_EMAIL_BUCKET_NAME}
-        # Private bucket - no public access for emails
-        PublicAccessBlockConfiguration:
-          BlockPublicAcls: true
-          BlockPublicPolicy: true
-          IgnorePublicAcls: true
-          RestrictPublicBuckets: true
-        # Enable versioning for email backup
-        VersioningConfiguration:
-          Status: Enabled
-        # Lifecycle configuration to manage email storage costs
-        LifecycleConfiguration:
-          Rules:
-            - Id: DeleteOldEmails
-              Status: Enabled
-              ExpirationInDays: 365 # Keep emails for 1 year
-            - Id: ArchiveOldEmails
-              Status: Enabled
-              Transitions:
-                - TransitionInDays: 30
-                  StorageClass: STANDARD_IA
-                - TransitionInDays: 90
-                  StorageClass: GLACIER
-        # CORS configuration for Lambda access
-        CorsConfiguration:
-          CorsRules:
-            - AllowedHeaders: ["*"]
-              AllowedMethods: [GET, HEAD, PUT, POST, DELETE]
-              AllowedOrigins: ["*"]
-              MaxAge: 3600
-        # Server-side encryption for email security
-        BucketEncryption:
-          ServerSideEncryptionConfiguration:
-            - ServerSideEncryptionByDefault:
-                SSEAlgorithm: AES256
-
-    # S3 Bucket Policy for Emails - Allows both Lambda and SES access
-    EmailBucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        Bucket:
-          Ref: EmailBucket
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Sid: DenyPublicAccess
-              Effect: Deny
-              Principal: "*"
-              Action: "s3:*"
-              Resource:
-                - Fn::Join:
-                    - ""
-                    - - "arn:aws:s3:::"
-                      - Ref: EmailBucket
-                - Fn::Join:
-                    - ""
-                    - - "arn:aws:s3:::"
-                      - Ref: EmailBucket
-                      - "/*"
-              Condition:
-                Bool:
-                  "aws:SecureTransport": "false"
-            - Sid: AllowLambdaAccess
-              Effect: Allow
-              Principal:
-                AWS:
-                  Fn::Sub: "arn:aws:iam::${AWS::AccountId}:root"
-              Action:
-                - "s3:GetObject"
-                - "s3:PutObject"
-                - "s3:DeleteObject"
-                - "s3:ListBucket"
-              Resource:
-                - Fn::Join:
-                    - ""
-                    - - "arn:aws:s3:::"
-                      - Ref: EmailBucket
-                - Fn::Join:
-                    - ""
-                    - - "arn:aws:s3:::"
-                      - Ref: EmailBucket
-                      - "/*"
-            - Sid: AllowSESPuts
-              Effect: Allow
-              Principal:
-                Service: ses.amazonaws.com
-              Action:
-                - s3:PutObject
-                - s3:PutObjectAcl
-              Resource:
-                Fn::Join:
-                  - ""
-                  - - "arn:aws:s3:::"
-                    - Ref: EmailBucket
-                    - "/*"
-              Condition:
-                StringEquals:
-                  "aws:Referer":
-                    Ref: AWS::AccountId
-
-    # ================================
-    # SES EMAIL INFRASTRUCTURE
-    # ================================
-
-    # SES Domain Identity for Email Subdomain
-    SESEmailIdentity:
-      Type: AWS::SES::EmailIdentity
-      Properties:
-        EmailIdentity: ${env:EMAIL_SUBDOMAIN}
-        DkimAttributes:
-          SigningEnabled: true
-        FeedbackAttributes:
-          EmailForwardingEnabled: false
-        ConfigurationSetAttributes:
-          ConfigurationSetName: !Ref SESConfigurationSet
-
-    # SES Configuration Set
-    SESConfigurationSet:
-      Type: AWS::SES::ConfigurationSet
-      Properties:
-        Name: ${self:service}-${self:provider.stage}-email-config
-
-    # SES Receipt Rule Set
-    SESReceiptRuleSet:
-      Type: AWS::SES::ReceiptRuleSet
-      Properties:
-        RuleSetName: ${self:service}-${self:provider.stage}-email-rules
-
-    # SES Receipt Rule for User Emails
-    SESReceiptRule:
-      Type: AWS::SES::ReceiptRule
-      DependsOn:
-        - SESReceiptRuleSet
-        - EmailBucket
-      Properties:
-        RuleSetName: !Ref SESReceiptRuleSet
-        Rule:
-          Name: capture-user-emails
-          Recipients:
-            - ${env:EMAIL_SUBDOMAIN}
-          Enabled: true
-          ScanEnabled: true
-          Actions:
-            - S3Action:
-                BucketName: !Ref EmailBucket
-                ObjectKeyPrefix: raw/
-            - LambdaAction:
-                FunctionArn: !GetAtt IngestEmailLambdaFunction.Arn
-                InvocationType: Event
-
-    # SES Lambda Permission
-    SESLambdaInvokePermission:
-      Type: AWS::Lambda::Permission
-      Properties:
-        FunctionName: !Ref IngestEmailLambdaFunction
-        Action: lambda:InvokeFunction
-        Principal: ses.amazonaws.com
-        SourceAccount: !Ref AWS::AccountId
 
     # ================================
     # CLOUDFRONT DISTRIBUTION
@@ -949,79 +682,6 @@ resources:
               - DomainName
           HostedZoneId: Z2FDTNDATAQYW2 # CloudFront hosted zone ID (global)
           EvaluateTargetHealth: false
-
-    # ================================
-    # SES EMAIL DNS RECORDS
-    # ================================
-
-    # MX Record for SES Email Receiving - Points email subdomain to SES
-    SESMXRecord:
-      Type: AWS::Route53::RecordSet
-      Properties:
-        HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: ${env:EMAIL_SUBDOMAIN}
-        Type: MX
-        TTL: 300
-        ResourceRecords:
-          - "10 inbound-smtp.${env:AWS_REGION}.amazonaws.com"
-
-    # TXT Record for SES Domain Verification (if needed)
-    SESTXTRecord:
-      Type: AWS::Route53::RecordSet
-      Properties:
-        HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: ${env:EMAIL_SUBDOMAIN}
-        Type: TXT
-        TTL: 300
-        ResourceRecords:
-          - '"v=spf1 include:amazonses.com ~all"'
-
-    # DKIM CNAME Records - AWS SES Easy DKIM
-    # These 3 records are auto-generated by SES and needed for DKIM validation
-    SESDKIMRecord1:
-      Type: AWS::Route53::RecordSet
-      Properties:
-        HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: !Sub
-          - "${Token}._domainkey.${Domain}"
-          - Token: !GetAtt SESEmailIdentity.DkimDNSTokenName1
-            Domain: ${env:EMAIL_SUBDOMAIN}
-        Type: CNAME
-        TTL: 1800
-        ResourceRecords:
-          - !Sub
-            - "${Token}.dkim.amazonses.com"
-            - Token: !GetAtt SESEmailIdentity.DkimDNSTokenValue1
-
-    SESDKIMRecord2:
-      Type: AWS::Route53::RecordSet
-      Properties:
-        HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: !Sub
-          - "${Token}._domainkey.${Domain}"
-          - Token: !GetAtt SESEmailIdentity.DkimDNSTokenName2
-            Domain: ${env:EMAIL_SUBDOMAIN}
-        Type: CNAME
-        TTL: 1800
-        ResourceRecords:
-          - !Sub
-            - "${Token}.dkim.amazonses.com"
-            - Token: !GetAtt SESEmailIdentity.DkimDNSTokenValue2
-
-    SESDKIMRecord3:
-      Type: AWS::Route53::RecordSet
-      Properties:
-        HostedZoneId: ${env:HOSTED_ZONE_ID}
-        Name: !Sub
-          - "${Token}._domainkey.${Domain}"
-          - Token: !GetAtt SESEmailIdentity.DkimDNSTokenName3
-            Domain: ${env:EMAIL_SUBDOMAIN}
-        Type: CNAME
-        TTL: 1800
-        ResourceRecords:
-          - !Sub
-            - "${Token}.dkim.amazonses.com"
-            - Token: !GetAtt SESEmailIdentity.DkimDNSTokenValue3
 
     # ================================
     # COGNITO USER POOL

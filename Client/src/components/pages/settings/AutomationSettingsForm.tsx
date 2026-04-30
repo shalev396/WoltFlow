@@ -20,18 +20,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import AsyncButton from "@/components/shared/AsyncButton";
 import { AutomationToggle } from "@/components/shared/AutomationToggle";
-import { AutomationModeSelector } from "@/components/shared/AutomationModeSelector";
 
 import {
   runSettingsSchema,
@@ -42,6 +35,9 @@ import {
   useUpdateRunSettingsMutation,
 } from "@/queries/settings";
 
+const DEFAULT_GIFT_AMOUNT = 35;
+const HIGH_AMOUNT_WARNING_THRESHOLD = 100;
+
 export default function AutomationSettingsForm() {
   const { t } = useTranslation("settings");
   const { data: runSettings, isLoading: isQueryLoading } = useRunSettingsQuery();
@@ -51,39 +47,30 @@ export default function AutomationSettingsForm() {
     resolver: zodResolver(runSettingsSchema),
     defaultValues: {
       automationEnabled: false,
-      automationMode: "full-run" as const,
-      giftAmount: 40,
+      giftAmount: DEFAULT_GIFT_AMOUNT,
     },
   });
 
-  // Update form when data loads
   useEffect(() => {
     if (runSettings) {
-      // Convert decimal string to number
       const giftAmount = runSettings.giftAmount
         ? typeof runSettings.giftAmount === "string"
           ? parseFloat(runSettings.giftAmount)
           : runSettings.giftAmount
-        : 40;
+        : DEFAULT_GIFT_AMOUNT;
 
       form.reset({
         automationEnabled: runSettings.automationEnabled || false,
-        automationMode: runSettings.automationMode || "full-run",
         giftAmount,
       });
     }
   }, [runSettings, form]);
 
-  const onSubmit = async (data: {
-    automationEnabled: boolean;
-    automationMode: "full-run" | "buy-only" | "cross-account";
-    giftAmount?: number | null;
-  }) => {
+  const onSubmit = async (data: RunSettingsFormData) => {
     try {
       await updateRunSettingsMutation.mutateAsync({
         automationEnabled: data.automationEnabled,
-        automationMode: data.automationMode,
-        giftAmount: data.giftAmount ?? undefined,
+        giftAmount: data.giftAmount,
       });
     } catch (error) {
       console.error("Failed to update automation settings:", error);
@@ -112,14 +99,6 @@ export default function AutomationSettingsForm() {
               <Skeleton className="h-6 w-11 rounded-full" />
             </div>
             <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <div className="grid grid-cols-1 gap-3">
-                <Skeleton className="h-16 w-full rounded-lg" />
-                <Skeleton className="h-16 w-full rounded-lg" />
-                <Skeleton className="h-16 w-full rounded-lg" />
-              </div>
-            </div>
-            <div className="space-y-2">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-10 w-full rounded-md" />
               <Skeleton className="h-3 w-48" />
@@ -146,23 +125,11 @@ export default function AutomationSettingsForm() {
         <Form {...form}>
           <form className="flex-1 flex flex-col">
             <div className="flex-1 space-y-6">
-              {/* Automation Toggle */}
               <AutomationToggle
                 control={form.control}
                 name="automationEnabled"
               />
 
-              {/* Automation Mode - Always visible, disabled when automation is off */}
-              <div
-                className={!form.watch("automationEnabled") ? "opacity-50" : ""}
-              >
-                <AutomationModeSelector
-                  control={form.control}
-                  name="automationMode"
-                />
-              </div>
-
-              {/* Gift Amount - Always visible, disabled when automation is off */}
               <FormField
                 control={form.control}
                 name="giftAmount"
@@ -176,55 +143,27 @@ export default function AutomationSettingsForm() {
                       <DollarSign className="h-4 w-4" />
                       {t("automationForm.giftAmount.label")}
                     </FormLabel>
-                    <Select
-                      value={field.value?.toString()}
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      disabled={!form.watch("automationEnabled")}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={t(
-                              "automationForm.giftAmount.placeholder",
-                            )}
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="20">₪20</SelectItem>
-                        <SelectItem value="25">₪25</SelectItem>
-                        <SelectItem value="30">₪30</SelectItem>
-                        <SelectItem value="35">₪35</SelectItem>
-                        <SelectItem value="40">₪40</SelectItem>
-                        <SelectItem value="45">₪45</SelectItem>
-                        <SelectItem value="50">₪50</SelectItem>
-                        <SelectItem value="60">₪60</SelectItem>
-                        <SelectItem value="70">₪70</SelectItem>
-                        <SelectItem value="75">₪75</SelectItem>
-                        <SelectItem value="80">₪80</SelectItem>
-                        <SelectItem value="85">₪85</SelectItem>
-                        <SelectItem value="90">₪90</SelectItem>
-                        <SelectItem value="100">₪100</SelectItem>
-                        <SelectItem value="150">₪150</SelectItem>
-                        <SelectItem value="180">₪180</SelectItem>
-                        <SelectItem value="200">₪200</SelectItem>
-                        <SelectItem value="250">₪250</SelectItem>
-                        <SelectItem value="300">₪300</SelectItem>
-                        <SelectItem value="350">₪350</SelectItem>
-                        <SelectItem value="400">₪400</SelectItem>
-                        <SelectItem value="450">₪450</SelectItem>
-                        <SelectItem value="500">₪500</SelectItem>
-                        <SelectItem value="550">₪550</SelectItem>
-                        <SelectItem value="600">₪600</SelectItem>
-                        <SelectItem value="650">₪650</SelectItem>
-                        <SelectItem value="700">₪700</SelectItem>
-                        <SelectItem value="800">₪800</SelectItem>
-                        <SelectItem value="850">₪850</SelectItem>
-                        <SelectItem value="900">₪900</SelectItem>
-                        <SelectItem value="1000">₪1000</SelectItem>
-                        <SelectItem value="1500">₪1500</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        max={1500}
+                        step={1}
+                        placeholder={t("automationForm.giftAmount.placeholder")}
+                        disabled={!form.watch("automationEnabled")}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "") {
+                            field.onChange(undefined);
+                            return;
+                          }
+                          const parsed = Number(raw);
+                          field.onChange(Number.isNaN(parsed) ? undefined : parsed);
+                        }}
+                      />
+                    </FormControl>
                     <FormDescription>
                       {t("automationForm.giftAmount.description")}
                     </FormDescription>
@@ -234,7 +173,7 @@ export default function AutomationSettingsForm() {
               />
 
               {form.watch("giftAmount") &&
-                form.watch("giftAmount")! > 40 &&
+                form.watch("giftAmount")! > HIGH_AMOUNT_WARNING_THRESHOLD &&
                 form.watch("automationEnabled") && (
                   <Alert>
                     <AlertDescription>
@@ -247,7 +186,6 @@ export default function AutomationSettingsForm() {
                 )}
             </div>
 
-            {/* Submit button - Fixed at bottom */}
             <div className="flex justify-end pt-6 border-t mt-6">
               <AsyncButton
                 type="submit"

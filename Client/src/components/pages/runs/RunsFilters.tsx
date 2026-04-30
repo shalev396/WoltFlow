@@ -68,7 +68,7 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Status Filter */}
           <div>
             <label className="text-sm font-medium mb-2 block">
@@ -128,46 +128,8 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
                 <SelectItem value="buying_gift">
                   {t("table.stages.buyingGift")}
                 </SelectItem>
-                <SelectItem value="getting_code_from_email">
-                  {t("table.stages.gettingCode")}
-                </SelectItem>
-                <SelectItem value="applying_gift">
-                  {t("table.stages.applyingGift")}
-                </SelectItem>
                 <SelectItem value="completed">
                   {t("table.stages.completed")}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Automation Mode Filter */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              {t("filters.mode")}
-            </label>
-            <Select
-              value={filters.automationMode || "all"}
-              onValueChange={(value) =>
-                handleFilterChange("automationMode", value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("filters.allModes")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("filters.allModes")}</SelectItem>
-                <SelectItem value="full-run">
-                  <div className="flex items-center gap-2">
-                    <span>🚀</span>
-                    {t("filters.completeAutomation")}
-                  </div>
-                </SelectItem>
-                <SelectItem value="buy-only">
-                  <div className="flex items-center gap-2">
-                    <span>🛒</span>
-                    {t("table.mode.buyOnly")}
-                  </div>
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -199,19 +161,6 @@ export default function RunsFilters({ onFiltersChange }: RunsFiltersProps) {
                   })}
                   <button
                     onClick={() => handleFilterChange("stage", undefined)}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {filters.automationMode && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  {t("filters.modeLabel", { mode: filters.automationMode })}
-                  <button
-                    onClick={() =>
-                      handleFilterChange("automationMode", undefined)
-                    }
                     className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />

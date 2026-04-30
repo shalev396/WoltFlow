@@ -12,10 +12,6 @@ export { Run } from "./Run.js";
 export type {
   AutomationRunWithWoltSettings,
   AutomationRunWithAllSettings,
-  AutomationRunWithInbox,
   RunForNotification,
   ScreenshotForNotification,
 } from "./Run.js";
-export { Inbox } from "./Inbox.js";
-export { Email } from "./Email.js";
-export { Code } from "./Code.js";

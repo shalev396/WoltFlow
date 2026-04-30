@@ -1,12 +1,11 @@
-import { LogIn, CreditCard, Mail, Gift, ArrowRight } from "lucide-react";
+import { LogIn, CreditCard, Gift, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const stepKeys = ["connect", "purchase", "email", "apply"] as const;
+const stepKeys = ["connect", "purchase", "apply"] as const;
 const stepIcons = {
   connect: LogIn,
   purchase: CreditCard,
-  email: Mail,
   apply: Gift,
 };
 
@@ -25,7 +24,7 @@ export default function HowItWorks() {
           </p>
         </header>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {stepKeys.map((stepKey, index) => {
             const IconComponent = stepIcons[stepKey];
             return (

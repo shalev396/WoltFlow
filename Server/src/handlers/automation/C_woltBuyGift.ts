@@ -1,17 +1,19 @@
-import { By, Builder, WebElement } from "selenium-webdriver";
+import { By, Builder, Key } from "selenium-webdriver";
 import dotenv from "dotenv";
 import { Run } from "../../classes/index.js";
-import type {
-  AutomationRunWithAllSettings,
-} from "../../classes/index.js";
+import type { AutomationRunWithAllSettings } from "../../classes/index.js";
 import {
   safeClick,
-  getGiftCardUrl,
   waitForElement,
   setupWoltCookies,
   applyBrowserTimezone,
 } from "../../utils/automation.js";
-import { sleep } from "../../utils/general.js";
+import {
+  sleep,
+  SHORT_PAUSE,
+  MEDIUM_PAUSE,
+  LONG_PAUSE,
+} from "../../utils/general.js";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
 import {
   notifyOnError,
@@ -79,9 +81,6 @@ export const handler = async (
     if (!runId) {
       throw new Error("Missing runId");
     }
-    console.log("start db");
-    console.log("end db");
-    console.log("start get run");
     runData = await Run.findWithAllSettings(runId);
     if (!runData) {
       return {
@@ -92,11 +91,7 @@ export const handler = async (
         message: "Run not found",
       };
     }
-    console.log("end get run");
-    console.log("start update run");
     await Run.updateStage(runId, "buying_gift");
-    console.log("end update run");
-    console.log("start get settings");
 
     if (!runData.hasAllSettings) {
       await Run.markFailed(runId);
@@ -108,188 +103,292 @@ export const handler = async (
         message: "Settings not found",
       };
     }
-    console.log("end get settings");
-    console.log("start setup wolt cookies");
+
     await setupWoltCookies(
       driver,
       runData.woltRefreshToken || "",
       runData.woltAccessToken || "",
     );
-    console.log("end setup wolt cookies");
-    console.log("start step 1");
+
     const giftAmount = runData.giftAmount;
-    const giftUrl = getGiftCardUrl(giftAmount);
-    if (!giftUrl) {
-      throw new Error(`Gift card amount ${giftAmount} ILS not available`);
+    if (!giftAmount || giftAmount < 1 || giftAmount > 1500) {
+      throw new Error(
+        `Gift card amount ${giftAmount} ILS is out of range (1-1500)`,
+      );
     }
 
-    await driver.get(giftUrl);
+    /*
+     * ----------------------------------------------------------------------
+     * Step 0 (experimental — disabled).
+     * We are checking the new self-redeem flow without it, since gift cards
+     * are no longer part of the cart on the new gift-card-shop page.
+     * Re-enable if leftover-cart "אשמח להמשיך" dialogs start blocking checkout.
+     * ----------------------------------------------------------------------
+     *
+     * console.log("start step 0: dismiss leftover-cart dialog if present");
+     * const continueDialogs = await waitForElement(
+     *   driver,
+     *   By.xpath("//*[normalize-space(text())='אשמח להמשיך']"),
+     *   8000,
+     * );
+     * if (continueDialogs != null) {
+     *   console.log("leftover cart detected — clearing");
+     *   const noButton = await waitForElement(
+     *     driver,
+     *     By.xpath("//button[normalize-space(.)='לא']"),
+     *   );
+     *   if (noButton) await safeClick(driver, noButton);
+     *   const closeButtons1 = await waitForElement(
+     *     driver,
+     *     By.xpath("//button[@aria-label='סגירה']"),
+     *   );
+     *   if (closeButtons1) await safeClick(driver, closeButtons1);
+     *   const cartButton = await waitForElement(
+     *     driver,
+     *     By.xpath("//button[@aria-label='ההזמנות שלך']"),
+     *   );
+     *   if (cartButton) await safeClick(driver, cartButton);
+     *   while (true) {
+     *     const deleteButtons = await waitForElement(
+     *       driver,
+     *       By.xpath("//button[@aria-label='מחיקה']"),
+     *     );
+     *     if (!deleteButtons) break;
+     *     await safeClick(driver, deleteButtons);
+     *   }
+     *   const closeButtons2 = await waitForElement(
+     *     driver,
+     *     By.xpath("//button[@aria-label='סגירה']"),
+     *   );
+     *   if (closeButtons2) await safeClick(driver, closeButtons2);
+     *   await sleep(3000);
+     *   await driver.get(GIFT_SHOP_URL);
+     * }
+     */
+
+    // Step 1 — Navigate to the new gift card shop.
+    console.log("start step 1: navigate to gift-card-shop");
+    const GIFT_SHOP_URL = "https://wolt.com/he/gift-card-shop/isr";
+    await driver.get(GIFT_SHOP_URL);
+    await sleep(LONG_PAUSE);
     console.log("end step 1");
     if (LEVEL === "1") {
       await sleep(1000);
       throw new Error("LEVEL 1");
     }
-    console.log("start step 2");
-    const continueDialogs = await waitForElement(
+
+    // Step 2 — Click the "Other" amount label to open custom-amount input.
+    console.log("start step 2: click 'אחר' (custom amount label)");
+    const otherLabel = await waitForElement(
       driver,
-      By.xpath("//*[normalize-space(text())='אשמח להמשיך']"),
-      8000,
+      By.xpath("//label[@data-test-id='AmountChooser-valueCustom.label']"),
+      13000,
     );
-
-    if (continueDialogs != null) {
-      console.log("start step 2.1");
-      const noButton = await waitForElement(
-        driver,
-        By.xpath("//button[normalize-space(.)='לא']"),
-      );
-      await safeClick(driver, noButton as WebElement);
-      const closeButtons1 = await waitForElement(
-        driver,
-        By.xpath("//button[@aria-label='סגירה']"),
-      );
-      if (closeButtons1) {
-        await safeClick(driver, closeButtons1);
-      }
-
-      const cartButton = await waitForElement(
-        driver,
-        By.xpath("//button[@aria-label='ההזמנות שלך']"),
-      );
-      await safeClick(driver, cartButton as WebElement);
-
-      while (true) {
-        const deleteButtons = await waitForElement(
-          driver,
-          By.xpath("//button[@aria-label='מחיקה']"),
-        );
-        if (!deleteButtons) break;
-        await safeClick(driver, deleteButtons);
-      }
-
-      const closeButtons2 = await waitForElement(
-        driver,
-        By.xpath("//button[@aria-label='סגירה']"),
-      );
-      if (closeButtons2) {
-        await safeClick(driver, closeButtons2);
-      }
-      await sleep(5000);
-      console.log("end step 2.1");
+    if (!otherLabel) {
+      throw new Error("Could not find AmountChooser-valueCustom.label");
     }
-
+    await safeClick(driver, otherLabel);
+    await sleep(SHORT_PAUSE);
     console.log("end step 2");
     if (LEVEL === "2") {
       await sleep(1000);
       throw new Error("LEVEL 2");
     }
-    console.log("start step 3");
-    await driver.get(giftUrl);
-    const addOrderButton = await waitForElement(
+
+    // Step 3 — Custom amount input: click → Ctrl+A → Delete → type amount.
+    console.log(`start step 3: enter custom amount (${giftAmount})`);
+    const amountInput = await waitForElement(
       driver,
-      By.xpath("//span[normalize-space(text())='להוסיף להזמנה']"),
-      13000,
+      By.xpath("//input[@data-test-id='amount-chooser-custom-input']"),
+      8000,
     );
-    await safeClick(driver, addOrderButton as WebElement);
+    if (!amountInput) {
+      throw new Error("Could not find amount-chooser-custom-input");
+    }
+    await safeClick(driver, amountInput);
+    await amountInput.sendKeys(Key.chord(Key.CONTROL, "a"));
+    await amountInput.sendKeys(Key.DELETE);
+    await amountInput.sendKeys(String(giftAmount));
+    await sleep(SHORT_PAUSE);
     console.log("end step 3");
     if (LEVEL === "3") {
       await sleep(1000);
       throw new Error("LEVEL 3");
     }
-    console.log("start step 4");
-    const cartButton = await waitForElement(
+
+    // Step 4 — Toggle the self-redeem ("אני קונה לעצמי") switch.
+    // The underlying <input type="checkbox"> is visually hidden by design
+    // (al-Switch component), so we click the wrapping <label> — that's the
+    // visible, click-receiving part of the switch.
+    console.log("start step 4: toggle BuyingForMyselfSwitch");
+    const switchEl = await waitForElement(
       driver,
-      By.xpath(`//button[.//div[normalize-space(text())="הצגת פריטים"]]`),
+      By.xpath(
+        "//label[.//input[@data-test-id='GiftCardForm.BuyingForMyselfSwitch']]",
+      ),
+      8000,
     );
-    await safeClick(driver, cartButton as WebElement);
+    if (!switchEl) {
+      throw new Error("Could not find GiftCardForm.BuyingForMyselfSwitch");
+    }
+    await safeClick(driver, switchEl);
+    await sleep(SHORT_PAUSE);
     console.log("end step 4");
     if (LEVEL === "4") {
       await sleep(1000);
       throw new Error("LEVEL 4");
     }
-    console.log("start step 5");
-    const checkoutButton = await waitForElement(
-      driver,
-      By.xpath("//button[.//div[normalize-space(text())='מעבר לתשלום']]"),
-    );
 
-    await safeClick(driver, checkoutButton as WebElement);
-    await sleep(8000);
+    // Step 5 — Continue to payment method selection.
+    console.log("start step 5: click ContinueButton");
+    const continueBtn = await waitForElement(
+      driver,
+      By.xpath("//button[@data-test-id='GiftCardForm.ContinueButton']"),
+      8000,
+    );
+    if (!continueBtn) {
+      throw new Error("Could not find GiftCardForm.ContinueButton");
+    }
+    await safeClick(driver, continueBtn);
+    await sleep(LONG_PAUSE);
     console.log("end step 5");
     if (LEVEL === "5") {
       await sleep(1000);
       throw new Error("LEVEL 5");
     }
-    console.log("start step 6");
-    await sleep(1000);
-    const checkoutElement = await waitForElement(
+
+    // Step 6 — Open the payment method picker.
+    console.log("start step 6: click PaymentMethodSelector");
+    const paymentSelector = await waitForElement(
       driver,
-      By.xpath(
-        "/html[1]/body[1]/div[2]/div[2]/main[1]/div[1]/div[2]/div[1]/ul[1]/li[1]/div[1]/div[2]/div[1]",
-      ),
+      By.xpath("//button[@data-test-id='PaymentMethodSelector']"),
       8000,
     );
-    if (checkoutElement) {
-      await safeClick(driver, checkoutElement as WebElement);
+    if (!paymentSelector) {
+      throw new Error("Could not find PaymentMethodSelector");
     }
+    await safeClick(driver, paymentSelector);
+    await sleep(MEDIUM_PAUSE);
     console.log("end step 6");
     if (LEVEL === "6") {
       await sleep(1000);
       throw new Error("LEVEL 6");
     }
-    console.log("start step 7");
-    const woltBenefitsElement = await waitForElement(
+
+    // Step 7 — Pick the "Wolt Benefits" row from the payment-method list.
+    console.log("start step 7: select Wolt Benefits row");
+    const woltBenefitsRow = await waitForElement(
       driver,
-      By.xpath("//span[normalize-space()='Wolt Benefits']"),
+      By.xpath(
+        "//button[@data-test-id='PaymentMethodsList.PaymentMethod'][.//span[normalize-space(.)='Wolt Benefits']]",
+      ),
       8000,
     );
-    if (woltBenefitsElement != null) {
-      await safeClick(driver, woltBenefitsElement as WebElement);
-      await sleep(2000);
+    if (!woltBenefitsRow) {
+      throw new Error("Could not find the Wolt Benefits payment row");
     }
-    const closeDialogueButton = await waitForElement(
-      driver,
-      By.xpath("//button[@aria-label='סגירה']"),
-      2000,
-    );
-    if (closeDialogueButton) {
-      await safeClick(driver, closeDialogueButton as WebElement);
-      await sleep(500);
-    }
+    await safeClick(driver, woltBenefitsRow);
+    await sleep(MEDIUM_PAUSE);
     console.log("end step 7");
     if (LEVEL === "7") {
       await sleep(1000);
       throw new Error("LEVEL 7");
     }
-    console.log("start step 8");
-    const orderButton = await waitForElement(
+
+    // Step 8 — Optional: dismiss confirmation modal if it appears.
+    console.log("start step 8: dismiss optional modal if present");
+    const modalClose = await waitForElement(
       driver,
-      By.xpath("//span[normalize-space(text())='לחצו להזמנה']"),
+      By.xpath("//button[@data-test-id='modal-close-button']"),
+      3000,
     );
-    await safeClick(driver, orderButton as WebElement);
-    await sleep(3000);
-    console.log("end step 8");
-    try {
-      if (
-        await waitForElement(
-          driver,
-          By.xpath(
-            "//span[@data-localization-key='order.gift-card-tracking-title']",
-          ),
-          15000,
-        )
-      ) {
-        success = true;
-      }
-    } catch (err) {
-      console.log("confirmation element not found");
-      console.error("soft error", err);
-      if (process.env.ENV === "dev") {
-        console.log("dev mode override success");
-        success = true;
-      } else {
-        throw err;
-      }
+    if (modalClose) {
+      await safeClick(driver, modalClose);
+      await sleep(SHORT_PAUSE);
     }
+    console.log("end step 8");
+    if (LEVEL === "8") {
+      await sleep(1000);
+      throw new Error("LEVEL 8");
+    }
+
+    // Step 9 — Press the final pay button.
+    console.log("start step 9: click PayButton");
+    const payBtn = await waitForElement(
+      driver,
+      By.xpath("//button[@data-test-id='GiftCardOrderSummary.PayButton']"),
+      8000,
+    );
+    if (!payBtn) {
+      throw new Error("Could not find GiftCardOrderSummary.PayButton");
+    }
+    await safeClick(driver, payBtn);
+    await sleep(LONG_PAUSE);
+    console.log("end step 9");
+    if (LEVEL === "9") {
+      await sleep(1000);
+      throw new Error("LEVEL 9");
+    }
+
+    // Step 10 — Press redeem on the post-purchase page.
+    // This does NOT redeem; it navigates to the dedicated redeem page with the
+    // gift-card code already filled in via the URL.
+    console.log("start step 10: press post-purchase redeem (navigates)");
+    const postPurchaseRedeemBtn = await waitForElement(
+      driver,
+      By.xpath("//button[.//div[normalize-space(.)='למימוש הקוד']]"),
+      15000,
+    );
+    if (!postPurchaseRedeemBtn) {
+      throw new Error(
+        "Could not find the post-purchase redeem button (Step 10)",
+      );
+    }
+    await safeClick(driver, postPurchaseRedeemBtn);
+    await sleep(LONG_PAUSE);
+    console.log("end step 10");
+    if (LEVEL === "10") {
+      await sleep(1000);
+      throw new Error("LEVEL 10");
+    }
+
+    // Step 11 — Press the actual redeem button on the redeem page.
+    // This is the call that credits the gift card to the account.
+    console.log("start step 11: press actual redeem on redeem page");
+    const finalRedeemBtn = await waitForElement(
+      driver,
+      By.xpath("//button[@data-localization-key='user.redeem']"),
+      15000,
+    );
+    if (!finalRedeemBtn) {
+      throw new Error(
+        "Could not find the final redeem button on redeem page (Step 11)",
+      );
+    }
+    await safeClick(driver, finalRedeemBtn);
+    await sleep(MEDIUM_PAUSE);
+    console.log("end step 11");
+    if (LEVEL === "11") {
+      await sleep(1000);
+      throw new Error("LEVEL 11");
+    }
+
+    // Step 12 — Wait for the success message, then capture the success
+    // screenshot. TODO: replace the static MEDIUM_PAUSE with a waitForElement
+    // on the success-message XPath once we have it captured.
+    console.log("start step 12: capture success screenshot");
+    await sleep(MEDIUM_PAUSE);
+    const successScreenshot = await driver.takeScreenshot();
+    await uploadImageToS3AndSaveToDb(
+      `data:image/png;base64,${successScreenshot}`,
+      runData.runId,
+      false,
+      await driver.getCurrentUrl(),
+      "success",
+      "completed",
+    );
+    success = true;
+    console.log("end step 12");
 
     //script end
   } catch (err) {
@@ -328,32 +427,17 @@ export const handler = async (
     throw new Error("Run not found");
   }
 
-  let status: "started" | "in_progress" | "completed" | "failed";
-  let stage: "triggered" | "refreshing_tokens" | "buying_gift" | "getting_code_from_email" | "applying_gift" | "completed";
-
-  if (success) {
-    if (runData.automationMode === "buy-only") {
-      status = "completed";
-      stage = "completed";
-    } else {
-      status = "in_progress";
-      stage = "buying_gift";
-    }
-  } else {
-    status = "failed";
-    stage = "buying_gift";
-  }
+  const status: "completed" | "failed" = success ? "completed" : "failed";
+  const stage: "buying_gift" | "completed" = success ? "completed" : "buying_gift";
   await Run.updateStatusAndStage(runData.runId, status, stage);
 
   try {
     if (success) {
-      if (runData.automationMode === "buy-only") {
-        await notifyOnSuccess(
-          runData.userId,
-          runData.runId,
-          "Gift purchase completed",
-        );
-      }
+      await notifyOnSuccess(
+        runData.userId,
+        runData.runId,
+        "Gift purchase + auto-redeem completed",
+      );
     } else {
       await notifyOnError(
         runData.userId,
@@ -366,29 +450,14 @@ export const handler = async (
   }
 
   if (success) {
-    if (runData.automationMode === "buy-only") {
-      return {
-        runId: runData.runId,
-        userId: runData.userId,
-        success: true,
-        completed: true,
-        message:
-          "Buy-only mode: Gift purchase completed, stopping automation chain",
-        automationMode: "buy-only",
-      };
-    } else {
-      return {
-        runId: runData.runId,
-        userId: runData.userId,
-        success: true,
-        completed: false,
-        message: "Gift purchase completed",
-      };
-    }
+    return {
+      runId: runData.runId,
+      userId: runData.userId,
+      success: true,
+      completed: true,
+      message: "Gift purchase + auto-redeem completed",
+    };
   } else {
     throw new Error("Gift purchase failed");
   }
 };
-// //span[@data-localization-key='order.gift-card-tracking-title']
-// //span[@data-localization-key='order.gift-card-tracking-subtitle']
-// //span[@data-localization-key='order.gift-card-tracking-link']

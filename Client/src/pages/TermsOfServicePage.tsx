@@ -145,10 +145,6 @@ export default function TermsOfService() {
                     <strong>c) {t("sections.setup.c.title")}</strong>{" "}
                     {t("sections.setup.c.description")}
                   </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    <strong>d) {t("sections.setup.d.title")}</strong>{" "}
-                    {t("sections.setup.d.description")}
-                  </p>
                 </div>
               </section>
 

@@ -3,6 +3,5 @@ export { authService } from "./auth";
 export { runsService } from "./runs";
 export { settingsService } from "./settings";
 export { twoFactorService } from "./twoFactor";
-export { inboxService } from "./inbox";
 export { dashboardService } from "./dashboard";
 export { userService } from "./user";

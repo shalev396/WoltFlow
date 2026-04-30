@@ -26,7 +26,6 @@ export interface DashboardFilter
 export interface RunFilter extends Pagination {
   status?: string;
   stage?: string;
-  automationMode?: string;
 }
 
 export interface ICustomAPIGatewayProxyEventAuth
@@ -76,6 +75,4 @@ export interface ICustomStepFunctionResult {
   success: boolean;
   completed: boolean;
   message: string;
-  automationMode?: string;
-  codeValue?: string;
 }

@@ -163,9 +163,6 @@ export function useUpdateRunSettingsMutation() {
             ...(newSettings.automationEnabled !== undefined && {
               automationEnabled: newSettings.automationEnabled,
             }),
-            ...(newSettings.automationMode !== undefined && {
-              automationMode: newSettings.automationMode,
-            }),
             ...(newSettings.giftAmount !== undefined && {
               giftAmount: String(newSettings.giftAmount),
             }),

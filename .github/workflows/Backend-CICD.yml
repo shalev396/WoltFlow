@@ -27,7 +27,6 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
       ## Per environment variables
       DOMAIN_NAME_CLOUD: ${{ vars.DOMAIN_NAME_CLOUD }}
-      EMAIL_SUBDOMAIN: ${{ vars.EMAIL_SUBDOMAIN }}
       ENABLED_SMS: ${{ vars.ENABLED_SMS }}
 
       # Sensitive data from secrets (automatically masked in logs)
@@ -47,7 +46,6 @@ jobs:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       S3_ASSETS_BUCKET_NAME: ${{ secrets.S3_ASSETS_BUCKET_NAME }}
       S3_CLIENT_BUCKET_NAME: ${{ secrets.S3_CLIENT_BUCKET_NAME }}
-      S3_EMAIL_BUCKET_NAME: ${{ secrets.S3_EMAIL_BUCKET_NAME }}
 
     steps:
       - name: Checkout code

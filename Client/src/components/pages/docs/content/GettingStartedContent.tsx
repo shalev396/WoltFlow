@@ -6,7 +6,6 @@ import {
   Settings,
   Globe,
   CreditCard,
-  Mail,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,16 +58,6 @@ export function GettingStartedContent() {
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-white dark:bg-background rounded border">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
-                {t("setupChecklist.steps.emailForwarding.label")}
-              </span>
-              <Badge variant="secondary" className="ml-auto">
-                {t("setupChecklist.steps.emailForwarding.badge")}
-              </Badge>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-white dark:bg-background rounded border">
               <Settings className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">
                 {t("setupChecklist.steps.configureAutomation.label")}
@@ -86,101 +75,85 @@ export function GettingStartedContent() {
           {t("accountRequirements.title")}
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-blue-600" />
-                {t("accountRequirements.woltAccount.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">
-                {t("accountRequirements.woltAccount.description")}
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5 text-blue-600" />
+              {t("accountRequirements.woltAccount.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground text-sm">
+              {t("accountRequirements.woltAccount.description")}
+            </p>
 
-              <div className="space-y-3">
-                <h4 className="font-medium">
-                  {t("accountRequirements.woltAccount.optionsTitle")}
-                </h4>
+            <div className="space-y-3">
+              <h4 className="font-medium">
+                {t("accountRequirements.woltAccount.optionsTitle")}
+              </h4>
 
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe className="h-4 w-4" />
-                    <span className="font-medium text-sm">
-                      {t("accountRequirements.woltAccount.extension.title")}
-                    </span>
-                    <Badge className="bg-green-100 text-green-800">
-                      {t("accountRequirements.woltAccount.extension.badge")}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {t("accountRequirements.woltAccount.extension.description")}
-                  </p>
-                  <Button asChild size="sm" variant="outline">
-                    <Link to={`/${language}/docs/woltflow-extension`}>
-                      {t("accountRequirements.woltAccount.extension.button")}
-                      <ArrowRight className="ml-1 h-3 w-3" />
-                    </Link>
-                  </Button>
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Globe className="h-4 w-4" />
+                  <span className="font-medium text-sm">
+                    {t("accountRequirements.woltAccount.extension.title")}
+                  </span>
+                  <Badge className="bg-green-100 text-green-800">
+                    {t("accountRequirements.woltAccount.extension.badge")}
+                  </Badge>
                 </div>
-
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Settings className="h-4 w-4" />
-                    <span className="font-medium text-sm">
-                      {t("accountRequirements.woltAccount.manual.title")}
-                    </span>
-                    <Badge variant="secondary">
-                      {t("accountRequirements.woltAccount.manual.badge")}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {t("accountRequirements.woltAccount.manual.description")}
-                  </p>
-                  <Button asChild size="sm" variant="outline">
-                    <Link to={`/${language}/docs/manual-setup`}>
-                      {t("accountRequirements.woltAccount.manual.button")}
-                      <ArrowRight className="ml-1 h-3 w-3" />
-                    </Link>
-                  </Button>
-                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {t("accountRequirements.woltAccount.extension.description")}
+                </p>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/${language}/docs/woltflow-extension`}>
+                    {t("accountRequirements.woltAccount.extension.button")}
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </Link>
+                </Button>
               </div>
 
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-amber-900 dark:text-amber-100">
-                      {t(
-                        "accountRequirements.woltAccount.deviceConsideration.title",
-                      )}
-                    </p>
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      {t(
-                        "accountRequirements.woltAccount.deviceConsideration.description",
-                      )}
-                    </p>
-                  </div>
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Settings className="h-4 w-4" />
+                  <span className="font-medium text-sm">
+                    {t("accountRequirements.woltAccount.manual.title")}
+                  </span>
+                  <Badge variant="secondary">
+                    {t("accountRequirements.woltAccount.manual.badge")}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {t("accountRequirements.woltAccount.manual.description")}
+                </p>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/${language}/docs/manual-setup`}>
+                    {t("accountRequirements.woltAccount.manual.button")}
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-amber-900 dark:text-amber-100">
+                    {t(
+                      "accountRequirements.woltAccount.deviceConsideration.title",
+                    )}
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    {t(
+                      "accountRequirements.woltAccount.deviceConsideration.description",
+                    )}
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-purple-600" />
-                {t("accountRequirements.woltBenefits.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">
-                {t("accountRequirements.woltBenefits.description")}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div id="activation-guide" className="space-y-6 scroll-mt-32">
@@ -296,66 +269,18 @@ export function GettingStartedContent() {
                 {t("activationGuide.step3.description")}
               </p>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="p-3 sm:p-4 border rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Mail className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">
-                      {t("activationGuide.step3.email.title")}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {t("activationGuide.step3.email.description")}
-                  </p>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Link to={`/${language}/docs/email-forwarding`}>
-                      {t("activationGuide.step3.email.button")}
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border rounded-lg p-3 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold flex-shrink-0">
-                4
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold break-words">
-                {t("activationGuide.step4.title")}
-              </h3>
-            </div>
-
-            <div className="ml-0 sm:ml-11 space-y-4">
-              <p className="text-muted-foreground">
-                {t("activationGuide.step4.description")}
-              </p>
-
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    {t("activationGuide.step4.settings.automationMode")}
-                  </span>
-                </div>
-
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    {t("activationGuide.step4.settings.giftCardAmount")}
+                    {t("activationGuide.step3.settings.giftCardAmount")}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="text-sm">
-                    {t("activationGuide.step4.settings.enableToggle")}
+                    {t("activationGuide.step3.settings.enableToggle")}
                   </span>
                 </div>
               </div>
@@ -365,10 +290,10 @@ export function GettingStartedContent() {
                   <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                      {t("activationGuide.step4.allSet.title")}
+                      {t("activationGuide.step3.allSet.title")}
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      {t("activationGuide.step4.allSet.description")}
+                      {t("activationGuide.step3.allSet.description")}
                     </p>
                   </div>
                 </div>
