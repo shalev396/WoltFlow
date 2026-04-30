@@ -137,6 +137,27 @@ export class User {
     return new User(result);
   }
 
+  /**
+   * Resolves either an internal `User.id` or a `cognitoSub` to the internal
+   * `User.id`. Returns `null` if no user matches either column.
+   *
+   * Both identifiers are UUID-shaped, so we can't distinguish them by format —
+   * we try `id` first (cheap PK lookup) and fall back to `cognitoSub`.
+   */
+  static async resolveToInternalId(idOrSub: string): Promise<string | null> {
+    const byId = await UserModel.findOne({
+      where: { id: idOrSub },
+      attributes: ["id"],
+    });
+    if (byId) return byId.id;
+
+    const bySub = await UserModel.findOne({
+      where: { cognitoSub: idOrSub },
+      attributes: ["id"],
+    });
+    return bySub?.id ?? null;
+  }
+
   // ==================== Static Methods - Auth ====================
 
   static async upsertFromLogin(

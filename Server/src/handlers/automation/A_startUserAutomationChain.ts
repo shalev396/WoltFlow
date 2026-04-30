@@ -19,11 +19,27 @@ export const handler = async (event?: {
   userId?: string;
 }): Promise<ICustomStepFunctionResult> => {
   try {
-    const targetUserId = event?.userId;
+    const rawTargetUserId = event?.userId;
 
-    if (targetUserId) {
+    // Accept either an internal User.id or a Cognito sub; normalize to id.
+    let targetUserId: string | undefined;
+    if (rawTargetUserId) {
+      const resolved = await User.resolveToInternalId(rawTargetUserId);
+      if (!resolved) {
+        return {
+          runId: "",
+          userId: rawTargetUserId,
+          success: false,
+          completed: false,
+          message: `User ${rawTargetUserId} not found (tried both User.id and cognitoSub)`,
+        };
+      }
+      targetUserId = resolved;
       console.log(
-        `Starting User Automation Chain for specific user: ${targetUserId}`
+        `Starting User Automation Chain for specific user: ${targetUserId}` +
+          (resolved === rawTargetUserId
+            ? ""
+            : ` (resolved from cognitoSub ${rawTargetUserId})`),
       );
     } else {
       console.log(
@@ -39,7 +55,7 @@ export const handler = async (event?: {
         userId: targetUserId,
         success: false,
         completed: false,
-        message: `User ${targetUserId} does not have automation enabled (no run settings found)`,
+        message: `User ${targetUserId} exists but does not have automation enabled (runSettings.automationEnabled is false or runSettings is missing)`,
       };
     }
 

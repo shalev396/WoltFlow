@@ -315,8 +315,10 @@ _Pause: **Medium** — wait for the success message to render before screenshott
 Fire the pipeline for **one user** by invoking the `startUserAutomationChain` Lambda with this payload (omit `userId` to run for every automation-enabled user):
 
 ```json
-{ "userId": "<target-user-uuid>" }
+{ "userId": "<target-user-uuid-or-cognito-sub>" }
 ```
+
+`userId` accepts either the internal `User.id` or the Cognito sub — the handler resolves to the internal id automatically. The user must also have `runSettings.automationEnabled = true`, otherwise the run is skipped with a clear "exists but does not have automation enabled" message.
 
 ---
 
