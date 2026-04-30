@@ -8,7 +8,12 @@ import {
   setupWoltCookies,
   applyBrowserTimezone,
 } from "../../utils/automation.js";
-import { sleep } from "../../utils/general.js";
+import {
+  sleep,
+  SHORT_PAUSE,
+  MEDIUM_PAUSE,
+  LONG_PAUSE,
+} from "../../utils/general.js";
 import { uploadImageToS3AndSaveToDb } from "../../utils/s3Util.js";
 import {
   notifyOnError,
@@ -165,6 +170,7 @@ export const handler = async (
     console.log("start step 1: navigate to gift-card-shop");
     const GIFT_SHOP_URL = "https://wolt.com/he/gift-card-shop/isr";
     await driver.get(GIFT_SHOP_URL);
+    await sleep(LONG_PAUSE);
     console.log("end step 1");
     if (LEVEL === "1") {
       await sleep(1000);
@@ -182,6 +188,7 @@ export const handler = async (
       throw new Error("Could not find AmountChooser-valueCustom.label");
     }
     await safeClick(driver, otherLabel);
+    await sleep(SHORT_PAUSE);
     console.log("end step 2");
     if (LEVEL === "2") {
       await sleep(1000);
@@ -202,6 +209,7 @@ export const handler = async (
     await amountInput.sendKeys(Key.chord(Key.CONTROL, "a"));
     await amountInput.sendKeys(Key.DELETE);
     await amountInput.sendKeys(String(giftAmount));
+    await sleep(SHORT_PAUSE);
     console.log("end step 3");
     if (LEVEL === "3") {
       await sleep(1000);
@@ -209,16 +217,22 @@ export const handler = async (
     }
 
     // Step 4 — Toggle the self-redeem ("אני קונה לעצמי") switch.
+    // The underlying <input type="checkbox"> is visually hidden by design
+    // (al-Switch component), so we click the wrapping <label> — that's the
+    // visible, click-receiving part of the switch.
     console.log("start step 4: toggle BuyingForMyselfSwitch");
     const switchEl = await waitForElement(
       driver,
-      By.xpath("//input[@data-test-id='GiftCardForm.BuyingForMyselfSwitch']"),
+      By.xpath(
+        "//label[.//input[@data-test-id='GiftCardForm.BuyingForMyselfSwitch']]",
+      ),
       8000,
     );
     if (!switchEl) {
       throw new Error("Could not find GiftCardForm.BuyingForMyselfSwitch");
     }
     await safeClick(driver, switchEl);
+    await sleep(SHORT_PAUSE);
     console.log("end step 4");
     if (LEVEL === "4") {
       await sleep(1000);
@@ -236,6 +250,7 @@ export const handler = async (
       throw new Error("Could not find GiftCardForm.ContinueButton");
     }
     await safeClick(driver, continueBtn);
+    await sleep(LONG_PAUSE);
     console.log("end step 5");
     if (LEVEL === "5") {
       await sleep(1000);
@@ -253,6 +268,7 @@ export const handler = async (
       throw new Error("Could not find PaymentMethodSelector");
     }
     await safeClick(driver, paymentSelector);
+    await sleep(MEDIUM_PAUSE);
     console.log("end step 6");
     if (LEVEL === "6") {
       await sleep(1000);
@@ -272,6 +288,7 @@ export const handler = async (
       throw new Error("Could not find the Wolt Benefits payment row");
     }
     await safeClick(driver, woltBenefitsRow);
+    await sleep(MEDIUM_PAUSE);
     console.log("end step 7");
     if (LEVEL === "7") {
       await sleep(1000);
@@ -287,6 +304,7 @@ export const handler = async (
     );
     if (modalClose) {
       await safeClick(driver, modalClose);
+      await sleep(SHORT_PAUSE);
     }
     console.log("end step 8");
     if (LEVEL === "8") {
@@ -305,37 +323,61 @@ export const handler = async (
       throw new Error("Could not find GiftCardOrderSummary.PayButton");
     }
     await safeClick(driver, payBtn);
-    await sleep(8000); // give the order time to clear
+    await sleep(LONG_PAUSE);
     console.log("end step 9");
     if (LEVEL === "9") {
       await sleep(1000);
       throw new Error("LEVEL 9");
     }
 
-    // Step 10 — Best-effort: press the post-purchase redeem button.
-    // Flagged: territory we can't fully test from here. If the redeem button
-    // never appears (e.g. self-redeem already auto-applied), we still treat
-    // the run as success based on the post-pay state.
-    console.log("start step 10: best-effort press user.redeem button");
-    const redeemBtn = await waitForElement(
+    // Step 10 — Press redeem on the post-purchase page.
+    // This does NOT redeem; it navigates to the dedicated redeem page with the
+    // gift-card code already filled in via the URL.
+    console.log("start step 10: press post-purchase redeem (navigates)");
+    const postPurchaseRedeemBtn = await waitForElement(
       driver,
-      By.xpath("//button[@data-localization-key='user.redeem']"),
+      By.xpath("//button[.//div[normalize-space(.)='למימוש הקוד']]"),
       15000,
     );
-    if (redeemBtn) {
-      await safeClick(driver, redeemBtn);
-      await sleep(3000);
-    } else {
-      console.log("user.redeem button not present — assuming auto-redeemed");
+    if (!postPurchaseRedeemBtn) {
+      throw new Error(
+        "Could not find the post-purchase redeem button (Step 10)",
+      );
     }
+    await safeClick(driver, postPurchaseRedeemBtn);
+    await sleep(LONG_PAUSE);
     console.log("end step 10");
     if (LEVEL === "10") {
       await sleep(1000);
       throw new Error("LEVEL 10");
     }
 
-    // Step 11 — Success screenshot + mark completed.
-    console.log("start step 11: success screenshot + mark completed");
+    // Step 11 — Press the actual redeem button on the redeem page.
+    // This is the call that credits the gift card to the account.
+    console.log("start step 11: press actual redeem on redeem page");
+    const finalRedeemBtn = await waitForElement(
+      driver,
+      By.xpath("//button[@data-localization-key='user.redeem']"),
+      15000,
+    );
+    if (!finalRedeemBtn) {
+      throw new Error(
+        "Could not find the final redeem button on redeem page (Step 11)",
+      );
+    }
+    await safeClick(driver, finalRedeemBtn);
+    await sleep(MEDIUM_PAUSE);
+    console.log("end step 11");
+    if (LEVEL === "11") {
+      await sleep(1000);
+      throw new Error("LEVEL 11");
+    }
+
+    // Step 12 — Wait for the success message, then capture the success
+    // screenshot. TODO: replace the static MEDIUM_PAUSE with a waitForElement
+    // on the success-message XPath once we have it captured.
+    console.log("start step 12: capture success screenshot");
+    await sleep(MEDIUM_PAUSE);
     const successScreenshot = await driver.takeScreenshot();
     await uploadImageToS3AndSaveToDb(
       `data:image/png;base64,${successScreenshot}`,
@@ -346,7 +388,7 @@ export const handler = async (
       "completed",
     );
     success = true;
-    console.log("end step 11");
+    console.log("end step 12");
 
     //script end
   } catch (err) {
