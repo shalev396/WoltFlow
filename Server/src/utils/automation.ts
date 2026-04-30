@@ -9,7 +9,7 @@ import {
   WebElement,
 } from "selenium-webdriver";
 import type { ChromiumWebDriver } from "selenium-webdriver/chromium.js";
-import { PAGE_LOAD_TIME, sleep } from "./general.js";
+import { LONG_PAUSE, sleep } from "./general.js";
 
 /**
  * Force browser timezone via CDP Emulation.setTimezoneOverride.
@@ -116,7 +116,7 @@ export async function setupWoltCookies(
       }
     }
     await driver.get("https://wolt.com");
-    await sleep(PAGE_LOAD_TIME);
+    await sleep(LONG_PAUSE);
   } catch (error) {
     console.error("Error setting up Wolt cookies:", error);
     throw error;
