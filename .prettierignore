@@ -1,0 +1,15 @@
+*node_modules
+*dist
+*package-lock.json
+*build
+*.serverless
+*.esbuild
+temp/
+Server/
+Client/
+**/.python-version
+**/__pycache__/
+**/.venv/
+artifacts/
+**/translations.json
+*.html
