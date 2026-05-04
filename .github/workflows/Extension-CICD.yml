@@ -7,11 +7,11 @@ permissions:
 on:
   push:
     branches:
-      - "main" # Production deployment to Chrome Web Store
-      - "dev" # Development build and validation
+      - 'main' # Production deployment to Chrome Web Store
+      - 'dev' # Development build and validation
     paths:
-      - "Extension/**"
-      - ".github/workflows/Extension-CICD.yml"
+      - 'Extension/**'
+      - '.github/workflows/Extension-CICD.yml'
 
 jobs:
   build-and-deploy-extension:
