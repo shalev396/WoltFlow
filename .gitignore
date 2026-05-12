@@ -1,16 +1,29 @@
+# Node
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+**/dist/
+**/build/
+
+# Serverless / esbuild
+.serverless/
+**/.serverless/
+.esbuild/
+**/.esbuild/
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
-
 lib64/
 parts/
 sdist/
@@ -19,30 +32,45 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Environments
-.env
-.env.prod
-.env.dev
-.env.qa
-.venv
-env/
+.venv/
 venv/
 ENV/
+env/
 env.bak/
 venv.bak/
-.webpack/
 
-# screenshots
+# Environment files (secrets)
+.env
+.env.dev
+.env.qa
+.env.prod
+.env.local
+**/.env.dev
+**/.env.qa
+**/.env.prod
+**/.env.local
+
+# Test artifacts (contains tokens)
+**/exported.postman_environment.json
+**/postman/environments/*.postman_environment.json
+postman-results.xml
+artifacts/
+**/artifacts/
+translations.json
+**/translations.json
+
+# Screenshots / chrome profiles
 *.png
-
-# chrome profiles
+!WoltFlowLogo.png
 *chrome_profile/
 *chrome/
+*chrome-layer
+*chromedriver-layer
 
 # IDE
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .cursor/
 *.swp
 *.swo
@@ -51,23 +79,13 @@ venv.bak/
 *.log
 logs/
 
-# OS specific
+# OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
 
-# Server
-.serverless
-db.json
-*node_modules
-*build
-Server/build/
-Server/dist/
-15
-*temp
-
-*chrome-layer
-*chromedriver-layer
+# Temp / scratch
+temp/
 note.md
-#dev
 *oldversion
-!WoltFlowLogo.png
+db.json
+15

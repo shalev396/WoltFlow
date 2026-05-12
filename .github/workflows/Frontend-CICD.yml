@@ -7,13 +7,13 @@ permissions:
 on:
   push:
     branches:
-      - "main" # Production
-      - "dev" # Development
-      - "qa" # QA
+      - 'main' # Production
+      - 'dev' # Development
+      - 'qa' # QA
     paths:
-      - "Client/**"
-      - "Server/src/**"
-      - ".github/workflows/Frontend-CICD.yml"
+      - 'Client/**'
+      - 'Server/src/**'
+      - '.github/workflows/Frontend-CICD.yml'
 
 jobs:
   deploy-frontend:

@@ -7,12 +7,12 @@ permissions:
 on:
   push:
     branches:
-      - "main" # Production
-      - "dev" # Development
-      - "qa" # QA
+      - 'main' # Production
+      - 'dev' # Development
+      - 'qa' # QA
     paths:
-      - "Server/**"
-      - ".github/workflows/Backend-CICD.yml"
+      - 'Server/**'
+      - '.github/workflows/Backend-CICD.yml'
 
 jobs:
   deploy-backend:

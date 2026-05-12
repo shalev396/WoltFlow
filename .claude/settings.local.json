@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__github__search_repositories",
+      "mcp__github__list_branches",
+      "mcp__github__get_file_contents",
+      "Bash(npm ls *)",
+      "Bash(npm view *)",
+      "Bash(npm install *)",
+      "Bash(npm audit *)"
+    ]
+  }
+}

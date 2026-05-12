@@ -1,0 +1,28 @@
+#!/bin/sh
+set -e
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+npm run format
+
+if [ -n "$STAGED_FILES" ]; then
+  echo "$STAGED_FILES" | while IFS= read -r file; do
+    [ -f "$file" ] && git add "$file"
+  done
+fi
+
+if git diff --cached --name-only | grep -q "^client/"; then
+  (
+    cd client
+    npm run build
+    npx eslint . --max-warnings 0
+  )
+fi
+
+if git diff --cached --name-only | grep -q "^server/"; then
+  (
+    cd server
+    npm run build
+    npx eslint . --max-warnings 0
+  )
+fi

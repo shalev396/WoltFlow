@@ -7,12 +7,10 @@ Your extension is configured for automatic deployment to the Chrome Web Store wh
 ### Prerequisites
 
 1. **Chrome Web Store Developer Account**
-
    - Register at [Chrome Web Store Developer Console](https://chrome.google.com/webstore/devconsole/)
    - Pay the one-time $5 registration fee
 
 2. **Google Cloud Console Setup**
-
    - Go to [Google Cloud Console](https://console.cloud.google.com/)
    - Create a new project or use existing
    - Enable the Chrome Web Store API
@@ -33,7 +31,6 @@ Your extension is configured for automatic deployment to the Chrome Web Store wh
 ### Workflow Triggers
 
 - **Development**: Push to `dev` branch
-
   - Generates icons
   - Validates extension
   - **Deploys to Chrome Web Store Dev** (unpublished)
@@ -76,7 +73,6 @@ npm run package-windows
 ### Getting OAuth2 Credentials
 
 1. **Google Cloud Console**:
-
    - Go to APIs & Services > Credentials
    - Create OAuth2 Client ID (Desktop Application)
    - Note the Client ID and Client Secret

@@ -16,12 +16,10 @@ A Chrome extension to review access and refresh tokens from Wolt.com.
 ### For Development/Testing
 
 1. **Enable Developer Mode**:
-
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode" toggle in the top-right corner
 
 2. **Load the Extension**:
-
    - Click "Load unpacked"
    - Select the `Extension` folder from this project
    - The extension should appear in your extensions list
@@ -74,7 +72,6 @@ You can use any icon design tool or generate simple placeholder icons.
 ### Prerequisites
 
 1. **Chrome Web Store Developer Account**:
-
    - Visit [Chrome Web Store Developer Console](https://chrome.google.com/webstore/devconsole/)
    - Pay one-time $5 registration fee
    - Verify your identity
@@ -131,19 +128,16 @@ This extension processes all data locally and never transmits tokens or personal
 ### Submission Process
 
 1. **Upload Package**:
-
    - Go to Chrome Web Store Developer Console
    - Click "New Item"
    - Upload your ZIP file
 
 2. **Fill Store Listing**:
-
    - Add title, description, screenshots
    - Upload store icon and promotional images
    - Set category and keywords
 
 3. **Privacy Practices**:
-
    - Indicate data usage (cookies, storage)
    - Upload privacy policy
    - Declare no data transmission
@@ -177,12 +171,10 @@ This extension processes all data locally and never transmits tokens or personal
 ### Development Debugging
 
 1. **Inspect Popup**:
-
    - Right-click extension icon → "Inspect popup"
    - Use Chrome DevTools to debug
 
 2. **View Background Script**:
-
    - Go to `chrome://extensions/`
    - Click "Details" on your extension
    - Click "Inspect views: background page"

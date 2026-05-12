@@ -47,6 +47,20 @@ The Script folder contains a Python-based local runner that used Selenium to aut
 
 If you want to explore it: [Script README](Script/README.md)
 
+## Security & npm audit
+
+WoltFlow targets a **clean `npm audit`** for anything that ships to production. Where a transitive dependency is flagged but we cannot remove the warning without a force-downgrade or breaking change, it is documented here with the reason it is safe to leave in place.
+
+### Known, accepted advisories
+
+**`aws-sdk` v2 (low) — [GHSA-j965-2qgj-vjmq](https://github.com/advisories/GHSA-j965-2qgj-vjmq)**
+
+- **Where:** `serverless-ecr-image-cleaner@1.0.7` → `aws-sdk@2.x`. Latest plugin version still depends on v2.
+- **Production impact:** None. `serverless-ecr-image-cleaner` is a Serverless Framework plugin — it runs only during `npm run deploy:*` (locally or in CI). It is not bundled into any Lambda by esbuild and is not present in any production artifact.
+- **Exploitability:** The advisory requires an untrusted, attacker-controlled `region` value. Ours is `process.env.AWS_REGION`, set by our CI environment / `.env.<stage>` files — never user input.
+- **Why we don't `npm audit fix --force`:** It downgrades the plugin to `1.0.1` (older, broken ECR cleanup behavior). That's a regression, not a fix.
+- **Action:** Re-check on every `serverless-ecr-image-cleaner` release. Move to v3-based equivalent when one exists.
+
 ## Getting Started
 
 1. **Clone the repository**:
