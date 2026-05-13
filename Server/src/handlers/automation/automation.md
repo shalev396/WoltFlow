@@ -68,17 +68,35 @@ _Pause: **Short** — form reacts to the new value._
 
 ## Step 4 — Toggle "send to my own account"
 
-- **XPath:** `//label[.//input[@data-test-id='GiftCardForm.BuyingForMyselfSwitch']]`
-- **Why the label and not the input:** the underlying `<input type="checkbox">` is visually hidden by Wolt's `al-Switch` component (the `inptswtch-npt` class is literally "input switch"). Selenium's visibility check rejects it. Clicking the wrapping `<label>` toggles the same checkbox via standard a11y behavior.
+- **XPath:** `//label[@for=//input[@data-test-id='GiftCardForm.BuyingForMyselfSwitch']/@id]`
+- **Why the label and not the input:** the underlying `<input type="checkbox">` is visually hidden by Wolt's `al-Switch` component (the `inptswtch-npt` class is literally "input switch"). Selenium's visibility check rejects it. Clicking the `<label>` toggles the same checkbox via standard a11y behavior.
+- **Why the indirect XPath:** Wolt's current al-Switch markup renders the `<label>` as a **sibling** of the `<input>` (not wrapping it), connected via `for`/`id`. The input's `id` is dynamically generated per render (e.g., `_r_q_`), so we anchor on the stable `data-test-id` and resolve the matching label through the `for`-attribute comparison.
 
 ```html
-<input
-  data-test-id="GiftCardForm.BuyingForMyselfSwitch"
-  class="al-Switch-inptswtch-npt-349"
-  role="switch"
-  type="checkbox"
-  name="buyingForMyself"
-/>
+<div
+  class="al-common-tggl-rt-b58 al-Switch-rt-b58 s1jsrjqo"
+  data-label-pos="start"
+>
+  <div class="al-Switch-inptswtch-rt-b58" aria-disabled="false">
+    <input
+      id="_r_q_"
+      data-test-id="GiftCardForm.BuyingForMyselfSwitch"
+      class="al-Switch-inptswtch-npt-b58"
+      role="switch"
+      type="checkbox"
+      name="buyingForMyself"
+    />
+    <div class="al-Switch-inptswtch-bg-b58"></div>
+    <div class="al-Switch-inptswtch-knb-b58"></div>
+  </div>
+  <div class="al-common-tggl-cntnt-b58">
+    <label class="al-common-tggl-lbl-b58" for="_r_q_">
+      <div class="skhqa3i">
+        <span class="sltjvpl">אני קונה לעצמי</span>
+      </div>
+    </label>
+  </div>
+</div>
 ```
 
 _Pause: **Short** — toggle animation._

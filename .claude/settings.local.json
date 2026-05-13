@@ -7,7 +7,12 @@
       "Bash(npm ls *)",
       "Bash(npm view *)",
       "Bash(npm install *)",
-      "Bash(npm audit *)"
+      "Bash(npm audit *)",
+      "mcp__github__list_pull_requests",
+      "mcp__github__create_pull_request",
+      "mcp__github__pull_request_read",
+      "mcp__github__update_pull_request",
+      "WebFetch(domain:woltflow.shalev396.com)"
     ]
   }
 }

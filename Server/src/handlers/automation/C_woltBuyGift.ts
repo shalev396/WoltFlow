@@ -217,14 +217,16 @@ export const handler = async (
     }
 
     // Step 4 — Toggle the self-redeem ("אני קונה לעצמי") switch.
-    // The underlying <input type="checkbox"> is visually hidden by design
-    // (al-Switch component), so we click the wrapping <label> — that's the
-    // visible, click-receiving part of the switch.
+    // The al-Switch component hides the <input> visually and renders the
+    // clickable <label> as a *sibling*, connected via for/id (not wrapping).
+    // The input's id is dynamically generated per render, so we resolve the
+    // label by matching its `for` to the input that carries the stable
+    // data-test-id.
     console.log("start step 4: toggle BuyingForMyselfSwitch");
     const switchEl = await waitForElement(
       driver,
       By.xpath(
-        "//label[.//input[@data-test-id='GiftCardForm.BuyingForMyselfSwitch']]",
+        "//label[@for=//input[@data-test-id='GiftCardForm.BuyingForMyselfSwitch']/@id]",
       ),
       8000,
     );
