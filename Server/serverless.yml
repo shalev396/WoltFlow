@@ -393,11 +393,12 @@ functions:
         - "package.json"
     events:
       - schedule:
-          # 30 min after Wolt Benefits opens (10:00 Israel). AWS cron is UTC.
-          # Winter (Israel UTC+2): 08:30 UTC = 10:30 Israel ✓
-          # Summer (Israel UTC+3): 08:30 UTC = 11:30 Israel (1hr later, still in 10-18 window)
-          rate: cron(30 8 ? * SUN,MON,TUE,WED,THU *)
-          description: "30 min after Wolt opens: 08:30 UTC = 10:30 Israel winter / 11:30 Israel summer"
+          # EventBridge Scheduler (AWS::Scheduler::Schedule) interprets cron in the
+          # given IANA timezone and handles DST automatically — no UTC math needed.
+          method: scheduler
+          timezone: Asia/Jerusalem
+          rate: cron(0 10 ? * SUN,MON,TUE,WED,THU *)
+          description: "10:00 Israel local, year-round (DST-aware via EventBridge Scheduler)"
           enabled: true
 
   # CRITICAL: Do not modify selenium automation functions - they are working after hours of fixing!

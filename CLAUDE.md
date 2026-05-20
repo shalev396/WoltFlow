@@ -74,7 +74,7 @@ npm run preview
 
 The flow is: **cron → A → Step Functions Map (parallel per user) → B → C → success/fail Pass states**.
 
-- **`A_startUserAutomationChain.ts`** — runs on cron `cron(30 8 ? * SUN,MON,TUE,WED,THU *)` (30 min after Wolt Benefits opens; 10:30 Israel winter / 11:30 summer). Loads all users with `runSettings.automationEnabled = true`, creates a `Run` row per user, then `StartExecution` on the `userAutomationChain` state machine (`MaxConcurrency: 10`). Manual invoke accepts `{ "userId": "<internal-id-or-cognitoSub>" }` — `User.resolveToInternalId` handles both.
+- **`A_startUserAutomationChain.ts`** — runs on cron `cron(0 10 ? * SUN,MON,TUE,WED,THU *)` via **EventBridge Scheduler** with `timezone: Asia/Jerusalem`, so it fires at **10:00 Israel local year-round** (DST handled by AWS). Loads all users with `runSettings.automationEnabled = true`, creates a `Run` row per user, then `StartExecution` on the `userAutomationChain` state machine (`MaxConcurrency: 10`). Manual invoke accepts `{ "userId": "<internal-id-or-cognitoSub>" }` — `User.resolveToInternalId` handles both.
 - **`B_refreshTokens.ts`** — POSTs to Wolt's `wauth2/access_token`, updates the user's `WoltSettings`, advances `Run.stage`.
 - **`C_woltBuyGift.ts`** — the Selenium flow. **Read `automation.md` in the same folder** before changing it; every step, XPath, and pause tier is documented there with HTML snippets pulled from the live Wolt UI.
 
@@ -133,6 +133,6 @@ When in doubt about file layout or wiring, check Elytra first (use the GitHub MC
 - **Don't change `woltBuyGift` Lambda config** in `serverless.yml` — memory/ephemeral storage/timeout are tuned for Chrome.
 - **Selectors are fragile.** Wolt's HTML uses generated class names like `lcw7leb`. Use `data-test-id` and the documented XPaths in `automation.md`; if a selector breaks, update `automation.md` in the same PR.
 - **Pause tiers, not arbitrary sleeps.** Use `SHORT_PAUSE` / `MEDIUM_PAUSE` / `LONG_PAUSE` from `utils/general.ts` to match the documented step categories.
-- **Cron is UTC.** Israel summer time shifts the local trigger from 10:30 to 11:30 — that's expected, but worth knowing before assuming "the cron didn't fire on time".
+- **Cron is timezone-aware (`Asia/Jerusalem`).** The trigger uses EventBridge Scheduler with a timezone, so it fires at 10:00 Israel local time year-round — AWS handles summer/winter DST. (The old `eventBus`/`AWS::Events::Rule` path was UTC-only and drifted between 10:30 and 11:30.)
 - **`dev` API surface is dev/qa only.** Anything wired through `devApi` cannot be relied on in production.
 - **Husky hooks build & lint per folder.** Stage files only in `client/` or `server/` and the hook will run the right subset; large cross-folder commits do all of it.
