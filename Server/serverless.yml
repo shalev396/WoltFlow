@@ -393,12 +393,11 @@ functions:
         - "package.json"
     events:
       - schedule:
-          # EventBridge Scheduler (AWS::Scheduler::Schedule) interprets cron in the
-          # given IANA timezone and handles DST automatically — no UTC math needed.
+          # Cron is interpreted in the timezone below (local wall-clock time).
           method: scheduler
           timezone: Asia/Jerusalem
           rate: cron(0 10 ? * SUN,MON,TUE,WED,THU *)
-          description: "10:00 Israel local, year-round (DST-aware via EventBridge Scheduler)"
+          description: "10:00 Israel time, Sun-Thu"
           enabled: true
 
   # CRITICAL: Do not modify selenium automation functions - they are working after hours of fixing!
