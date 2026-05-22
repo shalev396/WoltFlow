@@ -4,54 +4,102 @@ import { Clock, Play } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+// Automation fires at 10:00 Israel time (Asia/Jerusalem). The countdown targets that
+// wall-clock time regardless of the viewer's own timezone.
+const RUN_TIMEZONE = "Asia/Jerusalem";
+const RUN_HOUR = 10;
+const RUN_MINUTE = 0;
+// Valid days in Israel local time: Sun(0), Mon(1), Tue(2), Wed(3), Thu(4).
+const VALID_DAYS = [0, 1, 2, 3, 4];
+
+// Wall-clock components of an instant as seen in the given timezone.
+function getZonedParts(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+  const map: Record<string, number> = {};
+  for (const p of parts) {
+    if (p.type !== "literal") map[p.type] = Number(p.value);
+  }
+  // Intl emits hour "24" at midnight in some engines; normalize to 0.
+  if (map.hour === 24) map.hour = 0;
+  return map as {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+    second: number;
+  };
+}
+
+// Convert a wall-clock time in `timeZone` to the matching UTC instant, accounting
+// for that zone's offset (incl. DST) on that specific date.
+function zonedWallClockToUtc(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  timeZone: string
+): Date {
+  const guess = Date.UTC(year, month - 1, day, hour, minute, 0);
+  const zoned = getZonedParts(new Date(guess), timeZone);
+  const zonedAsUtc = Date.UTC(
+    zoned.year,
+    zoned.month - 1,
+    zoned.day,
+    zoned.hour,
+    zoned.minute,
+    zoned.second
+  );
+  const offset = zonedAsUtc - guess;
+  return new Date(guess - offset);
+}
+
+function getNextRun(): Date {
+  const now = new Date();
+  const il = getZonedParts(now, RUN_TIMEZONE);
+  const todayDow = new Date(Date.UTC(il.year, il.month - 1, il.day)).getUTCDay();
+  const nowMinutes = il.hour * 60 + il.minute + il.second / 60;
+  const runMinutes = RUN_HOUR * 60 + RUN_MINUTE;
+
+  const buildRun = (y: number, m: number, d: number) =>
+    zonedWallClockToUtc(y, m, d, RUN_HOUR, RUN_MINUTE, RUN_TIMEZONE);
+
+  if (VALID_DAYS.includes(todayDow) && nowMinutes < runMinutes) {
+    return buildRun(il.year, il.month, il.day);
+  }
+
+  for (let i = 1; i <= 7; i++) {
+    const candidate = new Date(Date.UTC(il.year, il.month - 1, il.day));
+    candidate.setUTCDate(candidate.getUTCDate() + i);
+    if (VALID_DAYS.includes(candidate.getUTCDay())) {
+      return buildRun(
+        candidate.getUTCFullYear(),
+        candidate.getUTCMonth() + 1,
+        candidate.getUTCDate()
+      );
+    }
+  }
+  return buildRun(il.year, il.month, il.day);
+}
+
 export default function NextRunBanner() {
   const { t } = useTranslation("runs");
   const [timeUntilNextRun, setTimeUntilNextRun] = useState<string>("");
 
   useEffect(() => {
-    // Automation runs at 08:30 UTC (10:30 Israel winter / 11:30 Israel summer)
-    // Valid days: Sun(0), Mon(1), Tue(2), Wed(3), Thu(4). Skip Fri(5), Sat(6).
-    const RUN_HOUR_UTC = 8;
-    const RUN_MINUTE_UTC = 30;
-    const VALID_DAYS = [0, 1, 2, 3, 4];
-
-    const getNextRunUtc = (): Date => {
-      const now = new Date();
-      const currentDay = now.getUTCDay();
-      const currentMinutes =
-        now.getUTCHours() * 60 + now.getUTCMinutes() + now.getUTCSeconds() / 60;
-      const runMinutes = RUN_HOUR_UTC * 60 + RUN_MINUTE_UTC;
-
-      const buildRunDate = (d: Date) =>
-        new Date(
-          Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
-            RUN_HOUR_UTC,
-            RUN_MINUTE_UTC,
-            0,
-            0
-          )
-        );
-
-      if (VALID_DAYS.includes(currentDay) && currentMinutes < runMinutes) {
-        return buildRunDate(now);
-      }
-
-      for (let i = 1; i <= 7; i++) {
-        const next = new Date(now);
-        next.setUTCDate(now.getUTCDate() + i);
-        if (VALID_DAYS.includes(next.getUTCDay())) {
-          return buildRunDate(next);
-        }
-      }
-      return buildRunDate(now);
-    };
-
     const updateCountdown = () => {
       const now = new Date();
-      const nextRun = getNextRunUtc();
+      const nextRun = getNextRun();
       const timeDiff = nextRun.getTime() - now.getTime();
 
       if (timeDiff <= 0) {

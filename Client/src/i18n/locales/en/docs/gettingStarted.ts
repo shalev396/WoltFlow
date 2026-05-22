@@ -86,7 +86,7 @@ export default {
       allSet: {
         title: "You're All Set!",
         description:
-          "Once activated, WoltFlow runs automatically 30 minutes after Wolt Benefits opens: 10:30 AM Israel in winter, 11:30 AM in summer (due to daylight saving). The gift card is purchased and auto-redeemed straight to your account — no email forwarding or codes needed.",
+          "Once activated, WoltFlow runs automatically every weekday morning at 10:00 AM Israel time. The gift card is purchased and auto-redeemed straight to your account — no email forwarding or codes needed.",
       },
     },
   },

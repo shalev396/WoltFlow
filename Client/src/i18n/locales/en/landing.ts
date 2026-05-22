@@ -158,7 +158,7 @@ export default {
       {
         question: "Can I customize when the automation runs?",
         answer:
-          "The automation runs 30 minutes after Wolt Benefits opens (10:00 Israel): 10:30 AM in winter, 11:30 AM in summer (Israel uses daylight saving). You can see a countdown to the next run on your runs page.",
+          "The automation runs every weekday morning at 10:00 AM Israel time. You can see a countdown to the next run on your runs page.",
       },
       {
         question: "What if I need to pause the automation?",
