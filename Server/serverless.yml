@@ -117,6 +117,9 @@ provider:
     COGNITO_ISSUER: ${env:COGNITO_ISSUER}
 
   ecr:
+    # Keep only the most recent image versions via a native ECR lifecycle policy.
+    # Currently-tagged (live) images are never expired.
+    maxImages: 5
     images:
       woltflow-selenium-image:
         path: ./
@@ -221,9 +224,7 @@ build:
 # Serverless Plugins
 plugins:
   - serverless-offline
-  - serverless-prune-plugin
   - serverless-step-functions
-  - serverless-ecr-image-cleaner
 
 # Custom Configuration
 custom:
@@ -275,12 +276,6 @@ custom:
 
   # Environment Variables Configuration
   envFile: .env.${sls:stage}
-
-  # ECR Image Cleaner Configuration - Keep only last 5 images
-  ecrImageCleaner:
-    appRegion: ${self:provider.region}
-    repositoryName: serverless-${self:service}-${self:provider.stage}
-    numImagesToKeep: 5
 
 # Step Functions Configuration
 stepFunctions:
