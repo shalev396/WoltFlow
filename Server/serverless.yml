@@ -117,6 +117,9 @@ provider:
     COGNITO_ISSUER: ${env:COGNITO_ISSUER}
 
   ecr:
+    # Keep only the most recent image versions via a native ECR lifecycle policy.
+    # Currently-tagged (live) images are never expired.
+    maxImages: 5
     images:
       woltflow-selenium-image:
         path: ./
@@ -221,9 +224,7 @@ build:
 # Serverless Plugins
 plugins:
   - serverless-offline
-  - serverless-prune-plugin
   - serverless-step-functions
-  - serverless-ecr-image-cleaner
 
 # Custom Configuration
 custom:
@@ -275,12 +276,6 @@ custom:
 
   # Environment Variables Configuration
   envFile: .env.${sls:stage}
-
-  # ECR Image Cleaner Configuration - Keep only last 5 images
-  ecrImageCleaner:
-    appRegion: ${self:provider.region}
-    repositoryName: serverless-${self:service}-${self:provider.stage}
-    numImagesToKeep: 5
 
 # Step Functions Configuration
 stepFunctions:
@@ -393,11 +388,11 @@ functions:
         - "package.json"
     events:
       - schedule:
-          # 30 min after Wolt Benefits opens (10:00 Israel). AWS cron is UTC.
-          # Winter (Israel UTC+2): 08:30 UTC = 10:30 Israel ✓
-          # Summer (Israel UTC+3): 08:30 UTC = 11:30 Israel (1hr later, still in 10-18 window)
-          rate: cron(30 8 ? * SUN,MON,TUE,WED,THU *)
-          description: "30 min after Wolt opens: 08:30 UTC = 10:30 Israel winter / 11:30 Israel summer"
+          # Cron is interpreted in the timezone below (local wall-clock time).
+          method: scheduler
+          timezone: Asia/Jerusalem
+          rate: cron(0 10 ? * SUN,MON,TUE,WED,THU *)
+          description: "10:00 Israel time, Sun-Thu"
           enabled: true
 
   # CRITICAL: Do not modify selenium automation functions - they are working after hours of fixing!

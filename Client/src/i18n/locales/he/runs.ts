@@ -8,11 +8,11 @@ export default {
     "status": "סטטוס",
     "active": "פעיל",
     "schedule": "לוח זמנים",
-    "dailyTime": "יומי 30 דק' אחרי פתיחת Wolt (10:30–11:30 ישראל)",
-    "dailyTimeDetail": "חורף: 10:30 | קיץ: 11:30 (שעון קיץ)",
+    "dailyTime": "כל בוקר בשעה 10:00",
+    "dailyTimeDetail": "שעון ישראל",
     "runDays": "ב'-ה' וא'",
     "automaticExecution": "ביצוע אוטומטי מופעל",
-    "nextRun": "הבא: יום חול בבוקר (10:30–11:30 ישראל)"
+    "nextRun": "הבא: יום חול בבוקר בשעה 10:00"
   },
   "table": {
     "title": "כל הריצות",
