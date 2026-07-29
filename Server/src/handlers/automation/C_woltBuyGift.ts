@@ -335,10 +335,17 @@ export const handler = async (
     // Step 10 — Press redeem on the post-purchase page.
     // This does NOT redeem; it navigates to the dedicated redeem page with the
     // gift-card code already filled in via the URL.
+    // Label history: 'למימוש הקוד' → 'להטענת הקוד' (renamed on/before 2026-07-29).
+    // The button carries no data-test-id, so we anchor on the full label with
+    // contains() read off the <button> root — not exact equality on the inner
+    // div — so the selector survives wrapper renames, RTL marks and padding.
+    // data-variant='primary' keeps us off the sibling 'הצגת כרטיס המתנה' CTA.
     console.log("start step 10: press post-purchase redeem (navigates)");
     const postPurchaseRedeemBtn = await waitForElement(
       driver,
-      By.xpath("//button[.//div[normalize-space(.)='למימוש הקוד']]"),
+      By.xpath(
+        "//button[@data-variant='primary'][contains(normalize-space(.), 'להטענת הקוד')]",
+      ),
       15000,
     );
     if (!postPurchaseRedeemBtn) {

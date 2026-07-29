@@ -261,10 +261,18 @@ _Pause: **Long** — payment is processed and the page navigates to the post-pur
 
 ---
 
-## Step 10 — Press "Redeem" on the post-purchase page
+## Step 10 — Press "Load the code" on the post-purchase page
 
 - **What this does:** despite the label, this does **not** perform the redemption — it navigates to the dedicated redeem page with the gift-card code already filled in via the URL.
-- **XPath:** `//button[.//div[normalize-space(.)='למימוש הקוד']]`
+- **XPath:** `//button[@data-variant='primary'][contains(normalize-space(.), 'להטענת הקוד')]`
+- **Label history:** was `למימוש הקוד`; Wolt renamed it to `להטענת הקוד` on/before **2026-07-29**. The rename broke the old exact-equality selector mid-run — after payment had already gone through — so the run burned the benefit without crediting it.
+- **Careful — sibling CTA:** the same card renders a secondary `הצגת כרטיס המתנה` ("show gift card") button right below this one. It leads somewhere else; the selector must not match it.
+- **Why this XPath is resistant:**
+  - The button carries **no `data-test-id`**, so text is the only stable anchor available.
+  - `contains()` instead of `=` — tolerates RTL control marks (`‏`), `&nbsp;`, and any price/suffix span Wolt might append (the same breakage class that forced the indirect XPath in Step 4).
+  - Text is read off the **`<button>` root**, not the inner `div` — survives a wrapper rename. `cbc_Button_content_f04` carries a build version suffix that _will_ change.
+  - **No hashed classes.** `r1djcdxx` and the `_f04` suffix are build-generated; never anchor on them.
+  - `data-variant='primary'` separates this CTA from the secondary sibling above.
 
 ```html
 <button
@@ -276,7 +284,7 @@ _Pause: **Long** — payment is processed and the page navigates to the post-pur
 >
   <div class="cbc_Button_bgClass_f04"></div>
   <div class="cbc_Button_spinnerContainer_f04"></div>
-  <div class="cbc_Button_content_f04">למימוש הקוד</div>
+  <div class="cbc_Button_content_f04">להטענת הקוד</div>
 </button>
 ```
 
