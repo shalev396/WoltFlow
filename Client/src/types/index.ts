@@ -28,7 +28,11 @@ export type {
 export type { DashboardResponseData } from "@server/routes/user/dashboard";
 
 // Runs route types
-export type { RunsResponseData } from "@server/routes/user/runs";
+export type {
+  RunsResponseData,
+  ManualRunStatusResponseData,
+  TriggerManualRunResponseData,
+} from "@server/routes/user/runs";
 
 // Settings route types
 export type {

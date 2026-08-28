@@ -4,33 +4,16 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import {
   type ColumnDef,
-  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   type SortingState,
   useReactTable,
-  type VisibilityState,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Eye,
-  Image as ImageIcon,
-} from "lucide-react";
+import { ArrowUpDown, Eye, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 import {
   Table,
   TableBody,
@@ -58,6 +41,7 @@ import { useRunsQuery } from "@/queries/runs";
 import type { RunItem, RunFilters } from "@/types";
 import { RunDetailsDialog } from "@/components/shared/RunDetailsDialog";
 import { ScreenshotsDialog } from "./ScreenshotsDialog";
+import { RunsFilterBar } from "./RunsFilterBar";
 
 const getStatusBadge = (status: string) => {
   const baseClasses =
@@ -88,31 +72,22 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const createColumns = (
-  t: (key: string) => string
-): ColumnDef<RunItem>[] => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label={t("table.accessibility.selectAll")}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label={t("table.accessibility.selectRow")}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+function columnVisibilityClass(columnId: string): string {
+  // Always: createdAt, status, actions
+  // sm+: stage | md+: screenshots | lg+: id, amount
+  if (columnId === "id" || columnId === "amount") {
+    return "hidden lg:table-cell";
+  }
+  if (columnId === "stage") {
+    return "hidden sm:table-cell";
+  }
+  if (columnId === "screenshots") {
+    return "hidden md:table-cell";
+  }
+  return "";
+}
+
+const createColumns = (t: (key: string) => string): ColumnDef<RunItem>[] => [
   {
     accessorKey: "id",
     header: t("table.columns.id"),
@@ -120,18 +95,16 @@ const createColumns = (
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 font-medium"
-        >
-          {t("table.columns.date")}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="h-auto p-0 font-medium"
+      >
+        {t("table.columns.date")}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return (
@@ -148,18 +121,16 @@ const createColumns = (
   },
   {
     accessorKey: "status",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 font-medium"
-        >
-          {t("table.columns.status")}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="h-auto p-0 font-medium"
+      >
+        {t("table.columns.status")}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       return (
@@ -210,10 +181,8 @@ const createColumns = (
   },
   {
     id: "actions",
-    enableHiding: false,
     cell: ({ row }) => {
       const run = row.original;
-
       return (
         <RunDetailsDialog
           run={run}
@@ -242,16 +211,16 @@ export function RunsDataTable({
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  // Reset to first page when filters change
+  const filtersKey = JSON.stringify(filters);
+  React.useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [filtersKey]);
 
   const {
     data: runsData,
@@ -260,9 +229,9 @@ export function RunsDataTable({
     isFetching,
     refetch,
   } = useRunsQuery(
-    pagination.pageIndex + 1, // API uses 1-based pagination
+    pagination.pageIndex + 1,
     pagination.pageSize,
-    filters
+    filters,
   );
 
   const runs = runsData?.runs || [];
@@ -272,33 +241,23 @@ export function RunsDataTable({
     data: runs,
     columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
     manualPagination: true,
-    pageCount: Math.ceil(totalCount / pagination.pageSize),
+    pageCount: Math.ceil(totalCount / pagination.pageSize) || 1,
     state: {
       sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
       pagination,
     },
   });
 
-  // Handle status filter
-  const handleStatusFilter = (status: string) => {
-    const newFilters =
-      status === "all"
-        ? { ...filters, status: undefined }
-        : { ...filters, status: status as RunFilters["status"] };
-    onFiltersChange(newFilters);
-  };
+  const from =
+    totalCount === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1;
+  const to = Math.min(
+    (pagination.pageIndex + 1) * pagination.pageSize,
+    totalCount,
+  );
 
   if (error) {
     return (
@@ -327,109 +286,29 @@ export function RunsDataTable({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4">
-            <div className="flex flex-col sm:flex-row flex-1 gap-3 w-full">
-              {/* Status Filter */}
-              <Select
-                value={filters.status || "all"}
-                onValueChange={handleStatusFilter}
-              >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue
-                    placeholder={t("table.filters.filterByStatus")}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {t("table.status.allStatuses")}
-                  </SelectItem>
-                  <SelectItem value="completed">
-                    {t("table.status.completed")}
-                  </SelectItem>
-                  <SelectItem value="failed">
-                    {t("table.status.failed")}
-                  </SelectItem>
-                  <SelectItem value="in_progress">
-                    {t("table.status.inProgress")}
-                  </SelectItem>
-                  <SelectItem value="started">
-                    {t("table.status.started")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <RunsFilterBar
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+          />
 
-            {/* Column visibility */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  {t("table.filters.columns")}{" "}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
-                      >
-                        {column.id}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Table with responsive column visibility */}
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      // Responsive visibility classes for headers
-                      let headerClass = "text-center";
-
-                      // Always visible: actions, date, status
-                      // sm (640px+): + stage
-                      // md (768px+): + screenshots
-                      // lg (1024px+): + id, amount
-                      // xl (1280px+): + select checkbox
-
-                      if (header.column.id === "select") {
-                        headerClass += " hidden xl:table-cell";
-                      } else if (header.column.id === "id") {
-                        headerClass += " hidden lg:table-cell";
-                      } else if (header.column.id === "stage") {
-                        headerClass += " hidden sm:table-cell";
-                      } else if (header.column.id === "amount") {
-                        headerClass += " hidden lg:table-cell";
-                      } else if (header.column.id === "screenshots") {
-                        headerClass += " hidden md:table-cell";
-                      }
-                      // actions, createdAt, status are always visible
-
-                      return (
-                        <TableHead key={header.id} className={headerClass}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={`text-center ${columnVisibilityClass(header.column.id)}`}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    ))}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -446,36 +325,18 @@ export function RunsDataTable({
                   ))
                 ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className="hover:bg-muted/50"
-                    >
-                      {row.getVisibleCells().map((cell) => {
-                        // Apply same responsive visibility to cells
-                        let cellClass = "text-center";
-
-                        if (cell.column.id === "select") {
-                          cellClass += " hidden xl:table-cell";
-                        } else if (cell.column.id === "id") {
-                          cellClass += " hidden lg:table-cell";
-                        } else if (cell.column.id === "stage") {
-                          cellClass += " hidden sm:table-cell";
-                        } else if (cell.column.id === "amount") {
-                          cellClass += " hidden lg:table-cell";
-                        } else if (cell.column.id === "screenshots") {
-                          cellClass += " hidden md:table-cell";
-                        }
-
-                        return (
-                          <TableCell key={cell.id} className={cellClass}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        );
-                      })}
+                    <TableRow key={row.id} className="hover:bg-muted/50">
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className={`text-center ${columnVisibilityClass(cell.column.id)}`}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))
                 ) : (
@@ -492,12 +353,12 @@ export function RunsDataTable({
             </Table>
           </div>
 
-          {/* Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
             <div className="flex items-center space-x-2">
               <p className="text-sm text-muted-foreground">
-                {t("table.pagination.rowsSelected", {
-                  selected: table.getFilteredSelectedRowModel().rows.length,
+                {t("table.pagination.showing", {
+                  from,
+                  to,
                   total: totalCount,
                 })}
               </p>
