@@ -3,6 +3,8 @@ import type {
   ApiSuccessResponse,
   RunsResponseData,
   RunFilters,
+  ManualRunStatusResponseData,
+  TriggerManualRunResponseData,
 } from "@/types";
 
 export const runsService = {
@@ -25,10 +27,22 @@ export const runsService = {
     return response.data.data;
   },
 
-  async getRecentRuns(
-    limit: number = 5,
-  ): Promise<RunsResponseData["runs"]> {
+  async getRecentRuns(limit: number = 5): Promise<RunsResponseData["runs"]> {
     const response = await this.getRuns(1, limit);
     return response.runs;
+  },
+
+  async getManualRunStatus(): Promise<ManualRunStatusResponseData> {
+    const response = await api.get<
+      ApiSuccessResponse<ManualRunStatusResponseData>
+    >("/user/runs/manual");
+    return response.data.data;
+  },
+
+  async triggerManualRun(): Promise<TriggerManualRunResponseData> {
+    const response = await api.post<
+      ApiSuccessResponse<TriggerManualRunResponseData>
+    >("/user/runs/manual");
+    return response.data.data;
   },
 };
