@@ -12,7 +12,6 @@ const RUN_MINUTE = 0;
 // Valid days in Israel local time: Sun(0), Mon(1), Tue(2), Wed(3), Thu(4).
 const VALID_DAYS = [0, 1, 2, 3, 4];
 
-// Wall-clock components of an instant as seen in the given timezone.
 function getZonedParts(date: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -28,7 +27,6 @@ function getZonedParts(date: Date, timeZone: string) {
   for (const p of parts) {
     if (p.type !== "literal") map[p.type] = Number(p.value);
   }
-  // Intl emits hour "24" at midnight in some engines; normalize to 0.
   if (map.hour === 24) map.hour = 0;
   return map as {
     year: number;
@@ -40,15 +38,13 @@ function getZonedParts(date: Date, timeZone: string) {
   };
 }
 
-// Convert a wall-clock time in `timeZone` to the matching UTC instant, accounting
-// for that zone's offset (incl. DST) on that specific date.
 function zonedWallClockToUtc(
   year: number,
   month: number,
   day: number,
   hour: number,
   minute: number,
-  timeZone: string
+  timeZone: string,
 ): Date {
   const guess = Date.UTC(year, month - 1, day, hour, minute, 0);
   const zoned = getZonedParts(new Date(guess), timeZone);
@@ -58,7 +54,7 @@ function zonedWallClockToUtc(
     zoned.day,
     zoned.hour,
     zoned.minute,
-    zoned.second
+    zoned.second,
   );
   const offset = zonedAsUtc - guess;
   return new Date(guess - offset);
@@ -85,7 +81,7 @@ function getNextRun(): Date {
       return buildRun(
         candidate.getUTCFullYear(),
         candidate.getUTCMonth() + 1,
-        candidate.getUTCDate()
+        candidate.getUTCDate(),
       );
     }
   }
@@ -109,7 +105,7 @@ export default function NextRunBanner() {
 
       const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
-        (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
       );
       const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
@@ -124,81 +120,56 @@ export default function NextRunBanner() {
 
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 border-blue-200 dark:border-blue-800">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+    <Card className="h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 border-blue-200 dark:border-blue-800">
+      <CardHeader className="pb-2 pt-4 px-4">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
           {t("nextRunBanner.title")}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="grid md:grid-cols-3 gap-4">
-          {/* Countdown Display */}
-          <div className="md:col-span-2">
-            <div
-              className="text-center p-4 rounded-lg bg-white/50 dark:bg-black/20 border border-blue-200/50 dark:border-blue-700/50"
-              aria-live="polite"
-              aria-label={t("table.accessibility.timeUntilNextRun")}
-            >
-              <p className="text-sm font-medium text-muted-foreground mb-2">
-                {t("nextRunBanner.timeUntilRun")}
-              </p>
-              <p className="text-xl sm:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {timeUntilNextRun || t("nextRunBanner.calculating")}
-              </p>
-            </div>
-          </div>
+      <CardContent className="px-4 pb-4 pt-0 space-y-3">
+        <div
+          className="text-center py-2.5 px-3 rounded-lg bg-white/50 dark:bg-black/20 border border-blue-200/50 dark:border-blue-700/50"
+          aria-live="polite"
+          aria-label={t("table.accessibility.timeUntilNextRun")}
+        >
+          <p className="text-xs font-medium text-muted-foreground mb-0.5">
+            {t("nextRunBanner.timeUntilRun")}
+          </p>
+          <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tabular-nums">
+            {timeUntilNextRun || t("nextRunBanner.calculating")}
+          </p>
+        </div>
 
-          {/* Status Indicators */}
-          <div className="space-y-3">
-            <div className="p-3 rounded-lg bg-white/30 dark:bg-black/10">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {t("nextRunBanner.status")}
-                </p>
-                <Badge
-                  variant="outline"
-                  className="bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800"
-                >
-                  <div className="size-2 rounded-full bg-green-500 mr-1" />
-                  {t("nextRunBanner.active")}
-                </Badge>
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-white/30 dark:bg-black/10">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {t("nextRunBanner.schedule")}
-                </p>
-                <div className="text-right">
-                  <div className="text-sm font-semibold text-foreground">
-                    {t("nextRunBanner.dailyTime")}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {t("nextRunBanner.dailyTimeDetail")}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {t("nextRunBanner.runDays")}
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground uppercase tracking-wide">
+              {t("nextRunBanner.status")}
+            </span>
+            <Badge
+              variant="outline"
+              className="bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800 text-xs"
+            >
+              <div className="size-1.5 rounded-full bg-green-500 mr-1" />
+              {t("nextRunBanner.active")}
+            </Badge>
+          </div>
+          <div className="text-muted-foreground text-end">
+            <span className="font-medium text-foreground">
+              {t("nextRunBanner.dailyTime")}
+            </span>
+            <span className="mx-1">·</span>
+            <span>{t("nextRunBanner.runDays")}</span>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Play className="h-4 w-4" />
-            <span>{t("nextRunBanner.automaticExecution")}</span>
-          </div>
-          <div className="text-muted-foreground">
-            <span>{t("nextRunBanner.nextRun")}</span>
-          </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Play className="h-3 w-3 shrink-0" />
+          <span>{t("nextRunBanner.automaticExecution")}</span>
         </div>
       </CardContent>
     </Card>

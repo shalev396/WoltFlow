@@ -1,17 +1,14 @@
-import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { User, Run } from "../../classes/index.js";
 import {
   type ICustomStepFunctionResult,
 } from "../../types/index.js";
 import { notifyOnError } from "../../utils/notificationUtil.js";
+import { startAutomationExecution } from "../../utils/automationChain.js";
 import dotenv from "dotenv";
 import { initDB } from "../../config/bootstrap.js";
 import { getErrorMessage } from "../../utils/responseUtil.js";
 
 dotenv.config();
-const sfnClient = new SFNClient({
-  region: process.env.AWS_REGION,
-});
 
 await initDB();
 
@@ -139,34 +136,11 @@ export const handler = async (event?: {
       };
     }
 
-    const stateMachineArn = process.env.USER_AUTOMATION_STATE_MACHINE_ARN;
-    if (!stateMachineArn) {
-      throw new Error("USER_AUTOMATION_STATE_MACHINE_ARN not configured");
-    }
+    const triggeredBy = targetUserId
+      ? `manual-user-${targetUserId}`
+      : "automated-schedule";
 
-    const executionInput = {
-      users: userRunData,
-      timestamp: new Date().toISOString(),
-      triggeredBy: targetUserId
-        ? `manual-user-${targetUserId}`
-        : "automated-schedule",
-    };
-
-    const executionName = targetUserId
-      ? `automation-user-${targetUserId}-${Date.now()}`
-      : `automation-${Date.now()}`;
-
-    const startExecutionCommand = new StartExecutionCommand({
-      stateMachineArn: stateMachineArn,
-      name: executionName,
-      input: JSON.stringify(executionInput),
-    });
-
-    const executionResult = await sfnClient.send(startExecutionCommand);
-
-    console.log(
-      `Step Functions execution started: ${executionResult.executionArn}`
-    );
+    await startAutomationExecution(userRunData, triggeredBy);
 
     return {
       runId: "",

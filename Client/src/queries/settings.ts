@@ -9,6 +9,7 @@ import type {
   WoltSettingsResponseData,
   RunSettingsResponseData,
 } from "@/types";
+import { MANUAL_RUN_STATUS_KEY } from "@/queries/runs";
 
 type NotificationSettingsData =
   NotificationSettingsResponseData["notificationSettings"];
@@ -126,6 +127,7 @@ export function useUpdateWoltSettingsMutation() {
     },
     onSuccess: (updatedSettings) => {
       queryClient.setQueryData(WOLT_SETTINGS_KEY, updatedSettings);
+      void queryClient.invalidateQueries({ queryKey: MANUAL_RUN_STATUS_KEY });
       toast.success("Wolt settings updated successfully", {
         description: "Your changes have been saved",
       });
@@ -183,6 +185,7 @@ export function useUpdateRunSettingsMutation() {
     },
     onSuccess: (updatedSettings) => {
       queryClient.setQueryData(RUN_SETTINGS_KEY, updatedSettings);
+      void queryClient.invalidateQueries({ queryKey: MANUAL_RUN_STATUS_KEY });
       toast.success("Run settings updated successfully", {
         description: "Your changes have been saved",
       });
