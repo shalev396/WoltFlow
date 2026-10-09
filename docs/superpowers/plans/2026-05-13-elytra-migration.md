@@ -306,17 +306,18 @@ The `stepFunctions:` block, `provider.ecr.images.woltflow-selenium-image`, the t
 
 ### 5.7 Env var rename map (no new secrets)
 
-| Today                                                                                                    | Future                     | Notes                                                                                        |
-| -------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------- |
-| `DOMAIN_NAME_CLOUD`                                                                                      | `DOMAIN_NAME`              |                                                                                              |
-| `DATABASE_URL_CLOUD`                                                                                     | `DATABASE_URL`             |                                                                                              |
-| `DATABASE_URL_LOCAL`                                                                                     | `DATABASE_URL_LOCAL`       | unchanged; auto-selected via `IS_OFFLINE`                                                    |
-| `IS_LOCAL`                                                                                               | (removed)                  | replaced by `IS_OFFLINE` (set by serverless-offline) + `--param local` for Cognito switching |
-| `S3_CLIENT_BUCKET_NAME`                                                                                  | (removed)                  | derived from `DOMAIN_NAME` in `serverless.yml`                                               |
-| `S3_EMAIL_BUCKET_NAME`, `EMAIL_SUBDOMAIN`, `STACK_BASE_NAME`, `DEVELOPMENT_DATE`                         | (removed)                  | all legacy / unused                                                                          |
-| `ENCRYPTION_KEY`, `ENABLED_SMS`, `S3_ASSETS_BUCKET_NAME`, `LAMBDA_SECURITY_GROUP_ID`, `LAMBDA_SUBNET_ID` | unchanged                  | WoltFlow-specific extras                                                                     |
-| `COGNITO_CLIENT_ID`, `COGNITO_USER_POOL_ID`, `COGNITO_ISSUER`                                            | unchanged                  | required for local dev; populate from CFN outputs after first deploy                         |
-| `DATABASE_PROVIDER`                                                                                      | new — set to `"sequelize"` | required by the Elytra provider switch, even though we only have one provider                |
+| Today                                                                                                    | Future                     | Notes                                                                                         |
+| -------------------------------------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------- |
+| `DOMAIN_NAME_CLOUD`                                                                                      | `DOMAIN_NAME`              |                                                                                               |
+| `DATABASE_URL_CLOUD`                                                                                     | `DATABASE_URL`             |                                                                                               |
+| `DATABASE_URL_LOCAL`                                                                                     | `DATABASE_URL_LOCAL`       | unchanged; auto-selected via `IS_OFFLINE`                                                     |
+| `IS_LOCAL`                                                                                               | (removed)                  | replaced by `IS_OFFLINE` (set by serverless-offline) + `--param local` for Cognito switching  |
+| `S3_CLIENT_BUCKET_NAME`                                                                                  | (removed)                  | derived from `DOMAIN_NAME` in `serverless.yml`                                                |
+| `S3_EMAIL_BUCKET_NAME`, `EMAIL_SUBDOMAIN`, `STACK_BASE_NAME`, `DEVELOPMENT_DATE`                         | (removed)                  | all legacy / unused                                                                           |
+| `ENCRYPTION_KEY`, `ENABLED_SMS`, `S3_ASSETS_BUCKET_NAME`, `LAMBDA_SECURITY_GROUP_ID`, `LAMBDA_SUBNET_ID` | unchanged                  | WoltFlow-specific extras                                                                      |
+| `COGNITO_CLIENT_ID`, `COGNITO_USER_POOL_ID`, `COGNITO_ISSUER`                                            | unchanged                  | required for local dev; populate from CFN outputs after first deploy                          |
+| `WAF_WEB_ACL_ARN`, `BASIC_AUTH_PASSWORD`                                                                 | unchanged                  | shared non-prod WAF gate (README "Non-prod access gate"); basic-auth username = `DOMAIN_NAME` |
+| `DATABASE_PROVIDER`                                                                                      | new — set to `"sequelize"` | required by the Elytra provider switch, even though we only have one provider                 |
 
 `USER_AUTOMATION_STATE_MACHINE_ARN` stays — injected by `serverless.yml` via `Fn::Sub`, not via `.env`.
 

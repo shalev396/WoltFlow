@@ -37,6 +37,7 @@ jobs:
       LAMBDA_SECURITY_GROUP_ID: ${{ secrets.LAMBDA_SECURITY_GROUP_ID }}
       LAMBDA_SUBNET_ID: ${{ secrets.LAMBDA_SUBNET_ID }}
       SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+      WAF_WEB_ACL_ARN: ${{ secrets.WAF_WEB_ACL_ARN }}
 
       ## Per environment secrets
       COGNITO_ISSUER: ${{ secrets.COGNITO_ISSUER }}

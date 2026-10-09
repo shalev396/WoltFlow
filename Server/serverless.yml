@@ -25,6 +25,9 @@
 # 5. After deployment, upload your React build files to the stage-specific client bucket
 # 6. Upload assets/images to the stage-specific assets bucket under the /images/ path
 # 7. Both dev and prod use custom domains with manually created SSL certificates!
+# 8. WAF_WEB_ACL_ARN (optional) attaches the shared web ACL to CloudFront. On gated
+#    hosts (dev) pages need basic auth: username = DOMAIN_NAME_CLOUD, password =
+#    BASIC_AUTH_PASSWORD. /api/ is not gated. See README "Non-prod access gate".
 #
 # ================================
 
@@ -258,6 +261,11 @@ custom:
     true: http://localhost:5173
     false: https://${env:DOMAIN_NAME_CLOUD}
 
+  # Shared WAF web ACL (shalev396-shared-acl, CloudFront scope, us-east-1).
+  # Its nonprod-gate rule asks for basic auth on listed dev/qa hosts (not /api/).
+  # Empty = no WAF attached.
+  wafWebAclArn: ${env:WAF_WEB_ACL_ARN, ''}
+
   # SSL/TLS Certificate configuration - use manually created certificates
   viewerCertificate:
     AcmCertificateArn: ${env:CERTIFICATE_ARN} # Manually created local certificate
@@ -433,6 +441,13 @@ functions:
 
 # AWS Resources Configuration
 resources:
+  Conditions:
+    HasWafWebAcl:
+      Fn::Not:
+        - Fn::Equals:
+            - ${self:custom.wafWebAclArn}
+            - ""
+
   Resources:
     # ================================
     # FEATURE FLAGS (SSM Parameter Store)
@@ -592,6 +607,13 @@ resources:
 
           # SSL/TLS Certificate configuration
           ViewerCertificate: ${self:custom.viewerCertificate}
+
+          # Shared WAF web ACL (only when WAF_WEB_ACL_ARN is set)
+          WebACLId:
+            Fn::If:
+              - HasWafWebAcl
+              - ${self:custom.wafWebAclArn}
+              - Ref: AWS::NoValue
 
           # Default cache behavior for /* - serves React app
           DefaultCacheBehavior:
