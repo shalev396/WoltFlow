@@ -62,6 +62,7 @@ i18n
   .init({
     fallbackLng: "en",
     debug: false,
+    showSupportNotice: false,
     resources,
 
     // Supported languages

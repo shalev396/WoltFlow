@@ -61,6 +61,22 @@ WoltFlow targets a **clean `npm audit`** for anything that ships to production. 
 - **Why we don't `npm audit fix --force`:** It downgrades the plugin to `1.0.1` (older, broken ECR cleanup behavior). That's a regression, not a fix.
 - **Action:** Re-check on every `serverless-ecr-image-cleaner` release. Move to v3-based equivalent when one exists.
 
+## Non-prod access gate
+
+When `WAF_WEB_ACL_ARN` is set, the stack attaches the shared AWS WAF web ACL `shalev396-shared-acl` (CloudFront scope, `us-east-1`) to that stage's CloudFront distribution. Its `nonprod-gate` rule answers with `401` + basic-auth challenge on gated hosts. Today that is `dev.woltflow.shalev396.com` only; `qa.woltflow.shalev396.com` is not in the rule, so QA stays open. Prod is never gated.
+
+- Pages, JS, CSS, `/images/` and `/manifest.webmanifest` on a gated host need basic auth. Username is the host (`dev.woltflow.shalev396.com`, no `https://`), password is that host's gate password.
+- Anything under `/api/` is not gated. API clients need no extra header.
+- Chrome fetches `/manifest.webmanifest` without the basic-auth header, so a 401 for that file in the console after signing in is expected.
+
+| Where                                 | Name                  | Value                                                                                                                                                 |
+| ------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository secret                     | `WAF_WEB_ACL_ARN`     | `arn:aws:wafv2:us-east-1:034362036555:global/webacl/shalev396-shared-acl/cf44ad28-bf3a-4e09-a424-0e5376defc18`. Same for every stage; empty = no WAF. |
+| Environment secret (`dev` only)       | `BASIC_AUTH_PASSWORD` | Gate password for that host. Username is that stage's `DOMAIN_NAME_CLOUD`. Browser tests on the deployed site send it. `/api/` is not gated.          |
+| Environment variable (already exists) | `DOMAIN_NAME_CLOUD`   | The host. This is the basic-auth username. There is no separate username variable.                                                                    |
+
+Deploying from your machine reads the same keys from `Server/.env.<stage>` (see `Server/.env.example`). Never commit the password.
+
 ## Getting Started
 
 1. **Clone the repository**:
