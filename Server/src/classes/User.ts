@@ -46,6 +46,7 @@ import {
   AdminDeleteUserCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { randomInt } from "crypto";
 import fs from "fs";
 import path from "path";
 import type { ExportUserDataResponseData } from "../routes/user/account.js";
@@ -412,7 +413,7 @@ export class User {
       },
     });
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     const verificationRecord = await TwoFactorAuthentication.create({
