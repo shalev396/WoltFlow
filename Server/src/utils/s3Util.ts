@@ -217,18 +217,17 @@ export async function downloadFileFromS3(
       // - https://domain.com/folder/file.jpg (CloudFront)
       // - https://bucket-name.s3.region.amazonaws.com/folder/file.jpg (direct S3)
 
+      const url = new URL(s3Url);
       let bucket: string;
       let key: string;
 
-      if (s3Url.includes("amazonaws.com")) {
+      if (url.hostname.endsWith(".amazonaws.com")) {
         // Direct S3 URL
-        const url = new URL(s3Url);
         bucket = url.hostname.split(".")[0] || "";
         key = url.pathname.substring(1); // Remove leading slash
       } else {
         // CloudFront URL — only the assets bucket remains after the
         // email-forwarding subsystem was retired.
-        const url = new URL(s3Url);
         bucket = process.env.S3_ASSETS_BUCKET_NAME || "";
         key = url.pathname.substring(1);
       }

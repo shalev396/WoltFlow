@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { AuthController } from "../../controllers/index.js";
 import { syncDatabase } from "../../config/bootstrap.js";
+import { authRateLimiter } from "../../middlewares/index.js";
 
 const router = Router();
+
+router.use(authRateLimiter);
 
 export interface SignupRequestBody {
   email: string;

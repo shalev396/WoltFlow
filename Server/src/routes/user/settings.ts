@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { SettingsController } from "../../controllers/index.js";
+import { userRateLimiter } from "../../middlewares/index.js";
 
 const router = Router();
+
+router.use(userRateLimiter);
 
 export interface NotificationSettingsResponseData {
   notificationSettings: {

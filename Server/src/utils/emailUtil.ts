@@ -131,7 +131,8 @@ export async function sendEmail(
     const result = await sesClient.send(sendCommand);
 
     console.log(
-      `Email sent successfully to ${toEmails.join(", ")}:`,
+      "Email sent successfully to %s:",
+      toEmails.join(", "),
       result.MessageId
     );
 
@@ -160,7 +161,9 @@ export async function sendEmail(
  * @returns boolean indicating if email is valid
  */
 export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // The domain must contain a dot that is neither its first nor last character.
+  // Matching up to the first such dot keeps the check linear-time (no ReDoS).
+  const emailRegex = /^[^\s@]+@[^\s@][^\s@.]*\.[^\s@]+$/;
   return emailRegex.test(email) && email.length <= 254; // RFC 5321 limit
 }
 

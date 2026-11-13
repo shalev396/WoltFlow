@@ -2,8 +2,11 @@ import axios from "axios";
 import { responseInterceptor, errorInterceptor } from "@/utils/authInterceptor";
 import { isTokenExpired, refreshTokens } from "@/utils/tokenUtil";
 
-// Check if running locally by checking if origin ends with shalev396.com
-const isLocal = !window.location.origin.includes("shalev396.com");
+// Check if running locally: deployed hosts are shalev396.com or its subdomains
+const { hostname } = window.location;
+const isLocal = !(
+  hostname === "shalev396.com" || hostname.endsWith(".shalev396.com")
+);
 const baseURL = isLocal
   ? "http://localhost:3000/api"
   : `${window.location.origin}/api`;
